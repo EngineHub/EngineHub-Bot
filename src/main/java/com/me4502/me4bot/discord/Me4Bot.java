@@ -59,7 +59,7 @@ public class Me4Bot implements Runnable, EventListener {
 
     private Me4Bot() throws LoginException, InterruptedException, RateLimitedException {
         System.out.println("Connecting...");
-        api = new JDABuilder(AccountType.BOT).setToken("MjE5MDkyOTI4NTg3NDk3NDcy.CqMttw.zIEaDF0dc7N_-o_CkGR_XIEky_g").addListener(this).buildBlocking();
+        api = new JDABuilder(AccountType.BOT).setToken(Settings.token).addListener(this).buildBlocking();
         api.setAutoReconnect(true);
         System.out.println("Connected");
         for (Module module : modules) {

@@ -15,6 +15,7 @@ public class Settings {
 
     private static CommentedConfigurationNode loadedNode;
 
+    public static String token;
     public static List<String> autoEraseChannels = Lists.newArrayList();
     public static String alertChannel = "alerts";
 
@@ -30,6 +31,7 @@ public class Settings {
                 file.createNewFile();
             }
 
+            token = loadedNode.getNode("token").getString("token");
             autoEraseChannels = loadedNode.getNode("auto-erase-channels").getList(TypeToken.of(String.class), autoEraseChannels);
             alertChannel = loadedNode.getNode("alert-channel").getString(alertChannel);
 
@@ -42,6 +44,7 @@ public class Settings {
     public static void save() {
         ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setPath(new File("settings.conf").getAbsoluteFile().toPath()).build(); // Create the loader
         try {
+            loadedNode.getNode("token").setValue(token);
             loadedNode.getNode("auto-erase-channels").setValue(new TypeToken<List<String>>(){}, autoEraseChannels);
             loadedNode.getNode("alert-channel").setValue(alertChannel);
 
