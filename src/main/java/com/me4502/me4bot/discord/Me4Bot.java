@@ -4,75 +4,73 @@ import com.google.common.collect.Sets;
 import com.me4502.me4bot.discord.module.Alerts;
 import com.me4502.me4bot.discord.module.AutoErase;
 import com.me4502.me4bot.discord.module.Module;
-import de.btobastian.javacord.DiscordAPI;
-import de.btobastian.javacord.Javacord;
-import de.btobastian.javacord.entities.Channel;
-import de.btobastian.javacord.entities.Server;
-import de.btobastian.javacord.entities.User;
-import de.btobastian.javacord.entities.message.Message;
-import de.btobastian.javacord.entities.message.MessageHistory;
-import de.btobastian.javacord.listener.Listener;
-import de.btobastian.javacord.listener.message.MessageCreateListener;
+import net.dv8tion.jda.core.AccountType;
+import net.dv8tion.jda.core.JDA;
+import net.dv8tion.jda.core.JDABuilder;
+import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.core.events.Event;
+import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.core.exceptions.RateLimitedException;
+import net.dv8tion.jda.core.hooks.EventListener;
 
-import java.util.List;
+import javax.security.auth.login.LoginException;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
-public class Me4Bot implements Runnable, MessageCreateListener {
+public class Me4Bot implements Runnable, EventListener {
 
     public static Me4Bot bot;
     private static boolean running = true;
 
     public static boolean isAuthorised(User user) {
-        return user.getName().equals("Me4502") && user.getDiscriminator().contains("3758");
+        return user.getName().equals("Me4502") && user.getDiscriminator().equals("3758");
     }
 
     public static void main(String[] args) {
         Settings.load();
 
-        bot = new Me4Bot();
+        try {
+            bot = new Me4Bot();
 
-        Thread thread = new Thread(bot);
-        thread.setDaemon(false);
-        thread.setName("Main Bot Thread");
-        thread.start();
+            Thread thread = new Thread(bot);
+            thread.setDaemon(false);
+            thread.setName("Main Bot Thread");
+            thread.start();
 
-        while (running) {
-            try {
-                Thread.sleep(1000L);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            while (running) {
+                try {
+                    Thread.sleep(1000L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
+
+            bot.disconnect();
+
+            Settings.save();
+
+            // Force kill.
+            System.exit(0);
+        } catch (LoginException | InterruptedException | RateLimitedException e) {
+            e.printStackTrace();
         }
-
-        bot.disconnect();
-
-        Settings.save();
-
-        // Force kill.
-        System.exit(0);
     }
 
-    public DiscordAPI api;
+    public JDA api;
 
-    private Me4Bot() {
-        api = Javacord.getApi("MjE5MDkyOTI4NTg3NDk3NDcy.CqMttw.zIEaDF0dc7N_-o_CkGR_XIEky_g", true);
-
+    private Me4Bot() throws LoginException, InterruptedException, RateLimitedException {
         System.out.println("Connecting...");
-        api.connectBlocking();
+        api = new JDABuilder(AccountType.BOT).setToken("MjE5MDkyOTI4NTg3NDk3NDcy.CqMttw.zIEaDF0dc7N_-o_CkGR_XIEky_g").addListener(this).buildBlocking();
         api.setAutoReconnect(true);
         System.out.println("Connected");
-        api.registerListener(this);
         for (Module module : modules) {
-            if (module instanceof Listener) {
-                api.registerListener((Listener) module);
+            if (module instanceof EventListener) {
+                api.addEventListener((EventListener) module);
             }
         }
     }
 
     public void disconnect() {
-        api.disconnect();
+        api.shutdown(true);
     }
 
     private Set<Module> modules = Sets.newHashSet(new AutoErase(), new Alerts());
@@ -98,9 +96,11 @@ public class Me4Bot implements Runnable, MessageCreateListener {
     }
 
     @Override
-    public void onMessageCreate(DiscordAPI discordAPI, Message message) {
-        if (message.getContent().equals("~stop") && isAuthorised(message.getAuthor())) {
-            running = false;
+    public void onEvent(Event event) {
+        if (event instanceof MessageReceivedEvent) {
+            if (((MessageReceivedEvent) event).getMessage().getContent().equals("~stop") && isAuthorised(((MessageReceivedEvent) event).getAuthor())) {
+                running = false;
+            }
         }
     }
 }
