@@ -2,42 +2,38 @@ package com.me4502.me4bot.discord.module;
 
 import com.me4502.me4bot.discord.Me4Bot;
 import com.me4502.me4bot.discord.Settings;
-import de.btobastian.javacord.DiscordAPI;
-import de.btobastian.javacord.entities.Channel;
-import de.btobastian.javacord.entities.Server;
-import de.btobastian.javacord.entities.User;
-import de.btobastian.javacord.entities.message.Message;
-import de.btobastian.javacord.listener.message.MessageCreateListener;
-import de.btobastian.javacord.listener.server.ServerMemberAddListener;
-import de.btobastian.javacord.listener.server.ServerMemberRemoveListener;
+import net.dv8tion.jda.core.entities.MessageChannel;
+import net.dv8tion.jda.core.events.Event;
+import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.core.events.guild.member.GuildMemberLeaveEvent;
+import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.core.hooks.EventListener;
 
-public class Alerts implements Module, ServerMemberAddListener, ServerMemberRemoveListener, MessageCreateListener {
+public class Alerts implements Module, EventListener {
 
     @Override
-    public void onMessageCreate(DiscordAPI discordAPI, Message message) {
-        if (message.getContent().equals("~alert")) {
-            if (Me4Bot.isAuthorised(message.getAuthor())) {
-                Settings.alertChannel = message.getChannelReceiver().getId();
-                message.getChannelReceiver().sendMessage("Set alert channel!");
+    public void onEvent(Event event) {
+        if (event instanceof MessageReceivedEvent) {
+            System.out.println("Received message: " + ((MessageReceivedEvent) event).getMessage().getContent());
 
-                Settings.save();
+            if (((MessageReceivedEvent) event).getMessage().getContent().equals("~alert")) {
+                if (Me4Bot.isAuthorised(((MessageReceivedEvent) event).getMessage().getAuthor())) {
+                    Settings.alertChannel = ((MessageReceivedEvent) event).getChannel().getId();
+                    ((MessageReceivedEvent) event).getChannel().sendMessage("Set alert channel!").queue();
+
+                    Settings.save();
+                }
             }
-        }
-    }
-
-    @Override
-    public void onServerMemberAdd(DiscordAPI discordAPI, User user, Server server) {
-        Channel channel = discordAPI.getChannelById(Settings.alertChannel);
-        if (channel != null) {
-            channel.sendMessage("**" + user.getName() + "** has joined the server!");
-        }
-    }
-
-    @Override
-    public void onServerMemberRemove(DiscordAPI discordAPI, User user, Server server) {
-        Channel channel = discordAPI.getChannelById(Settings.alertChannel);
-        if (channel != null) {
-            channel.sendMessage("**" + user.getName() + "** has left the server!");
+        } else if (event instanceof GuildMemberJoinEvent) {
+            MessageChannel channel = Me4Bot.bot.api.getTextChannelById(Settings.alertChannel);
+            if (channel != null) {
+                channel.sendMessage("**" + ((GuildMemberJoinEvent) event).getMember().getNickname() + "** has joined the server!").queue();
+            }
+        } else if (event instanceof GuildMemberLeaveEvent) {
+            MessageChannel channel = Me4Bot.bot.api.getTextChannelById(Settings.alertChannel);
+            if (channel != null) {
+                channel.sendMessage("**" + ((GuildMemberLeaveEvent) event).getMember().getNickname() + "** has left the server!").queue();
+            }
         }
     }
 }
