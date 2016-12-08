@@ -14,8 +14,6 @@ public class Alerts implements Module, EventListener {
     @Override
     public void onEvent(Event event) {
         if (event instanceof MessageReceivedEvent) {
-            System.out.println("Received message: " + ((MessageReceivedEvent) event).getMessage().getContent());
-
             if (((MessageReceivedEvent) event).getMessage().getContent().equals("~alert")) {
                 if (Me4Bot.isAuthorised(((MessageReceivedEvent) event).getMessage().getAuthor())) {
                     Settings.alertChannel = ((MessageReceivedEvent) event).getChannel().getId();
@@ -32,7 +30,6 @@ public class Alerts implements Module, EventListener {
         } else if (event instanceof GuildMemberLeaveEvent) {
             MessageChannel channel = Me4Bot.bot.api.getTextChannelById(Settings.alertChannel);
             if (channel != null) {
-
                 channel.sendMessage("**" + ((GuildMemberLeaveEvent) event).getMember().getUser().getName() + "** has left the server!").queue();
             }
         }
