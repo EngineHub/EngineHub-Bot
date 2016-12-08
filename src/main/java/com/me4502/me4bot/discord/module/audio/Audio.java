@@ -65,6 +65,21 @@ public class Audio implements Module, EventListener {
                     audioManager.closeAudioConnection();
                     audioManager = null;
                 }
+            } else if (message.startsWith("~volume")) {
+                String volumeString = message.substring(8);
+                int volume = 100;
+                try {
+                    volume = Integer.parseInt(volumeString);
+                } catch (Exception e) {
+                }
+                player.setVolume(volume);
+                ((MessageReceivedEvent) event).getChannel().sendMessage("Set volume to " + volume).queue();
+            } else if (message.equals("~pause")) {
+                player.setPaused(true);
+                ((MessageReceivedEvent) event).getChannel().sendMessage("Paused player").queue();
+            } else if (message.equals("~resume")) {
+                player.setPaused(false);
+                ((MessageReceivedEvent) event).getChannel().sendMessage("Resume player").queue();
             } else if (message.startsWith("~play ")) {
                 String songId = message.substring(6);
                 try {
