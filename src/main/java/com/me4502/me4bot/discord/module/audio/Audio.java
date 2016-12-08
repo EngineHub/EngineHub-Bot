@@ -14,6 +14,7 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.EventListener;
 import net.dv8tion.jda.core.managers.AudioManager;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
@@ -23,6 +24,8 @@ public class Audio implements Module, EventListener {
     private AudioPlayer player;
     private AudioManager audioManager;
 
+    private AudioQueue audioQueue;
+
     @Override
     public void onInitialise() {
         playerManager = new DefaultAudioPlayerManager();
@@ -31,6 +34,7 @@ public class Audio implements Module, EventListener {
         playerManager.registerSourceManager(new YoutubeAudioSourceManager());
 
         player = playerManager.createPlayer();
+        audioQueue = new AudioQueue(player);
     }
 
     @Override
@@ -57,6 +61,7 @@ public class Audio implements Module, EventListener {
                     audioManager = ((MessageReceivedEvent) event).getGuild().getAudioManager();
                     audioManager.setSendingHandler(new DiscordAudioSender(player));
                     audioManager.openAudioConnection(voiceChannelOptional.get());
+                    audioQueue.setTextChannel(((MessageReceivedEvent) event).getTextChannel());
                 } else {
                     ((MessageReceivedEvent) event).getChannel().sendMessage("You aren't in a voice channel!").queue();
                 }
@@ -80,21 +85,39 @@ public class Audio implements Module, EventListener {
             } else if (message.equals("~resume")) {
                 player.setPaused(false);
                 ((MessageReceivedEvent) event).getChannel().sendMessage("Resume player").queue();
+            } else if (message.equals("~skip")) {
+                audioQueue.playNext();
+            } else if (message.equals("~queue")) {
+                StringBuilder queueMessage = new StringBuilder();
+                List<String> tracks = audioQueue.getPrettyQueue();
+                queueMessage.append("Current Queue: (Length of ").append(tracks.size()).append(")\n");
+                int num = 1;
+                for (String track : tracks) {
+                    if (queueMessage.length() + track.length() > 1980) {
+                        ((MessageReceivedEvent) event).getChannel().sendMessage(queueMessage.toString()).queue();
+                        queueMessage = new StringBuilder();
+                    }
+                    queueMessage.append("**").append(num).append("**: ").append(track).append('\n');
+                    num++;
+                }
+                ((MessageReceivedEvent) event).getChannel().sendMessage(queueMessage.toString()).queue();
+            } else if (message.equals("~clear")) {
+                audioQueue.clearQueue();
             } else if (message.startsWith("~play ")) {
                 String songId = message.substring(6);
                 try {
                     playerManager.loadItem(songId, new AudioLoadResultHandler() {
                         @Override
                         public void trackLoaded(AudioTrack track) {
-                            ((MessageReceivedEvent) event).getChannel().sendMessage("Playing track: " + songId).queue();
-                            player.playTrack(track);
+                            ((MessageReceivedEvent) event).getChannel().sendMessage("Queued track: " + songId).queue();
+                            audioQueue.queue(track);
                         }
 
                         @Override
                         public void playlistLoaded(AudioPlaylist playlist) {
-                            ((MessageReceivedEvent) event).getChannel().sendMessage("Playing playlist: " + songId).queue();
+                            ((MessageReceivedEvent) event).getChannel().sendMessage("Queued playlist: " + songId).queue();
                             for (AudioTrack track : playlist.getTracks()) {
-                                player.playTrack(track);
+                                audioQueue.queue(track);
                             }
                         }
 
