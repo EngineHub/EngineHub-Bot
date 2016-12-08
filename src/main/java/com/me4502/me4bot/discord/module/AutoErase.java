@@ -24,6 +24,9 @@ public class AutoErase implements Module, EventListener {
                         MessageHistory history = channel.getHistory();
                         try {
                             for (Message message : history.retrievePast(100).block()) {
+                                if (message.getContent().startsWith("~nodelete") && Me4Bot.isAuthorised(message.getAuthor())) {
+                                    continue;
+                                }
                                 if (System.currentTimeMillis() - message.getCreationTime().toInstant().toEpochMilli() > 1000 * 60 * 10) {
                                     message.deleteMessage().queue();
                                 }
