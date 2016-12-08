@@ -27,12 +27,13 @@ public class Alerts implements Module, EventListener {
         } else if (event instanceof GuildMemberJoinEvent) {
             MessageChannel channel = Me4Bot.bot.api.getTextChannelById(Settings.alertChannel);
             if (channel != null) {
-                channel.sendMessage("**" + ((GuildMemberJoinEvent) event).getMember().getNickname() + "** has joined the server!").queue();
+                channel.sendMessage("**" + ((GuildMemberJoinEvent) event).getMember().getUser().getName() + "** has joined the server!").queue();
             }
         } else if (event instanceof GuildMemberLeaveEvent) {
             MessageChannel channel = Me4Bot.bot.api.getTextChannelById(Settings.alertChannel);
             if (channel != null) {
-                channel.sendMessage("**" + ((GuildMemberLeaveEvent) event).getMember().getNickname() + "** has left the server!").queue();
+
+                channel.sendMessage("**" + ((GuildMemberLeaveEvent) event).getMember().getUser().getName() + "** has left the server!").queue();
             }
         }
     }
