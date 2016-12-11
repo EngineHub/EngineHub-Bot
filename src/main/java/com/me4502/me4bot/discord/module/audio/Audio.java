@@ -2,10 +2,15 @@ package com.me4502.me4bot.discord.module.audio;
 
 import com.me4502.me4bot.discord.module.Module;
 import com.sedmelluq.discord.lavaplayer.player.*;
+import com.sedmelluq.discord.lavaplayer.source.bandcamp.BandcampAudioSourceManager;
+import com.sedmelluq.discord.lavaplayer.source.http.HttpAudioSourceManager;
+import com.sedmelluq.discord.lavaplayer.source.soundcloud.SoundCloudAudioSourceManager;
+import com.sedmelluq.discord.lavaplayer.source.vimeo.VimeoAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.entities.VoiceChannel;
@@ -32,6 +37,10 @@ public class Audio implements Module, EventListener {
 
         playerManager.getConfiguration().setResamplingQuality(AudioConfiguration.ResamplingQuality.LOW);
         playerManager.registerSourceManager(new YoutubeAudioSourceManager());
+        playerManager.registerSourceManager(new VimeoAudioSourceManager());
+        playerManager.registerSourceManager(new SoundCloudAudioSourceManager());
+        playerManager.registerSourceManager(new HttpAudioSourceManager());
+        playerManager.registerSourceManager(new BandcampAudioSourceManager());
 
         player = playerManager.createPlayer();
         audioQueue = new AudioQueue(player);
@@ -109,15 +118,19 @@ public class Audio implements Module, EventListener {
                     playerManager.loadItem(songId, new AudioLoadResultHandler() {
                         @Override
                         public void trackLoaded(AudioTrack track) {
-                            ((MessageReceivedEvent) event).getChannel().sendMessage("Queued track: " + songId).queue();
+                            ((MessageReceivedEvent) event).getChannel().sendMessage("Queued track: " + AudioQueue.prettify(track)).queue();
                             audioQueue.queue(track);
                         }
 
                         @Override
                         public void playlistLoaded(AudioPlaylist playlist) {
-                            ((MessageReceivedEvent) event).getChannel().sendMessage("Queued playlist: " + songId).queue();
-                            for (AudioTrack track : playlist.getTracks()) {
-                                audioQueue.queue(track);
+                            if (playlist.isSearchResult()) {
+                                trackLoaded(playlist.getTracks().get(0));
+                            } else {
+                                ((MessageReceivedEvent) event).getChannel().sendMessage("Queued playlist: " + playlist.getName()).queue();
+                                for (AudioTrack track : playlist.getTracks()) {
+                                    audioQueue.queue(track);
+                                }
                             }
                         }
 

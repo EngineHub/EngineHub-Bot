@@ -59,7 +59,7 @@ public class AudioQueue extends AudioEventAdapter {
         return tracks.stream().map(AudioQueue::prettify).collect(Collectors.toList());
     }
 
-    private static String prettify(AudioTrack track) {
+    public static String prettify(AudioTrack track) {
         return track.getInfo().title + " by " + track.getInfo().author + " (" + prettifyTime(track.getDuration()) + ')';
     }
 
@@ -86,6 +86,9 @@ public class AudioQueue extends AudioEventAdapter {
     public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
         super.onTrackEnd(player, track, endReason);
         if (endReason == AudioTrackEndReason.FINISHED) {
+            playNext();
+        } else if (endReason == AudioTrackEndReason.LOAD_FAILED) {
+            textChannel.sendMessage("Encountered an error playing " + prettify(track) + '.');
             playNext();
         }
     }
