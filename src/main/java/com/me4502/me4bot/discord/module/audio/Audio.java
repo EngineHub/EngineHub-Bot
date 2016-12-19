@@ -37,6 +37,7 @@ public class Audio implements Module, EventListener {
 
         playerManager.getConfiguration().setResamplingQuality(AudioConfiguration.ResamplingQuality.LOW);
         playerManager.registerSourceManager(new YoutubeAudioSourceManager());
+        playerManager.registerSourceManager(new Me45028BitSourceManager());
         playerManager.registerSourceManager(new VimeoAudioSourceManager());
         playerManager.registerSourceManager(new SoundCloudAudioSourceManager());
         playerManager.registerSourceManager(new HttpAudioSourceManager());
@@ -96,6 +97,8 @@ public class Audio implements Module, EventListener {
                 ((MessageReceivedEvent) event).getChannel().sendMessage("Resume player").queue();
             } else if (message.equals("~skip")) {
                 audioQueue.playNext();
+            } else if (message.equals("~shuffle")) {
+                audioQueue.shuffle();
             } else if (message.equals("~queue")) {
                 StringBuilder queueMessage = new StringBuilder();
                 List<String> tracks = audioQueue.getPrettyQueue();
