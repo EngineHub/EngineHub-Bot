@@ -8,8 +8,11 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import net.dv8tion.jda.core.entities.TextChannel;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 public class AudioQueue extends AudioEventAdapter {
@@ -107,5 +110,14 @@ public class AudioQueue extends AudioEventAdapter {
 
         textChannel.sendMessage("Got stuck whilst playing " + prettify(track) + ". Skipping.");
         playNext();
+    }
+
+    public void shuffle() {
+        List<AudioTrack> trackTemp = new ArrayList<>(tracks.stream().collect(Collectors.toList()));
+        Collections.shuffle(trackTemp, ThreadLocalRandom.current());
+        tracks.clear();
+        for (AudioTrack track : trackTemp) {
+            tracks.offer(track);
+        }
     }
 }
