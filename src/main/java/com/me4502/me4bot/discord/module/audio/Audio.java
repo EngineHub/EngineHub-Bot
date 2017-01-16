@@ -10,10 +10,7 @@ import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.entities.VoiceChannel;
+import net.dv8tion.jda.core.entities.*;
 import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.EventListener;
@@ -80,7 +77,7 @@ public class Audio implements Module, EventListener {
                     audioManager.closeAudioConnection();
                     audioManager = null;
                 }
-            } else if (message.startsWith("~volume")) {
+            } else if (message.startsWith("~volume ")) {
                 String volumeString = message.substring(8);
                 int volume = 100;
                 try {
@@ -99,6 +96,21 @@ public class Audio implements Module, EventListener {
                 audioQueue.playNext();
             } else if (message.equals("~shuffle")) {
                 audioQueue.shuffle();
+            } else if (message.startsWith("~removequeue ")) {
+                String index = message.substring(13);
+                int i = -1;
+                try {
+                    i = Integer.parseInt(index);
+                } catch (Exception e) {
+                }
+                if (i >= 0 && i < audioQueue.size()) {
+                    AudioTrack track = audioQueue.remove(i);
+                    if (track != null) {
+                        ((MessageReceivedEvent) event).getChannel().sendMessage("Removed " + AudioQueue.prettify(track) + " from the queue").queue();
+                    }
+                } else {
+                    ((MessageReceivedEvent) event).getChannel().sendMessage("Unknown queue index").queue();
+                }
             } else if (message.equals("~queue")) {
                 StringBuilder queueMessage = new StringBuilder();
                 List<String> tracks = audioQueue.getPrettyQueue();
@@ -115,42 +127,56 @@ public class Audio implements Module, EventListener {
                 ((MessageReceivedEvent) event).getChannel().sendMessage(queueMessage.toString()).queue();
             } else if (message.equals("~clear")) {
                 audioQueue.clearQueue();
+            } else if (message.equals("~rickroll")) {
+                playSong(((MessageReceivedEvent) event).getChannel(), "https://www.youtube.com/watch?v=dQw4w9WgXcQ", true, false);
             } else if (message.startsWith("~play ")) {
                 String songId = message.substring(6);
-                try {
-                    playerManager.loadItem(songId, new AudioLoadResultHandler() {
-                        @Override
-                        public void trackLoaded(AudioTrack track) {
-                            ((MessageReceivedEvent) event).getChannel().sendMessage("Queued track: " + AudioQueue.prettify(track)).queue();
+                playSong(((MessageReceivedEvent) event).getChannel(), songId, false, true);
+            }
+        }
+    }
+
+    public void playSong(MessageChannel channel, String songId, boolean upNext, boolean showMessage) {
+        try {
+            playerManager.loadItem(songId, new AudioLoadResultHandler() {
+                @Override
+                public void trackLoaded(AudioTrack track) {
+                    if (showMessage) {
+                        channel.sendMessage("Queued track: " + AudioQueue.prettify(track)).queue();
+                    }
+                    if (upNext) {
+                        audioQueue.queueNext(track);
+                    } else {
+                        audioQueue.queue(track);
+                    }
+                }
+
+                @Override
+                public void playlistLoaded(AudioPlaylist playlist) {
+                    if (playlist.isSearchResult()) {
+                        trackLoaded(playlist.getTracks().get(0));
+                    } else {
+                        if (showMessage) {
+                            channel.sendMessage("Queued playlist: " + playlist.getName()).queue();
+                        }
+                        for (AudioTrack track : playlist.getTracks()) {
                             audioQueue.queue(track);
                         }
-
-                        @Override
-                        public void playlistLoaded(AudioPlaylist playlist) {
-                            if (playlist.isSearchResult()) {
-                                trackLoaded(playlist.getTracks().get(0));
-                            } else {
-                                ((MessageReceivedEvent) event).getChannel().sendMessage("Queued playlist: " + playlist.getName()).queue();
-                                for (AudioTrack track : playlist.getTracks()) {
-                                    audioQueue.queue(track);
-                                }
-                            }
-                        }
-
-                        @Override
-                        public void noMatches() {
-                            ((MessageReceivedEvent) event).getChannel().sendMessage("No song found for text: " + songId).queue();
-                        }
-
-                        @Override
-                        public void loadFailed(FriendlyException exception) {
-                            ((MessageReceivedEvent) event).getChannel().sendMessage("Failed to load song: " + songId).queue();
-                        }
-                    }).get();
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
+                    }
                 }
-            }
+
+                @Override
+                public void noMatches() {
+                    channel.sendMessage("No song found for text: " + songId).queue();
+                }
+
+                @Override
+                public void loadFailed(FriendlyException exception) {
+                    channel.sendMessage("Failed to load song: " + songId).queue();
+                }
+            }).get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
         }
     }
 }
