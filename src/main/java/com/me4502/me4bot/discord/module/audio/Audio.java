@@ -129,6 +129,7 @@ public class Audio implements Module, EventListener {
                 audioQueue.clearQueue();
             } else if (message.equals("~rickroll")) {
                 playSong(((MessageReceivedEvent) event).getChannel(), "https://www.youtube.com/watch?v=dQw4w9WgXcQ", true, false);
+                ((MessageReceivedEvent) event).getMessage().deleteMessage().queue();
             } else if (message.startsWith("~play ")) {
                 String songId = message.substring(6);
                 playSong(((MessageReceivedEvent) event).getChannel(), songId, false, true);
