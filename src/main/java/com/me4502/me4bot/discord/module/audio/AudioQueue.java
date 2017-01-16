@@ -34,6 +34,29 @@ public class AudioQueue extends AudioEventAdapter {
         }
     }
 
+    public void queueNext(AudioTrack track) {
+        List<AudioTrack> trackTemp = new ArrayList<>(tracks);
+        trackTemp.add(0, track);
+        tracks.clear();
+        for (AudioTrack oldTrack : trackTemp) {
+            tracks.offer(oldTrack);
+        }
+
+        if (this.player.getPlayingTrack() == null) {
+            playNext();
+        }
+    }
+
+    public AudioTrack remove(int index) {
+        List<AudioTrack> trackTemp = new ArrayList<>(tracks);
+        AudioTrack removed = trackTemp.remove(index);
+        tracks.clear();
+        for (AudioTrack track : trackTemp) {
+            tracks.offer(track);
+        }
+        return removed;
+    }
+
     public void setTextChannel(TextChannel textChannel) {
         this.textChannel = textChannel;
     }
@@ -63,7 +86,11 @@ public class AudioQueue extends AudioEventAdapter {
     }
 
     public static String prettify(AudioTrack track) {
-        return track.getInfo().title + " by " + track.getInfo().author + " (" + prettifyTime(track.getDuration()) + ')';
+        String pretty = track.getInfo().title + " by " + track.getInfo().author;
+        if (track.getDuration() < Integer.MAX_VALUE) {
+            pretty += " (" + prettifyTime(track.getDuration()) + ')';
+        }
+        return pretty;
     }
 
     private static String prettifyTime(long time) {
@@ -113,11 +140,15 @@ public class AudioQueue extends AudioEventAdapter {
     }
 
     public void shuffle() {
-        List<AudioTrack> trackTemp = new ArrayList<>(tracks.stream().collect(Collectors.toList()));
+        List<AudioTrack> trackTemp = new ArrayList<>(tracks);
         Collections.shuffle(trackTemp, ThreadLocalRandom.current());
         tracks.clear();
         for (AudioTrack track : trackTemp) {
             tracks.offer(track);
         }
+    }
+
+    public int size() {
+        return tracks.size();
     }
 }
