@@ -100,7 +100,7 @@ public class Audio implements Module, EventListener {
                 String index = message.substring(13);
                 int i = -1;
                 try {
-                    i = Integer.parseInt(index);
+                    i = Integer.parseInt(index) - 1;
                 } catch (Exception e) {
                 }
                 if (i >= 0 && i < audioQueue.size()) {
