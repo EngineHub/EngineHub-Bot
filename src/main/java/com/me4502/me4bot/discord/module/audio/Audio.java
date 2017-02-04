@@ -125,6 +125,12 @@ public class Audio implements Module, EventListener {
                     num++;
                 }
                 ((MessageReceivedEvent) event).getChannel().sendMessage(queueMessage.toString()).queue();
+            } else if (message.equals("~nowplaying")) {
+                if (player.getPlayingTrack() != null) {
+                    ((MessageReceivedEvent) event).getChannel().sendMessage("Now playing: " + AudioQueue.prettify(player.getPlayingTrack())).queue();
+                } else {
+                    ((MessageReceivedEvent) event).getChannel().sendMessage("Nothing is currently playing!").queue();
+                }
             } else if (message.equals("~clear")) {
                 audioQueue.clearQueue();
             } else if (message.equals("~rickroll")) {
@@ -168,12 +174,16 @@ public class Audio implements Module, EventListener {
 
                 @Override
                 public void noMatches() {
-                    channel.sendMessage("No song found for text: " + songId).queue();
+                    if (showMessage) {
+                        channel.sendMessage("No song found for text: " + songId).queue();
+                    }
                 }
 
                 @Override
                 public void loadFailed(FriendlyException exception) {
-                    channel.sendMessage("Failed to load song: " + songId).queue();
+                    if (showMessage) {
+                        channel.sendMessage("Failed to load song: " + songId).queue();
+                    }
                 }
             }).get();
         } catch (InterruptedException | ExecutionException e) {
