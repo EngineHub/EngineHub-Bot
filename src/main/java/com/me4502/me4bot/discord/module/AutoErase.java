@@ -23,7 +23,7 @@ public class AutoErase implements Module, EventListener {
                     if (Settings.autoEraseChannels.contains(channel.getId())) {
                         MessageHistory history = channel.getHistory();
                         try {
-                            for (Message message : history.retrievePast(100).block()) {
+                            for (Message message : history.retrievePast(100).complete(true)) {
                                 if (message.isPinned()) {
                                     continue;
                                 }
