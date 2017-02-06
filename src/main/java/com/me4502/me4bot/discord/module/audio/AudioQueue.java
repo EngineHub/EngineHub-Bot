@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 public class AudioQueue extends AudioEventAdapter {
 
-    private Queue<AudioTrack> tracks = Queues.newArrayDeque();
+    private Queue<WrappedTrack> tracks = Queues.newArrayDeque();
     private AudioPlayer player;
     private TextChannel textChannel;
 
@@ -26,7 +26,7 @@ public class AudioQueue extends AudioEventAdapter {
         this.player.addListener(this);
     }
 
-    public void queue(AudioTrack track) {
+    public void queue(WrappedTrack track) {
         tracks.offer(track);
 
         if (this.player.getPlayingTrack() == null) {
@@ -34,11 +34,11 @@ public class AudioQueue extends AudioEventAdapter {
         }
     }
 
-    public void queueNext(AudioTrack track) {
-        List<AudioTrack> trackTemp = new ArrayList<>(tracks);
+    public void queueNext(WrappedTrack track) {
+        List<WrappedTrack> trackTemp = new ArrayList<>(tracks);
         trackTemp.add(0, track);
         tracks.clear();
-        for (AudioTrack oldTrack : trackTemp) {
+        for (WrappedTrack oldTrack : trackTemp) {
             tracks.offer(oldTrack);
         }
 
@@ -47,11 +47,11 @@ public class AudioQueue extends AudioEventAdapter {
         }
     }
 
-    public AudioTrack remove(int index) {
-        List<AudioTrack> trackTemp = new ArrayList<>(tracks);
-        AudioTrack removed = trackTemp.remove(index);
+    public WrappedTrack remove(int index) {
+        List<WrappedTrack> trackTemp = new ArrayList<>(tracks);
+        WrappedTrack removed = trackTemp.remove(index);
         tracks.clear();
-        for (AudioTrack track : trackTemp) {
+        for (WrappedTrack track : trackTemp) {
             tracks.offer(track);
         }
         return removed;
@@ -67,9 +67,11 @@ public class AudioQueue extends AudioEventAdapter {
 
     public void playNext() {
         if (!tracks.isEmpty()) {
-            AudioTrack track = tracks.poll();
-            this.player.playTrack(track);
-            textChannel.sendMessage("Playing track: " + prettify(track)).queue();
+            WrappedTrack track = tracks.poll();
+            this.player.playTrack(track.getTrack());
+            if (track.shouldShowMessage()) {
+                textChannel.sendMessage("Playing track: " + track.getPretty()).queue();
+            }
         } else if (this.player.getPlayingTrack() != null) {
             this.player.stopTrack();
         }
@@ -82,34 +84,7 @@ public class AudioQueue extends AudioEventAdapter {
     }
 
     public List<String> getPrettyQueue() {
-        return tracks.stream().map(AudioQueue::prettify).collect(Collectors.toList());
-    }
-
-    public static String prettify(AudioTrack track) {
-        String pretty = track.getInfo().title + " by " + track.getInfo().author;
-        if (track.getDuration() < Integer.MAX_VALUE) {
-            pretty += " (" + prettifyTime(track.getDuration()) + ')';
-        }
-        return pretty;
-    }
-
-    private static String prettifyTime(long time) {
-        time /= 1000;
-
-        long seconds = time % 60;
-        long minutes = time / 60;
-        long hours = minutes / 60;
-        minutes %= 60;
-
-        String format = seconds + "s";
-        if (minutes > 0 || hours > 0) {
-            format = minutes + "m" + format;
-            if (hours > 0) {
-                format = hours + "h" + format;
-            }
-        }
-
-        return format;
+        return tracks.stream().map(WrappedTrack::getPretty).collect(Collectors.toList());
     }
 
     @Override
@@ -118,7 +93,7 @@ public class AudioQueue extends AudioEventAdapter {
         if (endReason == AudioTrackEndReason.FINISHED) {
             playNext();
         } else if (endReason == AudioTrackEndReason.LOAD_FAILED) {
-            textChannel.sendMessage("Encountered an error playing " + prettify(track) + '.');
+            textChannel.sendMessage("Encountered an error playing " + new WrappedTrack(track).getPretty() + '.');
             playNext();
         }
     }
@@ -127,7 +102,7 @@ public class AudioQueue extends AudioEventAdapter {
     public void onTrackException(AudioPlayer player, AudioTrack track, FriendlyException exception) {
         super.onTrackException(player, track, exception);
 
-        textChannel.sendMessage("Encountered an error playing " + prettify(track) + ". " + exception.getMessage());
+        textChannel.sendMessage("Encountered an error playing " + new WrappedTrack(track).getPretty() + ". " + exception.getMessage());
         playNext();
     }
 
@@ -135,15 +110,15 @@ public class AudioQueue extends AudioEventAdapter {
     public void onTrackStuck(AudioPlayer player, AudioTrack track, long thresholdMs) {
         super.onTrackStuck(player, track, thresholdMs);
 
-        textChannel.sendMessage("Got stuck whilst playing " + prettify(track) + ". Skipping.");
+        textChannel.sendMessage("Got stuck whilst playing " + new WrappedTrack(track).getPretty() + ". Skipping.");
         playNext();
     }
 
     public void shuffle() {
-        List<AudioTrack> trackTemp = new ArrayList<>(tracks);
+        List<WrappedTrack> trackTemp = new ArrayList<>(tracks);
         Collections.shuffle(trackTemp, ThreadLocalRandom.current());
         tracks.clear();
-        for (AudioTrack track : trackTemp) {
+        for (WrappedTrack track : trackTemp) {
             tracks.offer(track);
         }
     }

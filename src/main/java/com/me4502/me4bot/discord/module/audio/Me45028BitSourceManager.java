@@ -22,7 +22,6 @@ public class Me45028BitSourceManager extends HttpAudioSourceManager {
 
     private static Method detectContainerMethod;
     private static Field authorField;
-    private static Field timeField;
 
     public Me45028BitSourceManager() {
         try {
@@ -32,7 +31,7 @@ public class Me45028BitSourceManager extends HttpAudioSourceManager {
             authorField = AudioTrackInfo.class.getField("author");
             authorField.setAccessible(true);
 
-            timeField = AudioTrackInfo.class.getField("length");
+            Field timeField = AudioTrackInfo.class.getField("length");
             timeField.setAccessible(true);
 
             Field modifiersField = Field.class.getDeclaredField("modifiers");

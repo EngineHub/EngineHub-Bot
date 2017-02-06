@@ -104,9 +104,9 @@ public class Audio implements Module, EventListener {
                 } catch (Exception e) {
                 }
                 if (i >= 0 && i < audioQueue.size()) {
-                    AudioTrack track = audioQueue.remove(i);
+                    WrappedTrack track = audioQueue.remove(i);
                     if (track != null) {
-                        ((MessageReceivedEvent) event).getChannel().sendMessage("Removed " + AudioQueue.prettify(track) + " from the queue").queue();
+                        ((MessageReceivedEvent) event).getChannel().sendMessage("Removed " + track.getPretty() + " from the queue").queue();
                     }
                 } else {
                     ((MessageReceivedEvent) event).getChannel().sendMessage("Unknown queue index").queue();
@@ -127,7 +127,8 @@ public class Audio implements Module, EventListener {
                 ((MessageReceivedEvent) event).getChannel().sendMessage(queueMessage.toString()).queue();
             } else if (message.equals("~nowplaying")) {
                 if (player.getPlayingTrack() != null) {
-                    ((MessageReceivedEvent) event).getChannel().sendMessage("Now playing: " + AudioQueue.prettify(player.getPlayingTrack())).queue();
+                    WrappedTrack wrappedTrack = new WrappedTrack(player.getPlayingTrack());
+                    ((MessageReceivedEvent) event).getChannel().sendMessage("Now playing: " + wrappedTrack.getPretty()).queue();
                 } else {
                     ((MessageReceivedEvent) event).getChannel().sendMessage("Nothing is currently playing!").queue();
                 }
@@ -148,13 +149,15 @@ public class Audio implements Module, EventListener {
             playerManager.loadItem(songId, new AudioLoadResultHandler() {
                 @Override
                 public void trackLoaded(AudioTrack track) {
+                    WrappedTrack wrappedTrack = new WrappedTrack(track);
+                    wrappedTrack.setShowMessage(showMessage);
                     if (showMessage) {
-                        channel.sendMessage("Queued track: " + AudioQueue.prettify(track)).queue();
+                        channel.sendMessage("Queued track: " + wrappedTrack.getPretty()).queue();
                     }
                     if (upNext) {
-                        audioQueue.queueNext(track);
+                        audioQueue.queueNext(wrappedTrack);
                     } else {
-                        audioQueue.queue(track);
+                        audioQueue.queue(wrappedTrack);
                     }
                 }
 
@@ -167,7 +170,9 @@ public class Audio implements Module, EventListener {
                             channel.sendMessage("Queued playlist: " + playlist.getName()).queue();
                         }
                         for (AudioTrack track : playlist.getTracks()) {
-                            audioQueue.queue(track);
+                            WrappedTrack wrappedTrack = new WrappedTrack(track);
+                            wrappedTrack.setShowMessage(showMessage);
+                            audioQueue.queue(wrappedTrack);
                         }
                     }
                 }
