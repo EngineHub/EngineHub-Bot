@@ -2,9 +2,9 @@ package com.me4502.me4bot.discord.module;
 
 import com.me4502.me4bot.discord.Me4Bot;
 import com.me4502.me4bot.discord.Settings;
-import net.dv8tion.jda.core.MessageHistory;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.MessageHistory;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
@@ -28,7 +28,7 @@ public class AutoErase implements Module, EventListener {
                                     continue;
                                 }
                                 if (System.currentTimeMillis() - message.getCreationTime().toInstant().toEpochMilli() > 1000 * 60 * 10) {
-                                    message.deleteMessage().queue();
+                                    message.delete().queue();
                                 }
                             }
                         } catch (Exception e) {

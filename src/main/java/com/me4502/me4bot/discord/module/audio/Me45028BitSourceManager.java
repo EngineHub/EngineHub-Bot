@@ -8,7 +8,6 @@ import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -23,7 +22,7 @@ public class Me45028BitSourceManager extends HttpAudioSourceManager {
     private static Method detectContainerMethod;
     private static Field authorField;
 
-    public Me45028BitSourceManager() {
+    Me45028BitSourceManager() {
         try {
             detectContainerMethod = HttpAudioSourceManager.class.getDeclaredMethod("detectContainer", AudioReference.class);
             detectContainerMethod.setAccessible(true);
@@ -53,26 +52,24 @@ public class Me45028BitSourceManager extends HttpAudioSourceManager {
         if (reference.identifier.startsWith(SEARCH_PREFIX)) {
             String searchTerm = reference.identifier.substring(SEARCH_PREFIX.length()).trim();
 
-            try (CloseableHttpClient client = createHttpClient()) {
-                CloseableHttpResponse response = client.execute(new HttpGet("http://me4502.com/midi-lib?search=" + searchTerm.replace(" ", "%20")));
-
+            try (CloseableHttpResponse response = getHttpInterface().execute(new HttpGet("http://me4502.com/midi-lib?search=" + searchTerm.replace(" ", "%20")))) {
                 if (response.getStatusLine().getStatusCode() != 200) {
                     return null;
                 } else {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
                     String line;
-                    String output = "";
+                    StringBuilder output = new StringBuilder();
                     while ((line = reader.readLine()) != null) {
-                        output += line;
+                        output.append(line);
                     }
 
-                    if (output.equals("NONE")) {
+                    if (output.toString().equals("NONE")) {
                         return null;
                     }
 
                     System.out.println(output);
 
-                    String[] outputBits = output.split(";");
+                    String[] outputBits = output.toString().split(";");
                     String url = outputBits[0];
                     String name = outputBits[1];
                     String artist = outputBits[2];
