@@ -3,6 +3,7 @@ package com.me4502.me4bot.discord;
 import com.google.common.collect.Sets;
 import com.me4502.me4bot.discord.module.Alerts;
 import com.me4502.me4bot.discord.module.AutoErase;
+import com.me4502.me4bot.discord.module.ChatFilter;
 import com.me4502.me4bot.discord.module.Module;
 import com.me4502.me4bot.discord.module.audio.Audio;
 import net.dv8tion.jda.core.AccountType;
@@ -78,7 +79,7 @@ public class Me4Bot implements Runnable, EventListener {
         api.shutdown(true);
     }
 
-    private Set<Module> modules = Sets.newHashSet(new AutoErase(), new Alerts(), new Audio());
+    private Set<Module> modules = Sets.newHashSet(new AutoErase(), new Alerts(), new Audio(), new ChatFilter());
 
     @Override
     public void run() {

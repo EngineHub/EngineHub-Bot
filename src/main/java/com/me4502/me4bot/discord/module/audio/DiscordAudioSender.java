@@ -8,7 +8,7 @@ public class DiscordAudioSender implements AudioSendHandler {
     private final AudioPlayer audioPlayer;
     private AudioFrame lastFrame;
 
-    public DiscordAudioSender(AudioPlayer audioPlayer) {
+    DiscordAudioSender(AudioPlayer audioPlayer) {
         this.audioPlayer = audioPlayer;
     }
 
