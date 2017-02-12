@@ -55,6 +55,9 @@ public class Audio implements Module, EventListener {
     @Override
     public void onEvent(Event event) {
         if (event instanceof MessageReceivedEvent) {
+            if (((MessageReceivedEvent) event).getChannelType() == ChannelType.PRIVATE) {
+                return;
+            }
             User author = ((MessageReceivedEvent) event).getAuthor();
             Member authorMember = ((MessageReceivedEvent) event).getGuild().getMember(author);
             String message = ((MessageReceivedEvent) event).getMessage().getContent();
