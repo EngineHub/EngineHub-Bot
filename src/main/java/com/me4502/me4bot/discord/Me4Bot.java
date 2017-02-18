@@ -5,6 +5,7 @@ import com.me4502.me4bot.discord.module.Alerts;
 import com.me4502.me4bot.discord.module.AutoErase;
 import com.me4502.me4bot.discord.module.ChatFilter;
 import com.me4502.me4bot.discord.module.Module;
+import com.me4502.me4bot.discord.module.SetProfilePicture;
 import com.me4502.me4bot.discord.module.audio.Audio;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDA;
@@ -31,7 +32,7 @@ public class Me4Bot implements Runnable, EventListener {
         Settings.load();
 
         try {
-            bot = new Me4Bot();
+            new Me4Bot();
 
             Thread thread = new Thread(bot);
             thread.setDaemon(false);
@@ -48,6 +49,7 @@ public class Me4Bot implements Runnable, EventListener {
 
             bot.disconnect();
 
+            Settings.saveModules();
             Settings.save();
 
             // Force kill.
@@ -60,10 +62,14 @@ public class Me4Bot implements Runnable, EventListener {
     public JDA api;
 
     private Me4Bot() throws LoginException, InterruptedException, RateLimitedException {
+        bot = this;
         System.out.println("Connecting...");
         api = new JDABuilder(AccountType.BOT).setToken(Settings.token).addListener(this).buildBlocking();
         api.setAutoReconnect(true);
         System.out.println("Connected");
+
+        Settings.loadModules();
+
         for (Module module : modules) {
             if (module instanceof EventListener) {
                 api.addEventListener((EventListener) module);
@@ -79,7 +85,16 @@ public class Me4Bot implements Runnable, EventListener {
         api.shutdown(true);
     }
 
-    private Set<Module> modules = Sets.newHashSet(new AutoErase(), new Alerts(), new Audio(), new ChatFilter());
+    private Set<Module> modules = Sets.newHashSet(
+            new AutoErase(),
+            new Alerts(),
+            new Audio(),
+            new ChatFilter(),
+            new SetProfilePicture());
+
+    public Set<Module> getModules() {
+        return this.modules;
+    }
 
     @Override
     public void run() {

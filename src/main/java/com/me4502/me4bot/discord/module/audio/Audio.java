@@ -15,6 +15,7 @@ import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.EventListener;
 import net.dv8tion.jda.core.managers.AudioManager;
+import ninja.leaping.configurate.ConfigurationNode;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,7 +33,7 @@ public class Audio implements Module, EventListener {
     public void onInitialise() {
         playerManager = new DefaultAudioPlayerManager();
 
-        playerManager.getConfiguration().setResamplingQuality(AudioConfiguration.ResamplingQuality.LOW);
+        playerManager.getConfiguration().setResamplingQuality(AudioConfiguration.ResamplingQuality.MEDIUM);
         playerManager.registerSourceManager(new YoutubeAudioSourceManager());
         playerManager.registerSourceManager(new Me45028BitSourceManager());
         playerManager.registerSourceManager(new VimeoAudioSourceManager());
