@@ -8,22 +8,25 @@ import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberLeaveEvent;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.EventListener;
+import ninja.leaping.configurate.ConfigurationNode;
 
 public class Alerts implements Module, EventListener {
+
+    public static String alertChannel = "alerts";
 
     @Override
     public void onEvent(Event event) {
         if (event instanceof MessageReceivedEvent) {
             if (((MessageReceivedEvent) event).getMessage().getContent().equals("~alert")) {
                 if (Me4Bot.isAuthorised(((MessageReceivedEvent) event).getMessage().getAuthor())) {
-                    Settings.alertChannel = ((MessageReceivedEvent) event).getChannel().getId();
+                    alertChannel = ((MessageReceivedEvent) event).getChannel().getId();
                     ((MessageReceivedEvent) event).getChannel().sendMessage("Set alert channel!").queue();
 
                     Settings.save();
                 }
             }
         } else if (event instanceof GuildMemberJoinEvent) {
-            MessageChannel channel = Me4Bot.bot.api.getTextChannelById(Settings.alertChannel);
+            MessageChannel channel = Me4Bot.bot.api.getTextChannelById(alertChannel);
             if (channel != null) {
                 if (((GuildMemberJoinEvent) event).getMember().getUser().isBot()) {
                     channel.sendMessage("**" + ((GuildMemberJoinEvent) event).getMember().getUser().getName() + "** (Bot) has been added to the server!").queue();
@@ -32,7 +35,7 @@ public class Alerts implements Module, EventListener {
                 }
             }
         } else if (event instanceof GuildMemberLeaveEvent) {
-            MessageChannel channel = Me4Bot.bot.api.getTextChannelById(Settings.alertChannel);
+            MessageChannel channel = Me4Bot.bot.api.getTextChannelById(alertChannel);
             if (channel != null) {
                 if (((GuildMemberLeaveEvent) event).getMember().getUser().isBot()) {
                     channel.sendMessage("**" + ((GuildMemberLeaveEvent) event).getMember().getUser().getName() + "** (Bot) has been removed from the server!").queue();
@@ -41,5 +44,15 @@ public class Alerts implements Module, EventListener {
                 }
             }
         }
+    }
+
+    @Override
+    public void load(ConfigurationNode loadedNode) {
+        alertChannel = loadedNode.getNode("alert-channel").getString(alertChannel);
+    }
+
+    @Override
+    public void save(ConfigurationNode loadedNode) {
+        loadedNode.getNode("alert-channel").setValue(alertChannel);
     }
 }
