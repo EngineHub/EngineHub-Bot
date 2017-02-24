@@ -5,6 +5,7 @@ import com.me4502.me4bot.discord.module.Alerts;
 import com.me4502.me4bot.discord.module.AutoErase;
 import com.me4502.me4bot.discord.module.ChatFilter;
 import com.me4502.me4bot.discord.module.Module;
+import com.me4502.me4bot.discord.module.NoSpam;
 import com.me4502.me4bot.discord.module.SetProfilePicture;
 import com.me4502.me4bot.discord.module.audio.Audio;
 import net.dv8tion.jda.core.AccountType;
@@ -90,7 +91,8 @@ public class Me4Bot implements Runnable, EventListener {
             new Alerts(),
             new Audio(),
             new ChatFilter(),
-            new SetProfilePicture());
+            new SetProfilePicture(),
+            new NoSpam());
 
     public Set<Module> getModules() {
         return this.modules;
