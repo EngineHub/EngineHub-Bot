@@ -33,7 +33,7 @@ public class Audio implements Module, EventListener {
     public void onInitialise() {
         playerManager = new DefaultAudioPlayerManager();
 
-        playerManager.getConfiguration().setResamplingQuality(AudioConfiguration.ResamplingQuality.MEDIUM);
+        playerManager.getConfiguration().setResamplingQuality(AudioConfiguration.ResamplingQuality.LOW);
         playerManager.registerSourceManager(new YoutubeAudioSourceManager());
         playerManager.registerSourceManager(new Me45028BitSourceManager());
         playerManager.registerSourceManager(new VimeoAudioSourceManager());
@@ -140,7 +140,7 @@ public class Audio implements Module, EventListener {
                 audioQueue.clearQueue();
             } else if (message.equals("~rickroll")) {
                 playSong(((MessageReceivedEvent) event).getChannel(), "https://www.youtube.com/watch?v=dQw4w9WgXcQ", true, false);
-                ((MessageReceivedEvent) event).getMessage().deleteMessage().queue();
+                ((MessageReceivedEvent) event).getMessage().delete().queue();
             } else if (message.startsWith("~play ")) {
                 String songId = message.substring(6);
                 playSong(((MessageReceivedEvent) event).getChannel(), songId, false, true);
