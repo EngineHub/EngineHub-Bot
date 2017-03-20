@@ -1,6 +1,7 @@
 package com.me4502.me4bot.discord.module;
 
 import com.me4502.me4bot.discord.Me4Bot;
+import com.me4502.me4bot.discord.util.PermissionRoles;
 import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.EventListener;
@@ -16,7 +17,7 @@ public class ChatFilter implements Module, EventListener {
     public void onEvent(Event event) {
         if (event instanceof MessageReceivedEvent) {
             Matcher matcher = INVITE_PATTERN.matcher(((MessageReceivedEvent) event).getMessage().getContent());
-            if (matcher.find() && !Me4Bot.isAuthorised(((MessageReceivedEvent) event).getAuthor())) {
+            if (matcher.find() && !Me4Bot.isAuthorised(((MessageReceivedEvent) event).getMember(), PermissionRoles.MODERATOR)) {
                 ((MessageReceivedEvent) event).getMessage().delete().queue();
             }
         }

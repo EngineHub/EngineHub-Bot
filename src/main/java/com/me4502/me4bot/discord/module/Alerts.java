@@ -2,11 +2,16 @@ package com.me4502.me4bot.discord.module;
 
 import com.me4502.me4bot.discord.Me4Bot;
 import com.me4502.me4bot.discord.Settings;
+import com.me4502.me4bot.discord.util.PermissionRoles;
+import com.sk89q.intake.Command;
+import com.sk89q.intake.Require;
+import com.sk89q.intake.context.CommandLocals;
+import com.sk89q.intake.fluent.DispatcherNode;
+import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberLeaveEvent;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.EventListener;
 import ninja.leaping.configurate.ConfigurationNode;
 
@@ -15,17 +20,14 @@ public class Alerts implements Module, EventListener {
     public static String alertChannel = "alerts";
 
     @Override
-    public void onEvent(Event event) {
-        if (event instanceof MessageReceivedEvent) {
-            if (((MessageReceivedEvent) event).getMessage().getContent().equals("~alert")) {
-                if (Me4Bot.isAuthorised(((MessageReceivedEvent) event).getMessage().getAuthor())) {
-                    alertChannel = ((MessageReceivedEvent) event).getChannel().getId();
-                    ((MessageReceivedEvent) event).getChannel().sendMessage("Set alert channel!").queue();
+    public DispatcherNode setupCommands(DispatcherNode dispatcherNode) {
+        return dispatcherNode
+                .registerMethods(this);
+    }
 
-                    Settings.save();
-                }
-            }
-        } else if (event instanceof GuildMemberJoinEvent) {
+    @Override
+    public void onEvent(Event event) {
+        if (event instanceof GuildMemberJoinEvent) {
             MessageChannel channel = Me4Bot.bot.api.getTextChannelById(alertChannel);
             if (channel != null) {
                 if (((GuildMemberJoinEvent) event).getMember().getUser().isBot()) {
@@ -44,6 +46,15 @@ public class Alerts implements Module, EventListener {
                 }
             }
         }
+    }
+
+    @Command(aliases = "alert", desc = "Sets the channel to alert.")
+    @Require(PermissionRoles.ADMIN)
+    public void alert(Message message) {
+        alertChannel = message.getChannel().getId();
+        message.getChannel().sendMessage("Set alert channel!").queue();
+
+        Settings.save();
     }
 
     @Override

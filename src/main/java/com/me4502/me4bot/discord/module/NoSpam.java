@@ -1,26 +1,23 @@
 package com.me4502.me4bot.discord.module;
 
 import com.me4502.me4bot.discord.Me4Bot;
+import com.me4502.me4bot.discord.util.PermissionRoles;
 import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.EventListener;
 
 import java.util.HashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class NoSpam implements Module, EventListener {
-
-    private static final Pattern AT_PATTERN = Pattern.compile("@", Pattern.LITERAL);
 
     private final HashMap<String, Integer> spamTimes = new HashMap<>();
 
     @Override
     public void onEvent(Event event) {
         if (event instanceof MessageReceivedEvent) {
-            String content = ((MessageReceivedEvent) event).getMessage().getContent();
-            int mentionCount = content.length() - AT_PATTERN.matcher(content).replaceAll(Matcher.quoteReplacement("")).length();
-            if (mentionCount >= 6 && !Me4Bot.isAuthorised(((MessageReceivedEvent) event).getAuthor())) {
+            int mentionCount = ((MessageReceivedEvent) event).getMessage().getMentionedUsers().size()
+                    + ((MessageReceivedEvent) event).getMessage().getMentionedRoles().size();
+            if (mentionCount >= 6 && !Me4Bot.isAuthorised(((MessageReceivedEvent) event).getMember(), PermissionRoles.ADMIN)) {
                 ((MessageReceivedEvent) event).getMessage().delete().queue();
                 ((MessageReceivedEvent) event).getAuthor().openPrivateChannel().queue(privateChannel -> {
                     privateChannel.sendMessage("Oi mate, you seem to be spamming mentions! If you keep doing this you will be banned.").queue();

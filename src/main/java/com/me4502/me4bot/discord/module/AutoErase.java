@@ -2,17 +2,25 @@ package com.me4502.me4bot.discord.module;
 
 import com.me4502.me4bot.discord.Me4Bot;
 import com.me4502.me4bot.discord.Settings;
+import com.me4502.me4bot.discord.util.PermissionRoles;
+import com.sk89q.intake.Command;
+import com.sk89q.intake.Require;
+import com.sk89q.intake.context.CommandLocals;
+import com.sk89q.intake.fluent.DispatcherNode;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageHistory;
 import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.events.Event;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.core.hooks.EventListener;
 
-public class AutoErase implements Module, EventListener {
+public class AutoErase implements Module {
 
     private long lastTime = 0;
+
+    @Override
+    public DispatcherNode setupCommands(DispatcherNode dispatcherNode) {
+        return dispatcherNode
+                .registerMethods(this);
+    }
 
     @Override
     public void onTick() {
@@ -40,22 +48,17 @@ public class AutoErase implements Module, EventListener {
         }
     }
 
-    @Override
-    public void onEvent(Event event) {
-        if (event instanceof MessageReceivedEvent) {
-            if (((MessageReceivedEvent) event).getMessage().getContent().equals("~autoerase")) {
-                if (Me4Bot.isAuthorised(((MessageReceivedEvent) event).getAuthor())) {
-                    if (Settings.autoEraseChannels.contains(((MessageReceivedEvent) event).getChannel().getId())) {
-                        Settings.autoEraseChannels.remove(((MessageReceivedEvent) event).getChannel().getId());
-                        ((MessageReceivedEvent) event).getChannel().sendMessage("Channel will no longer auto-erase!").queue();
-                    } else {
-                        Settings.autoEraseChannels.add(((MessageReceivedEvent) event).getChannel().getId());
-                        ((MessageReceivedEvent) event).getChannel().sendMessage("Channel will now auto-erase!").queue();
-                    }
-
-                    Settings.save();
-                }
-            }
+    @Command(aliases = "autoerase", desc = "Sets the channel to auto-erase.")
+    @Require(PermissionRoles.ADMIN)
+    public void autoErase(Message message) {
+        if (Settings.autoEraseChannels.contains(message.getChannel().getId())) {
+            Settings.autoEraseChannels.remove(message.getChannel().getId());
+            message.getChannel().sendMessage("Channel will no longer auto-erase!").queue();
+        } else {
+            Settings.autoEraseChannels.add(message.getChannel().getId());
+            message.getChannel().sendMessage("Channel will now auto-erase!").queue();
         }
+
+        Settings.save();
     }
 }

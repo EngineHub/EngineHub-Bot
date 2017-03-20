@@ -1,5 +1,8 @@
 package com.me4502.me4bot.discord;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.me4502.me4bot.discord.module.Alerts;
 import com.me4502.me4bot.discord.module.AutoErase;
@@ -8,25 +11,66 @@ import com.me4502.me4bot.discord.module.Module;
 import com.me4502.me4bot.discord.module.NoSpam;
 import com.me4502.me4bot.discord.module.SetProfilePicture;
 import com.me4502.me4bot.discord.module.audio.Audio;
+import com.me4502.me4bot.discord.util.PermissionRoles;
+import com.me4502.me4bot.discord.util.binding.MemberBinding;
+import com.me4502.me4bot.discord.util.binding.MessageBinding;
+import com.sk89q.intake.CommandException;
+import com.sk89q.intake.InvalidUsageException;
+import com.sk89q.intake.InvocationCommandException;
+import com.sk89q.intake.context.CommandLocals;
+import com.sk89q.intake.dispatcher.Dispatcher;
+import com.sk89q.intake.fluent.CommandGraph;
+import com.sk89q.intake.fluent.DispatcherNode;
+import com.sk89q.intake.parametric.ParametricBuilder;
+import com.sk89q.intake.util.auth.AuthorizationException;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.core.entities.Member;
+import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import net.dv8tion.jda.core.hooks.EventListener;
 
-import javax.security.auth.login.LoginException;
 import java.util.Set;
 
+import javax.security.auth.login.LoginException;
+
 public class Me4Bot implements Runnable, EventListener {
+
+    public static final String COMMAND_PREFIX = "~";
 
     public static Me4Bot bot;
     private static boolean running = true;
 
-    public static boolean isAuthorised(User user) {
-        return user.getName().equals("Me4502") && user.getDiscriminator().equals("3758");
+    public static boolean isAuthorised(Member member, String permission) {
+        if (permission.equalsIgnoreCase(PermissionRoles.ANY)) {
+            return true;
+        }
+        if (permission.equalsIgnoreCase(PermissionRoles.BOT_OWNER)) {
+            return member.getUser().getName().equals("Me4502") && member.getUser().getDiscriminator().equals("3758");
+        }
+
+        boolean hasRank;
+
+        while (true) {
+            String finalPermission = permission;
+            hasRank = member.getRoles().stream().anyMatch(role -> role.getName().equalsIgnoreCase(finalPermission));
+            if (!hasRank) {
+                if (PermissionRoles.TRUSTED.equals(permission)) {
+                    permission = PermissionRoles.MODERATOR;
+                } else if (PermissionRoles.MODERATOR.equals(permission)) {
+                    permission = PermissionRoles.ADMIN;
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+
+        return hasRank;
     }
 
     public static void main(String[] args) {
@@ -61,6 +105,7 @@ public class Me4Bot implements Runnable, EventListener {
     }
 
     public JDA api;
+    private Dispatcher commandDispatcher;
 
     private Me4Bot() throws LoginException, InterruptedException, RateLimitedException {
         bot = this;
@@ -71,16 +116,32 @@ public class Me4Bot implements Runnable, EventListener {
 
         Settings.loadModules();
 
+        ParametricBuilder builder = new ParametricBuilder();
+        builder.addBinding(new MemberBinding());
+        builder.addBinding(new MessageBinding());
+        builder.setAuthorizer((namespace, permission) -> {
+            Member member = checkNotNull(namespace.get(Member.class), "Unknown member.");
+
+            return isAuthorised(member, permission);
+        });
+
+        DispatcherNode node = new CommandGraph()
+                .builder(builder)
+                .commands();
+
         for (Module module : modules) {
+            node = module.setupCommands(node);
             if (module instanceof EventListener) {
                 api.addEventListener((EventListener) module);
             }
         }
 
+        commandDispatcher = node.graph().getDispatcher();
+
         modules.forEach(Module::onInitialise);
     }
 
-    public void disconnect() {
+    private void disconnect() {
         modules.forEach(Module::onShutdown);
 
         api.shutdown(true);
@@ -120,9 +181,31 @@ public class Me4Bot implements Runnable, EventListener {
 
     @Override
     public void onEvent(Event event) {
-        if (event instanceof MessageReceivedEvent) {
-            if (((MessageReceivedEvent) event).getMessage().getContent().equals("~stop") && isAuthorised(((MessageReceivedEvent) event).getAuthor())) {
+        if (event instanceof MessageReceivedEvent && ((MessageReceivedEvent) event).getMessage().getContent().startsWith(COMMAND_PREFIX)) {
+            String commandArgs = ((MessageReceivedEvent) event).getMessage().getContent().substring(COMMAND_PREFIX.length());
+
+            if (commandArgs.equals("stop") && isAuthorised(((MessageReceivedEvent) event).getMember(), PermissionRoles.BOT_OWNER)) {
                 running = false;
+                return;
+            }
+
+            CommandLocals locals = new CommandLocals();
+            locals.put(Member.class, ((MessageReceivedEvent) event).getMember());
+            locals.put(Message.class, ((MessageReceivedEvent) event).getMessage());
+
+            try {
+                commandDispatcher.call(commandArgs, locals, new String[]{});
+            } catch (InvalidUsageException e) {
+                String usage = e.getMessage();
+                if ("Please choose a sub-command.".equals(usage)) {
+                    usage = "Unknown command!";
+                }
+                ((MessageReceivedEvent) event).getChannel().sendMessage(usage == null ? "No help text available." : usage).queue();
+            } catch (CommandException e) {
+                ((MessageReceivedEvent) event).getChannel().sendMessage("Failed to send command! " + e.getMessage()).queue();
+                e.printStackTrace();
+            } catch (AuthorizationException e) {
+                ((MessageReceivedEvent) event).getChannel().sendMessage("You don't have permissions!").queue();
             }
         }
     }

@@ -1,7 +1,12 @@
 package com.me4502.me4bot.discord.module.audio;
 
 import com.me4502.me4bot.discord.module.Module;
-import com.sedmelluq.discord.lavaplayer.player.*;
+import com.me4502.me4bot.discord.util.PermissionRoles;
+import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration;
+import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.bandcamp.BandcampAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.http.HttpAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.soundcloud.SoundCloudAudioSourceManager;
@@ -10,18 +15,22 @@ import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import net.dv8tion.jda.core.entities.*;
-import net.dv8tion.jda.core.events.Event;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.core.hooks.EventListener;
+import com.sk89q.intake.Command;
+import com.sk89q.intake.Require;
+import com.sk89q.intake.context.CommandLocals;
+import com.sk89q.intake.fluent.DispatcherNode;
+import com.sk89q.intake.parametric.annotation.Text;
+import net.dv8tion.jda.core.entities.Member;
+import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.MessageChannel;
+import net.dv8tion.jda.core.entities.VoiceChannel;
 import net.dv8tion.jda.core.managers.AudioManager;
-import ninja.leaping.configurate.ConfigurationNode;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
-public class Audio implements Module, EventListener {
+public class Audio implements Module {
 
     private AudioPlayerManager playerManager;
     private AudioPlayer player;
@@ -54,97 +63,132 @@ public class Audio implements Module, EventListener {
     }
 
     @Override
-    public void onEvent(Event event) {
-        if (event instanceof MessageReceivedEvent) {
-            if (((MessageReceivedEvent) event).getChannelType() == ChannelType.PRIVATE) {
-                return;
-            }
-            User author = ((MessageReceivedEvent) event).getAuthor();
-            Member authorMember = ((MessageReceivedEvent) event).getGuild().getMember(author);
-            String message = ((MessageReceivedEvent) event).getMessage().getContent();
-            if (message.equals("~joinvoice")) {
-                Optional<VoiceChannel> voiceChannelOptional = ((MessageReceivedEvent) event).getGuild().getVoiceChannels().stream().filter(voiceChannel -> voiceChannel.getMembers().contains(authorMember)).findFirst();
-                if (voiceChannelOptional.isPresent()) {
-                    if (audioManager != null) {
-                        audioManager.closeAudioConnection();
-                    }
+    public DispatcherNode setupCommands(DispatcherNode dispatcherNode) {
+        return dispatcherNode
+                .registerMethods(this);
+    }
 
-                    audioManager = ((MessageReceivedEvent) event).getGuild().getAudioManager();
-                    audioManager.setSendingHandler(new DiscordAudioSender(player));
-                    audioManager.openAudioConnection(voiceChannelOptional.get());
-                    audioQueue.setTextChannel(((MessageReceivedEvent) event).getTextChannel());
-                } else {
-                    ((MessageReceivedEvent) event).getChannel().sendMessage("You aren't in a voice channel!").queue();
-                }
-            } else if (message.equals("~leavevoice")) {
-                if (audioManager != null) {
-                    audioManager.closeAudioConnection();
-                    audioManager = null;
-                }
-            } else if (message.startsWith("~volume ")) {
-                String volumeString = message.substring(8);
-                int volume = 100;
-                try {
-                    volume = Integer.parseInt(volumeString);
-                } catch (Exception e) {
-                }
-                player.setVolume(volume);
-                ((MessageReceivedEvent) event).getChannel().sendMessage("Set volume to " + volume).queue();
-            } else if (message.equals("~pause")) {
-                player.setPaused(true);
-                ((MessageReceivedEvent) event).getChannel().sendMessage("Paused player").queue();
-            } else if (message.equals("~resume")) {
-                player.setPaused(false);
-                ((MessageReceivedEvent) event).getChannel().sendMessage("Resume player").queue();
-            } else if (message.equals("~skip")) {
-                audioQueue.playNext();
-            } else if (message.equals("~shuffle")) {
-                audioQueue.shuffle();
-            } else if (message.startsWith("~removequeue ")) {
-                String index = message.substring(13);
-                int i = -1;
-                try {
-                    i = Integer.parseInt(index) - 1;
-                } catch (Exception e) {
-                }
-                if (i >= 0 && i < audioQueue.size()) {
-                    WrappedTrack track = audioQueue.remove(i);
-                    if (track != null) {
-                        ((MessageReceivedEvent) event).getChannel().sendMessage("Removed " + track.getPretty() + " from the queue").queue();
-                    }
-                } else {
-                    ((MessageReceivedEvent) event).getChannel().sendMessage("Unknown queue index").queue();
-                }
-            } else if (message.equals("~queue")) {
-                StringBuilder queueMessage = new StringBuilder();
-                List<String> tracks = audioQueue.getPrettyQueue();
-                queueMessage.append("Current Queue: (Length of ").append(tracks.size()).append(")\n");
-                int num = 1;
-                for (String track : tracks) {
-                    if (queueMessage.length() + track.length() > 1980) {
-                        ((MessageReceivedEvent) event).getChannel().sendMessage(queueMessage.toString()).queue();
-                        queueMessage = new StringBuilder();
-                    }
-                    queueMessage.append("**").append(num).append("**: ").append(track).append('\n');
-                    num++;
-                }
-                ((MessageReceivedEvent) event).getChannel().sendMessage(queueMessage.toString()).queue();
-            } else if (message.equals("~nowplaying")) {
-                if (player.getPlayingTrack() != null) {
-                    WrappedTrack wrappedTrack = new WrappedTrack(player.getPlayingTrack());
-                    ((MessageReceivedEvent) event).getChannel().sendMessage("Now playing: " + wrappedTrack.getPretty()).queue();
-                } else {
-                    ((MessageReceivedEvent) event).getChannel().sendMessage("Nothing is currently playing!").queue();
-                }
-            } else if (message.equals("~clear")) {
-                audioQueue.clearQueue();
-            } else if (message.equals("~rickroll")) {
-                playSong(((MessageReceivedEvent) event).getChannel(), "https://www.youtube.com/watch?v=dQw4w9WgXcQ", true, false);
-                ((MessageReceivedEvent) event).getMessage().delete().queue();
-            } else if (message.startsWith("~play ")) {
-                String songId = message.substring(6);
-                playSong(((MessageReceivedEvent) event).getChannel(), songId, false, true);
+    @Command(aliases = "joinvoice", desc = "Asks the bot to join the voice channel.")
+    @Require(PermissionRoles.ANY)
+    public void joinVoice(Message message, Member member) {
+        Optional<VoiceChannel> voiceChannelOptional = message.getGuild().getVoiceChannels().stream().filter(voiceChannel -> voiceChannel.getMembers().contains(member)).findFirst();
+        if (voiceChannelOptional.isPresent()) {
+            if (audioManager != null) {
+                audioManager.closeAudioConnection();
             }
+
+            audioManager = message.getGuild().getAudioManager();
+            audioManager.setSendingHandler(new DiscordAudioSender(player));
+            audioManager.openAudioConnection(voiceChannelOptional.get());
+            audioQueue.setTextChannel(message.getTextChannel());
+        } else {
+            message.getChannel().sendMessage("You aren't in a voice channel!").queue();
+        }
+    }
+
+    @Command(aliases = "leavevoice", desc = "Asks the bot to leave the voice channel.")
+    @Require(PermissionRoles.ANY)
+    public void leaveVoice() {
+        if (audioManager != null) {
+            audioManager.closeAudioConnection();
+            audioManager = null;
+        }
+    }
+
+    @Command(aliases = {"volume", "vol"}, desc = "Sets the volume of the bot.")
+    @Require(PermissionRoles.MODERATOR)
+    public void volume(Message message, int volume) {
+        player.setVolume(volume);
+        message.getChannel().sendMessage("Set volume to " + volume).queue();
+    }
+
+    @Command(aliases = {"pause"}, desc = "Pauses bot output.")
+    @Require(PermissionRoles.ANY)
+    public void pause(Message message) {
+        player.setPaused(true);
+        message.getChannel().sendMessage("Paused player").queue();
+    }
+
+    @Command(aliases = {"resume"}, desc = "Resumes bot output.")
+    @Require(PermissionRoles.ANY)
+    public void resume(Message message) {
+        player.setPaused(false);
+        message.getChannel().sendMessage("Resume player").queue();
+    }
+
+    @Command(aliases = {"skip"}, desc = "Skips the current song.")
+    @Require(PermissionRoles.TRUSTED)
+    public void skip() {
+        audioQueue.playNext();
+    }
+
+    @Command(aliases = {"shuffle"}, desc = "Shuffles the current queue.")
+    @Require(PermissionRoles.ANY)
+    public void shuffle(Message message) {
+        audioQueue.playNext();
+        message.getChannel().sendMessage("Shuffled the queue.").queue();
+    }
+
+    @Command(aliases = {"removequeue"}, desc = "Removes an index from the queue.")
+    @Require(PermissionRoles.MODERATOR)
+    public void removeQueue(Message message, int index) {
+        index --;
+        if (index >= 0 && index < audioQueue.size()) {
+            WrappedTrack track = audioQueue.remove(index);
+            if (track != null) {
+                message.getChannel().sendMessage("Removed " + track.getPretty() + " from the queue").queue();
+            }
+        } else {
+            message.getChannel().sendMessage("Unknown queue index").queue();
+        }
+    }
+
+    @Command(aliases = {"play"}, desc = "Plays a media source.")
+    @Require(PermissionRoles.ANY)
+    public void play(Message message, @Text String song) {
+        playSong(message.getChannel(), song, false, true);
+    }
+
+    @Command(aliases = {"rickroll"}, desc = ";)")
+    @Require(PermissionRoles.ANY)
+    public void rickroll(Message message) {
+        playSong(message.getChannel(), "https://www.youtube.com/watch?v=dQw4w9WgXcQ", true, false);
+        message.delete().queue();
+    }
+
+    @Command(aliases = {"clear"}, desc = "Clear's the queue.")
+    @Require(PermissionRoles.MODERATOR)
+    public void clear(Message message) {
+        audioQueue.clearQueue();
+        message.getChannel().sendMessage("Cleared the queue.").queue();
+    }
+
+    @Command(aliases = {"queue"}, desc = "Outputs the queue.")
+    @Require(PermissionRoles.ANY)
+    public void queue(Message message) {
+        StringBuilder queueMessage = new StringBuilder();
+        List<String> tracks = audioQueue.getPrettyQueue();
+        queueMessage.append("Current Queue: (Length of ").append(tracks.size()).append(")\n");
+        int num = 1;
+        for (String track : tracks) {
+            if (queueMessage.length() + track.length() > 1980) {
+                message.getChannel().sendMessage(queueMessage.toString()).queue();
+                queueMessage = new StringBuilder();
+            }
+            queueMessage.append("**").append(num).append("**: ").append(track).append('\n');
+            num++;
+        }
+        message.getChannel().sendMessage(queueMessage.toString()).queue();
+    }
+
+    @Command(aliases = {"nowplaying"}, desc = "Outputs the current song.")
+    @Require(PermissionRoles.ANY)
+    public void nowPlaying(Message message) {
+        if (player.getPlayingTrack() != null) {
+            WrappedTrack wrappedTrack = new WrappedTrack(player.getPlayingTrack());
+            message.getChannel().sendMessage("Now playing: " + wrappedTrack.getPretty()).queue();
+        } else {
+            message.getChannel().sendMessage("Nothing is currently playing!").queue();
         }
     }
 
