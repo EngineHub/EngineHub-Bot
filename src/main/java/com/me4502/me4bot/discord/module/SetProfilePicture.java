@@ -1,35 +1,41 @@
 package com.me4502.me4bot.discord.module;
 
 import com.me4502.me4bot.discord.Me4Bot;
+import com.me4502.me4bot.discord.util.PermissionRoles;
+import com.sk89q.intake.Command;
+import com.sk89q.intake.Require;
+import com.sk89q.intake.context.CommandLocals;
+import com.sk89q.intake.fluent.DispatcherNode;
 import net.dv8tion.jda.core.entities.Icon;
 import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.events.Event;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.core.hooks.EventListener;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 
-public class SetProfilePicture implements Module, EventListener {
+public class SetProfilePicture implements Module {
 
     @Override
-    public void onEvent(Event event) {
-        if (event instanceof MessageReceivedEvent) {
-            if (((MessageReceivedEvent) event).getMessage().getContent().equals("~setprofilepicture")) {
-                if (Me4Bot.isAuthorised(((MessageReceivedEvent) event).getAuthor())) {
-                    ((MessageReceivedEvent) event).getMessage().getAttachments().stream().filter(Message.Attachment::isImage).forEach(attachment -> {
-                        File file = new File("avatar_cache.png");
-                        attachment.download(file);
-                        try {
-                            Me4Bot.bot.api.getSelfUser().getManager().setAvatar(Icon.from(file)).queue(aVoid -> file.delete());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    });
-                } else {
-                    ((MessageReceivedEvent) event).getChannel().sendMessage("Oi mate, you can't do that!").queue();
-                }
+    public DispatcherNode setupCommands(DispatcherNode dispatcherNode) {
+        return dispatcherNode
+                .registerMethods(this);
+    }
+
+    @Command(aliases = "setprofilepicture", desc = "Set's the profile picture of this bot.")
+    @Require(PermissionRoles.BOT_OWNER)
+    public void setProfilePicture(Message message) {
+        Optional<Message.Attachment> attachmentOptional = message.getAttachments().stream().filter(Message.Attachment::isImage).findFirst();
+
+        if (attachmentOptional.isPresent()) {
+            File file = new File("avatar_cache.png");
+            attachmentOptional.get().download(file);
+            try {
+                Me4Bot.bot.api.getSelfUser().getManager().setAvatar(Icon.from(file)).queue(aVoid -> file.delete());
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+        } else {
+            message.getTextChannel().sendMessage("You need to attach an image!").queue();
         }
     }
 }
