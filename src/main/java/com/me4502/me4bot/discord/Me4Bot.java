@@ -2,7 +2,6 @@ package com.me4502.me4bot.discord;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.me4502.me4bot.discord.module.Alerts;
 import com.me4502.me4bot.discord.module.AutoErase;
@@ -16,7 +15,6 @@ import com.me4502.me4bot.discord.util.binding.MemberBinding;
 import com.me4502.me4bot.discord.util.binding.MessageBinding;
 import com.sk89q.intake.CommandException;
 import com.sk89q.intake.InvalidUsageException;
-import com.sk89q.intake.InvocationCommandException;
 import com.sk89q.intake.context.CommandLocals;
 import com.sk89q.intake.dispatcher.Dispatcher;
 import com.sk89q.intake.fluent.CommandGraph;
@@ -110,7 +108,7 @@ public class Me4Bot implements Runnable, EventListener {
     private Me4Bot() throws LoginException, InterruptedException, RateLimitedException {
         bot = this;
         System.out.println("Connecting...");
-        api = new JDABuilder(AccountType.BOT).setToken(Settings.token).addListener(this).buildBlocking();
+        api = new JDABuilder(AccountType.BOT).setToken(Settings.token).addEventListener(this).buildBlocking();
         api.setAutoReconnect(true);
         System.out.println("Connected");
 
