@@ -2,10 +2,13 @@ plugins {
     id "java"
     id "maven"
     id "com.github.johnrengelman.shadow" version "1.2.4"
+    id "com.github.hierynomus.license" version "0.12.1"
 }
 
 group 'com.me4502'
 version '1.0-SNAPSHOT'
+
+defaultTasks 'licenseFormat', 'build'
 
 sourceCompatibility = 1.8
 
@@ -20,6 +23,22 @@ repositories {
     }
     maven {
         url "http://maven.sk89q.com/repo/"
+    }
+}
+
+license {
+    ext {
+        year = Calendar.getInstance().get(Calendar.YEAR)
+    }
+
+    header = file('HEADER.txt')
+    include '**/*.java'
+
+    ignoreFailures = false
+    strictCheck = true
+
+    mapping {
+        java = 'SLASHSTAR_STYLE'
     }
 }
 
