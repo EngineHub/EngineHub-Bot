@@ -15,6 +15,24 @@ simply run:
 
 Dependencies are automatically handled by Gradle.
 
+Running
+-------
+The main class is `com.me4502.me4bot.discord.Me4Bot`.
+
+The following is an example script, that will automatically update the bot during the automated restart.
+
+```bash
+#!/bin/bash
+
+while true
+do
+    rm Me4Bot.jar
+    wget https://jitpack.io/com/github/me4502/Me4Bot/-SNAPSHOT/Me4Bot--SNAPSHOT.jar -O Me4Bot.jar
+    java -cp Me4Bot.jar com.me4502.me4bot.discord.Me4Bot
+    sleep 10
+done
+```
+
 Configuring
 -----------
 Upon initial startup, the program will generate multiple configuration files.
