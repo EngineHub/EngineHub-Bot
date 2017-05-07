@@ -213,7 +213,7 @@ public class Me4Bot implements Runnable, EventListener {
             locals.put(Message.class, ((MessageReceivedEvent) event).getMessage());
 
             try {
-                commandDispatcher.call(commandArgs, locals, new String[]{});
+                commandDispatcher.call(commandArgs, locals, new String[0]);
             } catch (InvalidUsageException e) {
                 String usage = e.getMessage();
                 if ("Please choose a sub-command.".equals(usage)) {
