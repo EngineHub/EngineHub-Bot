@@ -163,7 +163,7 @@ public class Me4Bot implements Runnable, EventListener {
     private void disconnect() {
         modules.forEach(Module::onShutdown);
 
-        api.shutdown(true);
+        api.shutdown();
     }
 
     private Set<Module> modules = Sets.newHashSet(
