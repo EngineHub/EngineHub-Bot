@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Me4502 (Matthew Miller)
+ * Copyright (c) Me4502 (Matthew Miller)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -68,7 +68,8 @@ public class Me4Bot implements Runnable, EventListener {
             return true;
         }
         if (permission.equalsIgnoreCase(PermissionRoles.BOT_OWNER)) {
-            return member.getUser().getName().equals("Me4502") && member.getUser().getDiscriminator().equals("3758");
+            return member.getUser().getName().equals("Me4502")
+                    && (member.getUser().getDiscriminator().equals("3758") || member.getUser().getDiscriminator().equals("4502"));
         }
 
         boolean hasRank;
@@ -200,8 +201,8 @@ public class Me4Bot implements Runnable, EventListener {
 
     @Override
     public void onEvent(Event event) {
-        if (event instanceof MessageReceivedEvent && ((MessageReceivedEvent) event).getMessage().getContent().startsWith(COMMAND_PREFIX)) {
-            String commandArgs = ((MessageReceivedEvent) event).getMessage().getContent().substring(COMMAND_PREFIX.length());
+        if (event instanceof MessageReceivedEvent && ((MessageReceivedEvent) event).getMessage().getContentRaw().startsWith(COMMAND_PREFIX)) {
+            String commandArgs = ((MessageReceivedEvent) event).getMessage().getContentRaw().substring(COMMAND_PREFIX.length());
 
             if (commandArgs.equals("stop") && isAuthorised(((MessageReceivedEvent) event).getMember(), PermissionRoles.BOT_OWNER)) {
                 running = false;

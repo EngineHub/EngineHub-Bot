@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Me4502 (Matthew Miller)
+ * Copyright (c) Me4502 (Matthew Miller)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,7 @@ public class ChatFilter implements Module, EventListener {
     @Override
     public void onEvent(Event event) {
         if (event instanceof MessageReceivedEvent) {
-            Matcher matcher = INVITE_PATTERN.matcher(((MessageReceivedEvent) event).getMessage().getContent());
+            Matcher matcher = INVITE_PATTERN.matcher(((MessageReceivedEvent) event).getMessage().getContentRaw());
             if (matcher.find() && !Me4Bot.isAuthorised(((MessageReceivedEvent) event).getMember(), PermissionRoles.MODERATOR)) {
                 ((MessageReceivedEvent) event).getMessage().delete().queue();
             }
