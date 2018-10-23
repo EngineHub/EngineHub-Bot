@@ -85,6 +85,12 @@ public class Alerts implements Module, EventListener {
             if (channelId != null) {
                 MessageChannel channel = Me4Bot.bot.api.getTextChannelById(channelId);
                 if (channel != null) {
+                    if (((GuildMemberLeaveEvent) event).getGuild().getBanList().complete().stream()
+                            .anyMatch(ban -> ban.getUser().getIdLong() == ((GuildMemberLeaveEvent) event).getUser().getIdLong())) {
+                        channel.sendMessage("**" + ((GuildMemberLeaveEvent) event).getMember().getUser().getName() + "** has been banned!").queue();
+                        return;
+                    }
+
                     if (((GuildMemberLeaveEvent) event).getMember().getUser().isBot()) {
                         channel.sendMessage("**" + ((GuildMemberLeaveEvent) event).getMember().getUser().getName() + "** (Bot) has been removed from the server!").queue();
                     } else {
