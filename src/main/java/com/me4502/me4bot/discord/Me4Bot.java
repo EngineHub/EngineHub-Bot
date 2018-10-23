@@ -68,8 +68,8 @@ public class Me4Bot implements Runnable, EventListener {
             return true;
         }
         if (permission.equalsIgnoreCase(PermissionRoles.BOT_OWNER)) {
-            return member.getUser().getName().equals("Me4502")
-                    && (member.getUser().getDiscriminator().equals("3758") || member.getUser().getDiscriminator().equals("4502"));
+            return member.getUser().getName().equals(Settings.hostUsername)
+                    && member.getUser().getDiscriminator().equals(Settings.hostIdentifier);
         }
 
         boolean hasRank;

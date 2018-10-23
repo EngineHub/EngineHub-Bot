@@ -114,7 +114,7 @@ public class AudioQueue extends AudioEventAdapter {
         if (endReason == AudioTrackEndReason.FINISHED) {
             playNext();
         } else if (endReason == AudioTrackEndReason.LOAD_FAILED) {
-            textChannel.sendMessage("Encountered an error playing " + new WrappedTrack(track).getPretty() + '.');
+            textChannel.sendMessage("Encountered an error playing " + new WrappedTrack(track).getPretty() + '.').queue();
             playNext();
         }
     }
@@ -123,7 +123,7 @@ public class AudioQueue extends AudioEventAdapter {
     public void onTrackException(AudioPlayer player, AudioTrack track, FriendlyException exception) {
         super.onTrackException(player, track, exception);
 
-        textChannel.sendMessage("Encountered an error playing " + new WrappedTrack(track).getPretty() + ". " + exception.getMessage());
+        textChannel.sendMessage("Encountered an error playing " + new WrappedTrack(track).getPretty() + ". " + exception.getMessage()).queue();
         playNext();
     }
 
@@ -131,7 +131,7 @@ public class AudioQueue extends AudioEventAdapter {
     public void onTrackStuck(AudioPlayer player, AudioTrack track, long thresholdMs) {
         super.onTrackStuck(player, track, thresholdMs);
 
-        textChannel.sendMessage("Got stuck whilst playing " + new WrappedTrack(track).getPretty() + ". Skipping.");
+        textChannel.sendMessage("Got stuck whilst playing " + new WrappedTrack(track).getPretty() + ". Skipping.").queue();
         playNext();
     }
 

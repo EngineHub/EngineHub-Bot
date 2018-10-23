@@ -22,6 +22,7 @@
 package com.me4502.me4bot.discord.module;
 
 import com.me4502.me4bot.discord.Me4Bot;
+import com.me4502.me4bot.discord.Settings;
 import com.me4502.me4bot.discord.util.PermissionRoles;
 import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
@@ -47,7 +48,7 @@ public class NoSpam implements Module, EventListener {
                     spamTimes.put(((MessageReceivedEvent) event).getAuthor().getId(), spamTime);
                     if (spamTime >= 3) {
                         // Do the ban.
-                        privateChannel.sendMessage("You have been banned for spamming. Contact Me4502#3758 if you believe this is a mistake.")
+                        privateChannel.sendMessage("You have been banned for spamming. Contact " + Settings.hostUsername + "#" + Settings.hostIdentifier + " if you believe this is a mistake.")
                                 .queue(message -> ((MessageReceivedEvent) event).getGuild().getController().ban(((MessageReceivedEvent) event).getAuthor(), 0).queue());
                     }
                 });
