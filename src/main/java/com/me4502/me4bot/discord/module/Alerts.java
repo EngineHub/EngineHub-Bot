@@ -36,12 +36,22 @@ import net.dv8tion.jda.core.events.guild.member.GuildMemberLeaveEvent;
 import net.dv8tion.jda.core.hooks.EventListener;
 import ninja.leaping.configurate.ConfigurationNode;
 
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Alerts implements Module, EventListener {
 
     public static Map<String, String> alertChannels = Maps.newHashMap();
+
+    private List<Pattern> badNamePatterns = List.of(
+            Pattern.compile("discord.me/"),
+            Pattern.compile("twitter.com/"),
+            Pattern.compile("twitter/"),
+            Pattern.compile("twitch.tv/"),
+            Pattern.compile("bit.ly/")
+    );
 
     @Override
     public DispatcherNode setupCommands(DispatcherNode dispatcherNode) {
@@ -52,6 +62,13 @@ public class Alerts implements Module, EventListener {
     @Override
     public void onEvent(Event event) {
         if (event instanceof GuildMemberJoinEvent) {
+            for (Pattern pattern : badNamePatterns) {
+                if (pattern.matcher(((GuildMemberJoinEvent) event).getUser().getName()).find()) {
+                    ((GuildMemberJoinEvent) event).getUser().openPrivateChannel().queue(privateChannel
+                            -> NoSpam.banForSpam(((GuildMemberJoinEvent) event).getGuild(), ((GuildMemberJoinEvent) event).getUser(), privateChannel));
+                    return;
+                }
+            }
             String channelId = alertChannels.get(((GuildMemberJoinEvent) event).getGuild().getId());
             if (channelId != null) {
                 MessageChannel channel = Me4Bot.bot.api.getTextChannelById(channelId);

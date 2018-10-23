@@ -24,6 +24,9 @@ package com.me4502.me4bot.discord.module;
 import com.me4502.me4bot.discord.Me4Bot;
 import com.me4502.me4bot.discord.Settings;
 import com.me4502.me4bot.discord.util.PermissionRoles;
+import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.PrivateChannel;
+import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.EventListener;
@@ -48,13 +51,17 @@ public class NoSpam implements Module, EventListener {
                     spamTimes.put(((MessageReceivedEvent) event).getAuthor().getId(), spamTime);
                     if (spamTime >= 3) {
                         // Do the ban.
-                        privateChannel.sendMessage("You have been banned for spamming. Contact " + Settings.hostUsername + "#" + Settings.hostIdentifier + " if you believe this is a mistake.")
-                                .queue(message -> ((MessageReceivedEvent) event).getGuild().getController().ban(((MessageReceivedEvent) event).getAuthor(), 0).queue());
+                        banForSpam(((MessageReceivedEvent) event).getGuild(), ((MessageReceivedEvent) event).getAuthor(), privateChannel);
                     }
                 });
             } else {
                 spamTimes.remove(((MessageReceivedEvent) event).getAuthor().getId());
             }
         }
+    }
+
+    public static void banForSpam(Guild guild, User user, PrivateChannel privateChannel) {
+        privateChannel.sendMessage("You have been banned for spamming. Contact " + Settings.hostUsername + "#" + Settings.hostIdentifier + " if you believe this is a mistake.")
+                .queue(message -> guild.getController().ban(user, 0).queue());
     }
 }
