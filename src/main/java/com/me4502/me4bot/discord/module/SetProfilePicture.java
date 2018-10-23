@@ -25,7 +25,6 @@ import com.me4502.me4bot.discord.Me4Bot;
 import com.me4502.me4bot.discord.util.PermissionRoles;
 import com.sk89q.intake.Command;
 import com.sk89q.intake.Require;
-import com.sk89q.intake.context.CommandLocals;
 import com.sk89q.intake.fluent.DispatcherNode;
 import net.dv8tion.jda.core.entities.Icon;
 import net.dv8tion.jda.core.entities.Message;
