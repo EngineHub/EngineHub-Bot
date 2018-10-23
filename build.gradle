@@ -10,8 +10,8 @@ version = '1.0-SNAPSHOT'
 
 defaultTasks 'licenseFormat', 'build'
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
 
 repositories {
     mavenLocal()
@@ -19,9 +19,6 @@ repositories {
     jcenter()
     maven {
         url = 'https://jitpack.io'
-    }
-    maven {
-        url = 'http://maven.sedmelluq.com'
     }
     maven {
         url = "http://dl.bintray.com/dv8fromtheworld/maven"
@@ -68,7 +65,7 @@ shadowJar {
 dependencies {
     compile 'net.dv8tion:JDA:3.5.1_339'
     compile group: 'ninja.leaping.configurate', name: 'configurate-hocon', version: '3.1'
-    compile 'com.sedmelluq:lavaplayer:1.2.51'
+    compile 'com.sedmelluq:lavaplayer:1.3.9'
     compile 'com.sk89q:intake:3.1.2'
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
