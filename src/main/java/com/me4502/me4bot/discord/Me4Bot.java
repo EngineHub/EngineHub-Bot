@@ -31,6 +31,7 @@ import com.me4502.me4bot.discord.module.Module;
 import com.me4502.me4bot.discord.module.NoSpam;
 import com.me4502.me4bot.discord.module.SetProfilePicture;
 import com.me4502.me4bot.discord.module.audio.Audio;
+import com.me4502.me4bot.discord.module.error_helper.ErrorHelper;
 import com.me4502.me4bot.discord.util.PermissionRoles;
 import com.me4502.me4bot.discord.util.binding.MemberBinding;
 import com.me4502.me4bot.discord.util.binding.MessageBinding;
@@ -173,7 +174,8 @@ public class Me4Bot implements Runnable, EventListener {
             new Audio(),
             new ChatFilter(),
             new SetProfilePicture(),
-            new NoSpam());
+            new NoSpam(),
+            new ErrorHelper());
 
     public Set<Module> getModules() {
         return this.modules;
