@@ -21,6 +21,7 @@
  */
 package com.me4502.me4bot.discord.module.error_helper;
 
+import com.google.common.reflect.TypeToken;
 import com.me4502.me4bot.discord.module.Module;
 import com.me4502.me4bot.discord.module.error_helper.resolver.ErrorResolver;
 import com.me4502.me4bot.discord.module.error_helper.resolver.HastebinResolver;
@@ -31,6 +32,7 @@ import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.EventListener;
 import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -46,7 +48,7 @@ public class ErrorHelper implements Module, EventListener {
 
     private List<ErrorResolver> resolvers = List.of(new MessageResolver(), new PastebinResolver(), new HastebinResolver());
 
-    private Map<String, String> errorMessages = new HashMap<>();
+    private Map<List<String>, String> errorMessages = new HashMap<>();
 
     @Override
     public void onEvent(Event event) {
@@ -69,9 +71,9 @@ public class ErrorHelper implements Module, EventListener {
         return string.toLowerCase().replace("\n", "").replace("\r", "").replace(" ", "").replace("\t", "");
     }
 
-    public Optional<String> messageForError(String error) {
-        for (Map.Entry<String, String> entry : errorMessages.entrySet()) {
-            if (error.contains(entry.getKey())) {
+    private Optional<String> messageForError(String error) {
+        for (Map.Entry<List<String>, String> entry : errorMessages.entrySet()) {
+            if (entry.getKey().stream().allMatch(error::contains)) {
                 return Optional.of(entry.getValue());
             }
         }
@@ -98,7 +100,14 @@ public class ErrorHelper implements Module, EventListener {
     public void load(ConfigurationNode loadedNode) {
         errorMessages = loadedNode.getNode("error-messages").getChildrenMap().values().stream()
                 .collect(Collectors.toMap(
-                        e -> cleanString(e.getNode("match-text").getString()),
+                        e -> {
+                            try {
+                                return e.getNode("match-text").getList(TypeToken.of(String.class)).stream().map(this::cleanString).collect(Collectors.toList());
+                            } catch (ObjectMappingException e1) {
+                                e1.printStackTrace();
+                                return null;
+                            }
+                        },
                         e -> e.getNode("error-message").getString()
                 ));
     }
