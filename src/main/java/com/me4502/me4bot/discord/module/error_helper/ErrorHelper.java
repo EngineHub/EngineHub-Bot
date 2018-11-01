@@ -23,6 +23,7 @@ package com.me4502.me4bot.discord.module.error_helper;
 
 import com.me4502.me4bot.discord.module.Module;
 import com.me4502.me4bot.discord.module.error_helper.resolver.ErrorResolver;
+import com.me4502.me4bot.discord.module.error_helper.resolver.HastebinResolver;
 import com.me4502.me4bot.discord.module.error_helper.resolver.MessageResolver;
 import com.me4502.me4bot.discord.module.error_helper.resolver.PastebinResolver;
 import net.dv8tion.jda.core.entities.MessageChannel;
@@ -43,7 +44,7 @@ import java.util.stream.Collectors;
 
 public class ErrorHelper implements Module, EventListener {
 
-    private List<ErrorResolver> resolvers = List.of(new MessageResolver(), new PastebinResolver());
+    private List<ErrorResolver> resolvers = List.of(new MessageResolver(), new PastebinResolver(), new HastebinResolver());
 
     private Map<String, String> errorMessages = new HashMap<>();
 
@@ -60,7 +61,7 @@ public class ErrorHelper implements Module, EventListener {
                     .map(Optional::get)
                     .distinct()
                     .forEach(message ->
-                            channel.sendMessage("@" + ((MessageReceivedEvent) event).getAuthor().getIdLong() + " " + message).queue());
+                            channel.sendMessage("[AutoReply] <@" + ((MessageReceivedEvent) event).getAuthor().getIdLong() + "> " + message).queue());
         }
     }
 
