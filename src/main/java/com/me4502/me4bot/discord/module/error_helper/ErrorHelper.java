@@ -24,17 +24,28 @@ package com.me4502.me4bot.discord.module.error_helper;
 import com.me4502.me4bot.discord.module.Module;
 import com.me4502.me4bot.discord.module.error_helper.resolver.ErrorResolver;
 import com.me4502.me4bot.discord.module.error_helper.resolver.MessageResolver;
+import com.me4502.me4bot.discord.module.error_helper.resolver.PastebinResolver;
 import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.EventListener;
+import ninja.leaping.configurate.ConfigurationNode;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ErrorHelper implements Module, EventListener {
 
-    private List<ErrorResolver> resolvers = List.of(new MessageResolver());
+    private List<ErrorResolver> resolvers = List.of(new MessageResolver(), new PastebinResolver());
+
+    private Map<String, String> errorMessages = new HashMap<>();
 
     @Override
     public void onEvent(Event event) {
@@ -43,6 +54,7 @@ public class ErrorHelper implements Module, EventListener {
             MessageChannel channel = ((MessageReceivedEvent) event).getChannel();
             resolvers.parallelStream()
                     .flatMap(resolver -> resolver.foundText(messageText).stream())
+                    .map(this::cleanString)
                     .map(this::messageForError)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
@@ -52,7 +64,41 @@ public class ErrorHelper implements Module, EventListener {
         }
     }
 
+    private String cleanString(String string) {
+        return string.toLowerCase().replace("\n", "").replace("\r", "").replace(" ", "").replace("\t", "");
+    }
+
     public Optional<String> messageForError(String error) {
+        for (Map.Entry<String, String> entry : errorMessages.entrySet()) {
+            if (error.contains(entry.getKey())) {
+                return Optional.of(entry.getValue());
+            }
+        }
+
         return Optional.empty();
+    }
+
+    public static String getStringFromUrl(String url) {
+        StringBuilder main = new StringBuilder();
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(url).openStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                main.append(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return main.toString();
+    }
+
+    @Override
+    public void load(ConfigurationNode loadedNode) {
+        errorMessages = loadedNode.getNode("error-messages").getChildrenMap().values().stream()
+                .collect(Collectors.toMap(
+                        e -> cleanString(e.getNode("match-text").getString()),
+                        e -> e.getNode("error-message").getString()
+                ));
     }
 }
