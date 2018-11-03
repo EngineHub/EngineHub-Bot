@@ -24,6 +24,8 @@ package com.me4502.me4bot.discord.module.error_helper;
 import com.google.common.reflect.TypeToken;
 import com.me4502.me4bot.discord.module.Module;
 import com.me4502.me4bot.discord.module.error_helper.resolver.ErrorResolver;
+import com.me4502.me4bot.discord.module.error_helper.resolver.GhostbinResolver;
+import com.me4502.me4bot.discord.module.error_helper.resolver.GistResolver;
 import com.me4502.me4bot.discord.module.error_helper.resolver.HastebinResolver;
 import com.me4502.me4bot.discord.module.error_helper.resolver.MessageResolver;
 import com.me4502.me4bot.discord.module.error_helper.resolver.PastebinResolver;
@@ -38,17 +40,24 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ErrorHelper implements Module, EventListener {
 
-    private List<ErrorResolver> resolvers = List.of(new MessageResolver(), new PastebinResolver(), new HastebinResolver());
+    private List<ErrorResolver> resolvers = List.of(
+            new MessageResolver(),
+            new PastebinResolver(),
+            new HastebinResolver(),
+            new GhostbinResolver(),
+            new GistResolver()
+    );
 
-    private Map<List<String>, String> errorMessages = new HashMap<>();
+    private List<ErrorEntry> errorMessages = new ArrayList<>();
 
     @Override
     public void onEvent(Event event) {
@@ -57,7 +66,7 @@ public class ErrorHelper implements Module, EventListener {
             MessageChannel channel = ((MessageReceivedEvent) event).getChannel();
             resolvers.parallelStream()
                     .flatMap(resolver -> resolver.foundText(messageText).stream())
-                    .map(this::cleanString)
+                    .map(ErrorHelper::cleanString)
                     .map(this::messageForError)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
@@ -67,14 +76,14 @@ public class ErrorHelper implements Module, EventListener {
         }
     }
 
-    private String cleanString(String string) {
+    private static String cleanString(String string) {
         return string.toLowerCase().replace("\n", "").replace("\r", "").replace(" ", "").replace("\t", "");
     }
 
     private Optional<String> messageForError(String error) {
-        for (Map.Entry<List<String>, String> entry : errorMessages.entrySet()) {
-            if (entry.getKey().stream().allMatch(error::contains)) {
-                return Optional.of(entry.getValue());
+        for (ErrorEntry entry : errorMessages) {
+            if (entry.doesTrigger(error)) {
+                return Optional.of(entry.getResponse());
             }
         }
 
@@ -98,17 +107,57 @@ public class ErrorHelper implements Module, EventListener {
 
     @Override
     public void load(ConfigurationNode loadedNode) {
-        errorMessages = loadedNode.getNode("error-messages").getChildrenMap().values().stream()
-                .collect(Collectors.toMap(
-                        e -> {
-                            try {
-                                return e.getNode("match-text").getList(TypeToken.of(String.class)).stream().map(this::cleanString).collect(Collectors.toList());
-                            } catch (ObjectMappingException e1) {
-                                e1.printStackTrace();
-                                return null;
-                            }
-                        },
-                        e -> e.getNode("error-message").getString()
-                ));
+        errorMessages = loadedNode.getNode("error-messages").getChildrenMap().entrySet().stream()
+                .map(entry -> {
+                    try {
+                        return new ErrorEntry(entry.getKey().toString(),
+                                entry.getValue().getNode("match-text").getList(TypeToken.of(String.class)),
+                                entry.getValue().getNode("error-message").getString()
+                        );
+                    } catch (ObjectMappingException e) {
+                        e.printStackTrace();
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void save(ConfigurationNode loadedNode) {
+        loadedNode.getNode("error-messages").setValue(errorMessages.stream().collect(Collectors.toMap(
+                ErrorEntry::getName,
+                e -> Map.of("match-text", e.getTriggers(), "error-message", e.getResponse())
+        )));
+    }
+
+    private static class ErrorEntry {
+        private String name;
+        private List<String> triggers;
+        private List<String> cleanedTriggers;
+        private String response;
+
+        ErrorEntry(String name, List<String> triggers, String response) {
+            this.name = name;
+            this.triggers = triggers;
+            this.cleanedTriggers = triggers.stream().map(ErrorHelper::cleanString).collect(Collectors.toList());
+            this.response = response;
+        }
+
+        String getName() {
+            return this.name;
+        }
+
+        List<String> getTriggers() {
+            return this.triggers;
+        }
+
+        boolean doesTrigger(String error) {
+            return cleanedTriggers.stream().allMatch(error::contains);
+        }
+
+        String getResponse() {
+            return this.response;
+        }
     }
 }
