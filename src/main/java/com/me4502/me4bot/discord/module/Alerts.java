@@ -76,11 +76,6 @@ public class Alerts implements Module, EventListener {
                 MessageChannel channel = Me4Bot.bot.api.getTextChannelById(channelId);
                 if (channel != null) {
                     sendMessage(((GuildMemberJoinEvent) event).getGuild(), channel, ((GuildMemberJoinEvent) event).getUser(), true);
-                    if (((GuildMemberJoinEvent) event).getMember().getUser().isBot()) {
-                        channel.sendMessage("**" + ((GuildMemberJoinEvent) event).getMember().getUser().getName() + "** (Bot) has been added to the server!").queue();
-                    } else {
-                        channel.sendMessage("**" + ((GuildMemberJoinEvent) event).getMember().getUser().getName() + "** has joined the server!").queue();
-                    }
                 }
             }
         } else if (event instanceof GuildMemberLeaveEvent) {
