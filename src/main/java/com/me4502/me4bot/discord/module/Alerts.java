@@ -28,8 +28,10 @@ import com.me4502.me4bot.discord.util.PermissionRoles;
 import com.sk89q.intake.Command;
 import com.sk89q.intake.Require;
 import com.sk89q.intake.fluent.DispatcherNode;
+import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageChannel;
+import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberLeaveEvent;
@@ -73,6 +75,7 @@ public class Alerts implements Module, EventListener {
             if (channelId != null) {
                 MessageChannel channel = Me4Bot.bot.api.getTextChannelById(channelId);
                 if (channel != null) {
+                    sendMessage(((GuildMemberJoinEvent) event).getGuild(), channel, ((GuildMemberJoinEvent) event).getUser(), true);
                     if (((GuildMemberJoinEvent) event).getMember().getUser().isBot()) {
                         channel.sendMessage("**" + ((GuildMemberJoinEvent) event).getMember().getUser().getName() + "** (Bot) has been added to the server!").queue();
                     } else {
@@ -85,19 +88,30 @@ public class Alerts implements Module, EventListener {
             if (channelId != null) {
                 MessageChannel channel = Me4Bot.bot.api.getTextChannelById(channelId);
                 if (channel != null) {
-                    if (((GuildMemberLeaveEvent) event).getGuild().getBanList().complete().stream()
-                            .anyMatch(ban -> ban.getUser().getIdLong() == ((GuildMemberLeaveEvent) event).getUser().getIdLong())) {
-                        channel.sendMessage("**" + ((GuildMemberLeaveEvent) event).getMember().getUser().getName() + "** has been banned!").queue();
-                        return;
-                    }
-
-                    if (((GuildMemberLeaveEvent) event).getMember().getUser().isBot()) {
-                        channel.sendMessage("**" + ((GuildMemberLeaveEvent) event).getMember().getUser().getName() + "** (Bot) has been removed from the server!").queue();
-                    } else {
-                        channel.sendMessage("**" + ((GuildMemberLeaveEvent) event).getMember().getUser().getName() + "** has left the server!").queue();
-                    }
+                    sendMessage(((GuildMemberLeaveEvent) event).getGuild(), channel, ((GuildMemberLeaveEvent) event).getUser(), false);
                 }
             }
+        }
+    }
+
+    /**
+     * Sends the alert message.
+     *
+     * @param user The user
+     * @param join True for join false for leave
+     */
+    private void sendMessage(Guild guild, MessageChannel channel, User user, boolean join) {
+        String userText = "<@" + user.getIdLong() + '>';
+
+        if (!join && guild.getBanList().complete().stream().anyMatch(ban -> ban.getUser().getIdLong() == user.getIdLong())) {
+            channel.sendMessage("**" + userText + "** has been banned!").queue();
+            return;
+        }
+
+        if (user.isBot()) {
+            channel.sendMessage("**" + userText + "** (Bot) has been " + (join ? "added to" : "removed from") + " the server!").queue();
+        } else {
+            channel.sendMessage("**" + userText + "** has " + (join ? "joined" : "left") + " the server!").queue();
         }
     }
 
