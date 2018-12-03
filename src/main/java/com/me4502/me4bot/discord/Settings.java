@@ -101,16 +101,18 @@ public class Settings {
     }
 
     public static void saveModules() {
-        for (Module module : Me4Bot.bot.getModules()) {
-            File moduleSettings = new File(module.getClass().getSimpleName() + ".conf").getAbsoluteFile();
-            ConfigurationLoader<CommentedConfigurationNode> moduleLoader = HoconConfigurationLoader.builder().setPath(moduleSettings.toPath()).build();
-            try {
-                ConfigurationNode node = moduleLoader.createEmptyNode();
-                module.save(node);
-                moduleLoader.save(node);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        Me4Bot.bot.getModules().forEach(Settings::saveModule);
+    }
+
+    public static void saveModule(Module module) {
+        File moduleSettings = new File(module.getClass().getSimpleName() + ".conf").getAbsoluteFile();
+        ConfigurationLoader<CommentedConfigurationNode> moduleLoader = HoconConfigurationLoader.builder().setPath(moduleSettings.toPath()).build();
+        try {
+            ConfigurationNode node = moduleLoader.createEmptyNode();
+            module.save(node);
+            moduleLoader.save(node);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
