@@ -33,6 +33,7 @@ import net.dv8tion.jda.core.entities.User;
 import ninja.leaping.configurate.ConfigurationNode;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -50,7 +51,12 @@ public class LinkGrabber implements Module {
     public void linkGrabber(Message message, String key, @Optional String userName) {
         User user = message.getAuthor();
         if (userName != null) {
-            message.getChannel().sendMessage(userName).queue();
+            List<User> users = message.getMentionedUsers();
+            if (users.isEmpty() || users.size() > 1) {
+                message.getChannel().sendMessage("I don't know who you want me to send that to, sorry " + StringUtil.annotateUser(user) + '!').queue();
+                return;
+            }
+            user = users.get(0);
         }
 
         String link = linkMap.get(key);
@@ -70,6 +76,11 @@ public class LinkGrabber implements Module {
         message.getChannel().sendMessage("Added link to the list!").queue();
 
         Settings.saveModule(this);
+    }
+
+    @Command(aliases = "listlinks", desc = "Lists all available links.")
+    public void linkLister(Message message) {
+        message.getChannel().sendMessage("Here you go, " + StringUtil.annotateUser(message.getAuthor()) + "! " + String.join(", ", linkMap.keySet())).queue();
     }
 
     @Override
