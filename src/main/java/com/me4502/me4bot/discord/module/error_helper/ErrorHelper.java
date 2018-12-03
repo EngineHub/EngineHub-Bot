@@ -29,6 +29,7 @@ import com.me4502.me4bot.discord.module.error_helper.resolver.GistResolver;
 import com.me4502.me4bot.discord.module.error_helper.resolver.HastebinResolver;
 import com.me4502.me4bot.discord.module.error_helper.resolver.MessageResolver;
 import com.me4502.me4bot.discord.module.error_helper.resolver.PastebinResolver;
+import com.me4502.me4bot.discord.util.StringUtil;
 import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
@@ -72,7 +73,7 @@ public class ErrorHelper implements Module, EventListener {
                     .map(Optional::get)
                     .distinct()
                     .forEach(message ->
-                            channel.sendMessage("[AutoReply] <@" + ((MessageReceivedEvent) event).getAuthor().getIdLong() + "> " + message).queue());
+                            channel.sendMessage("[AutoReply] " + StringUtil.annotateUser(((MessageReceivedEvent) event).getAuthor()) + ' ' + message).queue());
         }
     }
 

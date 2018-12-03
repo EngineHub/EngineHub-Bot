@@ -25,6 +25,7 @@ import com.google.common.collect.Maps;
 import com.me4502.me4bot.discord.Me4Bot;
 import com.me4502.me4bot.discord.Settings;
 import com.me4502.me4bot.discord.util.PermissionRoles;
+import com.me4502.me4bot.discord.util.StringUtil;
 import com.sk89q.intake.Command;
 import com.sk89q.intake.Require;
 import com.sk89q.intake.fluent.DispatcherNode;
@@ -96,17 +97,16 @@ public class Alerts implements Module, EventListener {
      * @param join True for join false for leave
      */
     private void sendMessage(Guild guild, MessageChannel channel, User user, boolean join) {
-        String userText = "<@" + user.getIdLong() + '>';
 
         if (!join && guild.getBanList().complete().stream().anyMatch(ban -> ban.getUser().getIdLong() == user.getIdLong())) {
-            channel.sendMessage("**" + userText + "** has been banned!").queue();
+            channel.sendMessage("**" + StringUtil.annotateUser(user) + "** has been banned!").queue();
             return;
         }
 
         if (user.isBot()) {
-            channel.sendMessage("**" + userText + "** (Bot) has been " + (join ? "added to" : "removed from") + " the server!").queue();
+            channel.sendMessage("**" + StringUtil.annotateUser(user) + "** (Bot) has been " + (join ? "added to" : "removed from") + " the server!").queue();
         } else {
-            channel.sendMessage("**" + userText + "** has " + (join ? "joined" : "left") + " the server!").queue();
+            channel.sendMessage("**" + StringUtil.annotateUser(user) + "** has " + (join ? "joined" : "left") + " the server!").queue();
         }
     }
 
@@ -116,7 +116,7 @@ public class Alerts implements Module, EventListener {
         alertChannels.put(message.getGuild().getId(), message.getChannel().getId());
         message.getChannel().sendMessage("Set alert channel!").queue();
 
-        Settings.save();
+        Settings.saveModule(this);
     }
 
     @Override
