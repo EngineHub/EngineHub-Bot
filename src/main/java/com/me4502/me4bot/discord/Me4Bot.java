@@ -204,6 +204,8 @@ public class Me4Bot implements Runnable, EventListener {
         }
     }
 
+    private static final String[] PARENT_COMANDS = new String[0];
+
     @Override
     public void onEvent(Event event) {
         if (event instanceof MessageReceivedEvent && ((MessageReceivedEvent) event).getMessage().getContentRaw().startsWith(COMMAND_PREFIX)) {
@@ -219,7 +221,7 @@ public class Me4Bot implements Runnable, EventListener {
             locals.put(Message.class, ((MessageReceivedEvent) event).getMessage());
 
             try {
-                commandDispatcher.call(commandArgs, locals, new String[0]);
+                commandDispatcher.call(commandArgs, locals, PARENT_COMANDS);
             } catch (InvalidUsageException e) {
                 String usage = e.getMessage();
                 if ("Please choose a sub-command.".equals(usage)) {
