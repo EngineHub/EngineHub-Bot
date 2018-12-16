@@ -2,7 +2,7 @@ plugins {
     id "java"
     id "maven"
     id "com.github.johnrengelman.shadow" version "1.2.4"
-    id "com.github.hierynomus.license" version "0.12.1"
+    id 'net.minecrell.licenser' version '0.4.1'
 }
 
 group = 'com.me4502'
@@ -29,19 +29,9 @@ repositories {
 }
 
 license {
-    ext {
-        year = Calendar.getInstance().get(Calendar.YEAR)
-    }
-
-    header = file('HEADER.txt')
+    newLine = false
+    header = project.file('HEADER.txt')
     include '**/*.java'
-
-    ignoreFailures = false
-    strictCheck = true
-
-    mapping {
-        java = 'SLASHSTAR_STYLE'
-    }
 }
 
 task sourceJar(type: Jar) {
