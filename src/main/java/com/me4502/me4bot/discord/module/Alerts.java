@@ -97,16 +97,19 @@ public class Alerts implements Module, EventListener {
      * @param join True for join false for leave
      */
     private void sendMessage(Guild guild, MessageChannel channel, User user, boolean join) {
-
+        String annotatedName = "**" + StringUtil.annotateUser(user) + "** (" + user.getName() + ") ";
+        if (user.isBot()) {
+            annotatedName += "[Bot] ";
+        }
         if (!join && guild.getBanList().complete().stream().anyMatch(ban -> ban.getUser().getIdLong() == user.getIdLong())) {
-            channel.sendMessage("**" + StringUtil.annotateUser(user) + "** has been banned!").queue();
+            channel.sendMessage(annotatedName + "has been banned!").queue();
             return;
         }
 
         if (user.isBot()) {
-            channel.sendMessage("**" + StringUtil.annotateUser(user) + "** (Bot) has been " + (join ? "added to" : "removed from") + " the server!").queue();
+            channel.sendMessage(annotatedName + "has been " + (join ? "added to" : "removed from") + " the server!").queue();
         } else {
-            channel.sendMessage("**" + StringUtil.annotateUser(user) + "** has " + (join ? "joined" : "left") + " the server!").queue();
+            channel.sendMessage(annotatedName + "has " + (join ? "joined" : "left") + " the server!").queue();
         }
     }
 
