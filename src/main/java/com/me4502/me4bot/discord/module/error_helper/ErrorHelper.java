@@ -30,6 +30,7 @@ import com.me4502.me4bot.discord.module.error_helper.resolver.HastebinResolver;
 import com.me4502.me4bot.discord.module.error_helper.resolver.MessageResolver;
 import com.me4502.me4bot.discord.module.error_helper.resolver.PastebinResolver;
 import com.me4502.me4bot.discord.util.StringUtil;
+import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
@@ -63,10 +64,28 @@ public class ErrorHelper implements Module, EventListener {
     @Override
     public void onEvent(Event event) {
         if (event instanceof MessageReceivedEvent) {
-            String messageText = ((MessageReceivedEvent) event).getMessage().getContentRaw();
             MessageChannel channel = ((MessageReceivedEvent) event).getChannel();
+            StringBuilder messageText = new StringBuilder(((MessageReceivedEvent) event).getMessage().getContentRaw());
+            for (Message.Attachment attachment : ((MessageReceivedEvent) event).getMessage().getAttachments()) {
+                if (attachment.isImage()) continue; // TODO Maybe text processing in images?
+                if (attachment.getFileName().endsWith(".txt") || attachment.getFileName().endsWith(".log")) {
+                    if (attachment.getSize() > 1024*1024*4) {
+                        channel.sendMessage("[AutoReply] " + StringUtil.annotateUser(((MessageReceivedEvent) event).getAuthor()) + " Log too large "
+                                + "to scan.").queue();
+                        continue; //Ignore >4MB for now.
+                    }
+                    try(BufferedReader reader = new BufferedReader(new InputStreamReader(attachment.getInputStream()))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            messageText.append(line);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
             resolvers.parallelStream()
-                    .flatMap(resolver -> resolver.foundText(messageText).stream())
+                    .flatMap(resolver -> resolver.foundText(messageText.toString()).stream())
                     .map(ErrorHelper::cleanString)
                     .map(this::messageForError)
                     .filter(Optional::isPresent)
