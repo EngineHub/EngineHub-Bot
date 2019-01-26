@@ -26,7 +26,6 @@ import com.me4502.me4bot.discord.module.Module;
 import com.me4502.me4bot.discord.module.error_helper.resolver.ErrorResolver;
 import com.me4502.me4bot.discord.module.error_helper.resolver.GhostbinResolver;
 import com.me4502.me4bot.discord.module.error_helper.resolver.GistResolver;
-import com.me4502.me4bot.discord.module.error_helper.resolver.MessageResolver;
 import com.me4502.me4bot.discord.module.error_helper.resolver.RawSubdirectoryUrlResolver;
 import com.me4502.me4bot.discord.util.StringUtil;
 import net.dv8tion.jda.core.entities.Message;
@@ -51,7 +50,7 @@ import java.util.stream.Collectors;
 public class ErrorHelper implements Module, EventListener {
 
     private List<ErrorResolver> resolvers = List.of(
-            new MessageResolver(),
+            List::of,
             new RawSubdirectoryUrlResolver("pastebin.com", "raw"), // PastebinResolver
             new RawSubdirectoryUrlResolver("hastebin.com", "raw"), // HastebinResolver
             new RawSubdirectoryUrlResolver("paste.helpch.at", "raw"), // PasteHelpchatResolver
