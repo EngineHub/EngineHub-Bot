@@ -28,16 +28,24 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class HastebinResolver implements ErrorResolver {
+public class RawSubdirectoryUrlResolver implements ErrorResolver {
 
-    private Pattern HASTEBIN_PATTERN = Pattern.compile("hastebin.com/([A-Za-z0-9]*)");
+    private final Pattern URL_PATTERN;
+    private final String baseUrl;
+    private final String subUrl;
+
+    public RawSubdirectoryUrlResolver(String baseUrl, String subUrl) {
+        this.baseUrl = baseUrl;
+        this.subUrl = subUrl;
+        this.URL_PATTERN = Pattern.compile(baseUrl + "/([A-Za-z0-9.]*)");
+    }
 
     @Override
     public List<String> foundText(String message) {
         List<String> foundText = new ArrayList<>();
-        Matcher matcher = HASTEBIN_PATTERN.matcher(message);
+        Matcher matcher = URL_PATTERN.matcher(message);
         while (matcher.find()) {
-            foundText.add(ErrorHelper.getStringFromUrl("https://hastebin.com/raw/" + matcher.group(1)));
+            foundText.add(ErrorHelper.getStringFromUrl("https://" + baseUrl + '/' + subUrl + '/' + matcher.group(1)));
         }
 
         return foundText;
