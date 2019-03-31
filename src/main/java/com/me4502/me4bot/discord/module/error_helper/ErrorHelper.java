@@ -44,7 +44,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ErrorHelper implements Module, EventListener {
@@ -87,9 +86,7 @@ public class ErrorHelper implements Module, EventListener {
             resolvers.parallelStream()
                     .flatMap(resolver -> resolver.foundText(messageText.toString()).stream())
                     .map(ErrorHelper::cleanString)
-                    .map(this::messageForError)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
+                    .flatMap(error -> messagesForError(error).stream())
                     .distinct()
                     .forEach(message ->
                             channel.sendMessage("[AutoReply] " + StringUtil.annotateUser(((MessageReceivedEvent) event).getAuthor()) + ' ' + message).queue());
@@ -100,14 +97,11 @@ public class ErrorHelper implements Module, EventListener {
         return string.toLowerCase().replace("\n", "").replace("\r", "").replace(" ", "").replace("\t", "");
     }
 
-    private Optional<String> messageForError(String error) {
-        for (ErrorEntry entry : errorMessages) {
-            if (entry.doesTrigger(error)) {
-                return Optional.of(entry.getResponse());
-            }
-        }
-
-        return Optional.empty();
+    private List<String> messagesForError(String error) {
+        return errorMessages.stream()
+                .filter(entry -> entry.doesTrigger(error))
+                .map(ErrorEntry::getResponse)
+                .collect(Collectors.toList());
     }
 
     public static String getStringFromUrl(String url) {
