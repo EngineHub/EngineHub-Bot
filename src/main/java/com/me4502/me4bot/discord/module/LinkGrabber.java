@@ -69,7 +69,7 @@ public class LinkGrabber implements Module {
         if (alias.contains("\n")) {
             MessageBuilder builder = new MessageBuilder();
             builder.append("Here you go, ").append(StringUtil.annotateUser(user)).append("!\n\n");
-            builder.append(alias, MessageBuilder.Formatting.BLOCK);
+            builder.append(alias);
             builder.buildAll(MessageBuilder.SplitPolicy.NEWLINE).forEach(mess -> message.getChannel().sendMessage(mess).queue());
         } else {
             message.getChannel().sendMessage("Here you go, " + StringUtil.annotateUser(user) + "! " + alias).queue();
