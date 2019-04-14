@@ -79,7 +79,7 @@ public class LinkGrabber implements Module {
     @Command(aliases = {"addalias", "addlink"}, desc = "Adds an alias.")
     @Require(PermissionRoles.ADMIN)
     public void addLink(Message message, String key, String link) {
-        aliasMap.put(key, link);
+        aliasMap.put(key, link.replace("\\n", "\n"));
 
         message.getChannel().sendMessage("Added an alias to the list!").queue();
 
