@@ -28,6 +28,7 @@ import com.sk89q.intake.Command;
 import com.sk89q.intake.Require;
 import com.sk89q.intake.fluent.DispatcherNode;
 import com.sk89q.intake.parametric.annotation.Optional;
+import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.User;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -39,7 +40,7 @@ import java.util.stream.Collectors;
 
 public class LinkGrabber implements Module {
 
-    private Map<String, String> linkMap = new HashMap<>();
+    private Map<String, String> aliasMap = new HashMap<>();
 
     @Override
     public DispatcherNode setupCommands(DispatcherNode dispatcherNode) {
@@ -47,45 +48,52 @@ public class LinkGrabber implements Module {
                 .registerMethods(this);
     }
 
-    @Command(aliases = "get", desc = "Grabs a link.")
-    public void linkGrabber(Message message, String key, @Optional String userName) {
+    @Command(aliases = {"get", "g", "~"}, desc = "Grabs an alias.")
+    public void aliasGrabber(Message message, String key, @Optional String userName) {
         User user = message.getAuthor();
         if (userName != null) {
             List<User> users = message.getMentionedUsers();
-            if (users.isEmpty() || users.size() > 1) {
+            if (users.size() != 1) {
                 message.getChannel().sendMessage("I don't know who you want me to send that to, sorry " + StringUtil.annotateUser(user) + '!').queue();
                 return;
             }
             user = users.get(0);
         }
 
-        String link = linkMap.get(key);
-        if (link == null) {
-            message.getChannel().sendMessage("I don't know what that link is, sorry " + StringUtil.annotateUser(user) + '!').queue();
+        String alias = aliasMap.get(key);
+        if (alias == null) {
+            message.getChannel().sendMessage("I don't know what that alias is, sorry " + StringUtil.annotateUser(user) + '!').queue();
             return;
         }
 
-        message.getChannel().sendMessage("Here you go, " + StringUtil.annotateUser(user) + "! " + link).queue();
+        if (alias.contains("\n")) {
+            MessageBuilder builder = new MessageBuilder();
+            builder.append("Here you go, ").append(StringUtil.annotateUser(user)).append("!\n\n");
+            builder.append(alias, MessageBuilder.Formatting.BLOCK);
+            builder.buildAll(MessageBuilder.SplitPolicy.NEWLINE).forEach(mess -> message.getChannel().sendMessage(mess).queue());
+        } else {
+            message.getChannel().sendMessage("Here you go, " + StringUtil.annotateUser(user) + "! " + alias).queue();
+        }
     }
 
-    @Command(aliases = "addlink", desc = "Adds a link.")
+    @Command(aliases = {"addalias", "addlink"}, desc = "Adds an alias.")
     @Require(PermissionRoles.ADMIN)
     public void addLink(Message message, String key, String link) {
-        linkMap.put(key, link);
+        aliasMap.put(key, link);
 
-        message.getChannel().sendMessage("Added link to the list!").queue();
+        message.getChannel().sendMessage("Added an alias to the list!").queue();
 
         Settings.saveModule(this);
     }
 
-    @Command(aliases = "listlinks", desc = "Lists all available links.")
-    public void linkLister(Message message) {
-        message.getChannel().sendMessage("Here you go, " + StringUtil.annotateUser(message.getAuthor()) + "! " + String.join(", ", linkMap.keySet())).queue();
+    @Command(aliases = {"listaliases", "aliases", "listlinks"}, desc = "Lists all available aliases.")
+    public void aliasLister(Message message) {
+        message.getChannel().sendMessage("Here you go, " + StringUtil.annotateUser(message.getAuthor()) + "! " + String.join(", ", aliasMap.keySet())).queue();
     }
 
     @Override
     public void load(ConfigurationNode loadedNode) {
-        linkMap = loadedNode.getNode("links").getChildrenMap().entrySet().stream()
+        aliasMap = loadedNode.getNode("links").getChildrenMap().entrySet().stream()
                 .collect(Collectors.toMap(
                         e -> String.valueOf(e.getKey()),
                         e -> e.getValue().getString("FAILED TO LOAD")
@@ -94,6 +102,6 @@ public class LinkGrabber implements Module {
 
     @Override
     public void save(ConfigurationNode loadedNode) {
-        loadedNode.getNode("links").setValue(linkMap);
+        loadedNode.getNode("links").setValue(aliasMap);
     }
 }
