@@ -105,6 +105,10 @@ public class ErrorHelper implements Module, EventListener {
     }
 
     public static String getStringFromUrl(String url) {
+        return getStringFromUrl0(url, 0);
+    }
+
+    private static String getStringFromUrl0(String url, int tries) {
         StringBuilder main = new StringBuilder();
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(url).openStream()))) {
@@ -112,8 +116,12 @@ public class ErrorHelper implements Module, EventListener {
             while ((line = reader.readLine()) != null) {
                 main.append(line);
             }
-        } catch (IOException e) {
+        } catch (Throwable e) {
+            System.out.println("Failed to load URL " + url + " (Tries " + tries + ')');
             e.printStackTrace();
+            if (tries < 5) {
+                return getStringFromUrl0(url, tries + 1);
+            }
         }
 
         return main.toString();
