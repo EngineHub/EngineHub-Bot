@@ -28,11 +28,13 @@ import com.sk89q.intake.Command;
 import com.sk89q.intake.Require;
 import com.sk89q.intake.fluent.DispatcherNode;
 import com.sk89q.intake.parametric.annotation.Optional;
+import com.sk89q.intake.util.StringUtils;
 import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.User;
 import ninja.leaping.configurate.ConfigurationNode;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,12 +65,14 @@ public class LinkGrabber implements Module {
         String alias = aliasMap.get(key);
         if (alias == null) {
             message.getChannel().sendMessage("I don't know what that alias is, sorry " + StringUtil.annotateUser(user) + '!').queue();
+            aliasMap.keySet().stream().min(Comparator.comparingInt(o -> StringUtils.getLevenshteinDistance(key, o)))
+            .ifPresent(possibleKey -> message.getChannel().sendMessage("Did you mean `" + possibleKey + "`?").queue());
             return;
         }
 
         if (alias.contains("\n")) {
             MessageBuilder builder = new MessageBuilder();
-            builder.append("Here you go, ").append(StringUtil.annotateUser(user)).append("!\n\n");
+            builder.append("Hey ").append(StringUtil.annotateUser(user)).append("!\n\n");
             builder.append(alias);
             builder.buildAll(MessageBuilder.SplitPolicy.NEWLINE).forEach(mess -> message.getChannel().sendMessage(mess).queue());
         } else {
