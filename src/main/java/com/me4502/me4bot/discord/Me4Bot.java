@@ -27,6 +27,7 @@ import com.google.common.collect.Sets;
 import com.me4502.me4bot.discord.module.Alerts;
 import com.me4502.me4bot.discord.module.AutoErase;
 import com.me4502.me4bot.discord.module.ChatFilter;
+import com.me4502.me4bot.discord.module.JoinMessage;
 import com.me4502.me4bot.discord.module.LinkGrabber;
 import com.me4502.me4bot.discord.module.Module;
 import com.me4502.me4bot.discord.module.NoSpam;
@@ -177,7 +178,8 @@ public class Me4Bot implements Runnable, EventListener {
             new SetProfilePicture(),
             new NoSpam(),
             new ErrorHelper(),
-            new LinkGrabber()
+            new LinkGrabber(),
+            new JoinMessage()
     );
 
     public Set<Module> getModules() {
