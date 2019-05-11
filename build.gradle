@@ -1,7 +1,7 @@
 plugins {
     id "java"
     id "maven"
-    id "com.github.johnrengelman.shadow" version "1.2.4"
+    id "com.github.johnrengelman.shadow" version "4.0.2"
     id 'net.minecrell.licenser' version '0.4.1'
 }
 
@@ -10,8 +10,8 @@ version = '1.0-SNAPSHOT'
 
 defaultTasks 'licenseFormat', 'build'
 
-sourceCompatibility = JavaVersion.VERSION_1_9
-targetCompatibility = JavaVersion.VERSION_1_9
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
 
 repositories {
     mavenLocal()
@@ -35,21 +35,21 @@ license {
 }
 
 task sourceJar(type: Jar) {
-    classifier = 'source'
+    archiveClassifier = 'source'
     from sourceSets.main.allSource
 }
 
 task javadocJar(type: Jar) {
-    classifier = 'javadoc'
+    archiveClassifier = 'javadoc'
     from javadoc.destinationDir
 }
 
 jar {
-    classifier = 'dev'
+    archiveClassifier = 'dev'
 }
 
 shadowJar {
-    classifier = ''
+    archiveClassifier = ''
 }
 
 dependencies {
