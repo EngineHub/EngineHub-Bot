@@ -35,21 +35,21 @@ license {
 }
 
 task sourceJar(type: Jar) {
-    archiveClassifier = 'source'
+    classifier = 'source'
     from sourceSets.main.allSource
 }
 
 task javadocJar(type: Jar) {
-    archiveClassifier = 'javadoc'
+    classifier = 'javadoc'
     from javadoc.destinationDir
 }
 
 jar {
-    archiveClassifier = 'dev'
+    classifier = 'dev'
 }
 
 shadowJar {
-    archiveClassifier = ''
+    classifier = ''
 }
 
 dependencies {
