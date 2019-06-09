@@ -42,7 +42,7 @@ public class NoSpam implements Module, EventListener {
         if (event instanceof MessageReceivedEvent) {
             int mentionCount = ((MessageReceivedEvent) event).getMessage().getMentionedUsers().size()
                     + ((MessageReceivedEvent) event).getMessage().getMentionedRoles().size();
-            if (mentionCount >= 6 && !Me4Bot.isAuthorised(((MessageReceivedEvent) event).getMember(), PermissionRoles.ADMIN)) {
+            if (mentionCount >= 6 && !Me4Bot.isAuthorised(((MessageReceivedEvent) event).getMember(), PermissionRoles.TRUSTED)) {
                 ((MessageReceivedEvent) event).getMessage().delete().queue();
                 ((MessageReceivedEvent) event).getAuthor().openPrivateChannel().queue(privateChannel -> {
                     privateChannel.sendMessage("Oi mate, you seem to be spamming mentions! If you keep doing this you will be banned.").queue();
