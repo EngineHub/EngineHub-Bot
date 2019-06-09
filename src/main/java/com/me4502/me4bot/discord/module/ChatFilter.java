@@ -38,7 +38,7 @@ public class ChatFilter implements Module, EventListener {
     public void onEvent(Event event) {
         if (event instanceof MessageReceivedEvent) {
             Matcher matcher = INVITE_PATTERN.matcher(((MessageReceivedEvent) event).getMessage().getContentRaw());
-            if (matcher.find() && !Me4Bot.isAuthorised(((MessageReceivedEvent) event).getMember(), PermissionRoles.MODERATOR)) {
+            if (matcher.find() && !Me4Bot.isAuthorised(((MessageReceivedEvent) event).getMember(), PermissionRoles.TRUSTED)) {
                 ((MessageReceivedEvent) event).getMessage().delete().queue();
             }
         }
