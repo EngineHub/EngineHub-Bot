@@ -81,7 +81,7 @@ public class LinkGrabber implements Module {
     }
 
     @Command(aliases = {"addalias", "addlink"}, desc = "Adds an alias.")
-    @Require(PermissionRoles.ADMIN)
+    @Require(PermissionRoles.MODERATOR)
     public void addLink(Message message, String key, String link) {
         aliasMap.put(key, link.replace("\\n", "\n"));
 
