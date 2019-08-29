@@ -37,7 +37,7 @@ public class RawSubdirectoryUrlResolver implements ErrorResolver {
     public RawSubdirectoryUrlResolver(String baseUrl, String subUrl) {
         this.baseUrl = baseUrl;
         this.subUrl = subUrl;
-        this.URL_PATTERN = Pattern.compile(baseUrl + "/([A-Za-z0-9.]*)");
+        this.URL_PATTERN = Pattern.compile(baseUrl + "/([A-Za-z0-9._]*)");
     }
 
     @Override
@@ -45,7 +45,7 @@ public class RawSubdirectoryUrlResolver implements ErrorResolver {
         List<String> foundText = new ArrayList<>();
         Matcher matcher = URL_PATTERN.matcher(message);
         while (matcher.find()) {
-            foundText.add(ErrorHelper.getStringFromUrl("https://" + baseUrl + '/' + subUrl + '/' + matcher.group(1)));
+            foundText.add(ErrorHelper.getStringFromUrl("http://" + baseUrl + '/' + subUrl + '/' + matcher.group(1)));
         }
 
         return foundText;
