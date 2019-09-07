@@ -55,7 +55,7 @@ public class ErrorHelper implements Module, EventListener {
             new RawSubdirectoryUrlResolver("paste.helpch.at", "raw"), // PasteHelpchatResolver
             new GhostbinResolver(),
             new GistResolver(),
-            new RawSubdirectoryUrlResolver("paste.enginehub.org", "documents") // EngineHubResolver
+            new RawSubdirectoryUrlResolver("paste.enginehub.org", "documents", true) // EngineHubResolver
     );
 
     private List<ErrorEntry> errorMessages = new ArrayList<>();
