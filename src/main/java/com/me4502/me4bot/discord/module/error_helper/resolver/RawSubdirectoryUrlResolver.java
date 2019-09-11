@@ -42,7 +42,7 @@ public class RawSubdirectoryUrlResolver implements ErrorResolver {
     public RawSubdirectoryUrlResolver(String baseUrl, String subUrl, boolean secure) {
         this.baseUrl = baseUrl;
         this.subUrl = subUrl;
-        this.URL_PATTERN = Pattern.compile(baseUrl + "/([A-Za-z0-9._]*)");
+        this.URL_PATTERN = Pattern.compile(baseUrl + "/([A-Za-z0-9._-]*)");
         this.secure = secure;
     }
 
