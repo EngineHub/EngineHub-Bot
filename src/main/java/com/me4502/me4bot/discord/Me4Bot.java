@@ -31,6 +31,7 @@ import com.me4502.me4bot.discord.module.JoinMessage;
 import com.me4502.me4bot.discord.module.LinkGrabber;
 import com.me4502.me4bot.discord.module.Module;
 import com.me4502.me4bot.discord.module.NoSpam;
+import com.me4502.me4bot.discord.module.PingWarning;
 import com.me4502.me4bot.discord.module.SetProfilePicture;
 import com.me4502.me4bot.discord.module.audio.Audio;
 import com.me4502.me4bot.discord.module.error_helper.ErrorHelper;
@@ -179,7 +180,8 @@ public class Me4Bot implements Runnable, EventListener {
             new NoSpam(),
             new ErrorHelper(),
             new LinkGrabber(),
-            new JoinMessage()
+            new JoinMessage(),
+            new PingWarning()
     );
 
     public Set<Module> getModules() {
