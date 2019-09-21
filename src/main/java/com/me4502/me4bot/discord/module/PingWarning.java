@@ -37,10 +37,9 @@ public class PingWarning implements Module, EventListener {
                     ((MessageReceivedEvent) event).getMessage().getMentionedMembers().stream().anyMatch(user -> Me4Bot.isAuthorised(user,
                     PermissionRoles.MODERATOR));
             if (mentionsDev && !Me4Bot.isAuthorised(((MessageReceivedEvent) event).getMember(), PermissionRoles.TRUSTED)) {
-                ((MessageReceivedEvent) event).getMessage().delete().queue();
                 ((MessageReceivedEvent) event).getChannel().sendMessage("Hey " + StringUtil.annotateUser(
                         ((MessageReceivedEvent) event).getMember().getUser()
-                ) + "! It's against the rule to ping the developers!").queue();
+                ) + "! It's against the rule to ping the developers, make sure to read the rules!").queue();
             }
         }
     }
