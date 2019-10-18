@@ -24,14 +24,14 @@ package com.me4502.me4bot.discord.module;
 import com.me4502.me4bot.discord.Me4Bot;
 import com.me4502.me4bot.discord.util.PermissionRoles;
 import com.me4502.me4bot.discord.util.StringUtil;
-import net.dv8tion.jda.core.events.Event;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.core.hooks.EventListener;
+import net.dv8tion.jda.api.events.GenericEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.EventListener;
 
 public class PingWarning implements Module, EventListener {
 
     @Override
-    public void onEvent(Event event) {
+    public void onEvent(GenericEvent event) {
         if (event instanceof MessageReceivedEvent) {
             boolean mentionsDev =
                     ((MessageReceivedEvent) event).getMessage().getMentionedMembers().stream().anyMatch(user -> Me4Bot.isAuthorised(user,

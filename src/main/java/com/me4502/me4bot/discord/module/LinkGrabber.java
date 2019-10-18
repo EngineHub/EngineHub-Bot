@@ -29,9 +29,9 @@ import com.sk89q.intake.Require;
 import com.sk89q.intake.fluent.DispatcherNode;
 import com.sk89q.intake.parametric.annotation.Optional;
 import com.sk89q.intake.util.StringUtils;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.User;
 import ninja.leaping.configurate.ConfigurationNode;
 
 import java.util.Comparator;

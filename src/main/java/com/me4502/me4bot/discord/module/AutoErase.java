@@ -27,10 +27,10 @@ import com.me4502.me4bot.discord.util.PermissionRoles;
 import com.sk89q.intake.Command;
 import com.sk89q.intake.Require;
 import com.sk89q.intake.fluent.DispatcherNode;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageHistory;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageHistory;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 public class AutoErase implements Module {
 
@@ -55,7 +55,7 @@ public class AutoErase implements Module {
                                 if (message.isPinned()) {
                                     continue;
                                 }
-                                if (System.currentTimeMillis() - message.getCreationTime().toInstant().toEpochMilli() > 1000 * 60 * 10) {
+                                if (System.currentTimeMillis() - message.getTimeCreated().toInstant().toEpochMilli() > 1000 * 60 * 10) {
                                     message.delete().queue();
                                 }
                             }

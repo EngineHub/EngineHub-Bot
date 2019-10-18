@@ -24,12 +24,12 @@ package com.me4502.me4bot.discord.module;
 import com.me4502.me4bot.discord.Me4Bot;
 import com.me4502.me4bot.discord.Settings;
 import com.me4502.me4bot.discord.util.PermissionRoles;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.PrivateChannel;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.events.Event;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.core.hooks.EventListener;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.PrivateChannel;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.GenericEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.EventListener;
 
 import java.util.HashMap;
 
@@ -38,7 +38,7 @@ public class NoSpam implements Module, EventListener {
     private final HashMap<String, Integer> spamTimes = new HashMap<>();
 
     @Override
-    public void onEvent(Event event) {
+    public void onEvent(GenericEvent event) {
         if (event instanceof MessageReceivedEvent) {
             int mentionCount = ((MessageReceivedEvent) event).getMessage().getMentionedUsers().size()
                     + ((MessageReceivedEvent) event).getMessage().getMentionedRoles().size();
@@ -62,6 +62,6 @@ public class NoSpam implements Module, EventListener {
 
     public static void banForSpam(Guild guild, User user, PrivateChannel privateChannel) {
         privateChannel.sendMessage("You have been banned for spamming. Contact " + Settings.hostUsername + "#" + Settings.hostIdentifier + " if you believe this is a mistake.")
-                .queue(message -> guild.getController().ban(user, 0).queue());
+                .queue(message -> guild.ban(user, 0).queue());
     }
 }

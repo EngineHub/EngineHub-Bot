@@ -28,11 +28,11 @@ import com.me4502.me4bot.discord.module.error_helper.resolver.GhostbinResolver;
 import com.me4502.me4bot.discord.module.error_helper.resolver.GistResolver;
 import com.me4502.me4bot.discord.module.error_helper.resolver.RawSubdirectoryUrlResolver;
 import com.me4502.me4bot.discord.util.StringUtil;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageChannel;
-import net.dv8tion.jda.core.events.Event;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.core.hooks.EventListener;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.events.GenericEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.EventListener;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 
@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public class ErrorHelper implements Module, EventListener {
@@ -61,7 +62,7 @@ public class ErrorHelper implements Module, EventListener {
     private List<ErrorEntry> errorMessages = new ArrayList<>();
 
     @Override
-    public void onEvent(Event event) {
+    public void onEvent(GenericEvent event) {
         if (event instanceof MessageReceivedEvent) {
             MessageChannel channel = ((MessageReceivedEvent) event).getChannel();
             StringBuilder messageText = new StringBuilder(((MessageReceivedEvent) event).getMessage().getContentRaw());
@@ -73,12 +74,12 @@ public class ErrorHelper implements Module, EventListener {
                                 + "to scan.").queue();
                         continue; //Ignore >4MB for now.
                     }
-                    try(BufferedReader reader = new BufferedReader(new InputStreamReader(attachment.getInputStream()))) {
+                    try(BufferedReader reader = new BufferedReader(new InputStreamReader(attachment.retrieveInputStream().get()))) {
                         String line;
                         while ((line = reader.readLine()) != null) {
                             messageText.append(line);
                         }
-                    } catch (IOException e) {
+                    } catch (IOException | InterruptedException | ExecutionException e) {
                         e.printStackTrace();
                     }
                 }
@@ -153,7 +154,7 @@ public class ErrorHelper implements Module, EventListener {
         )));
     }
 
-    private static class ErrorEntry {
+    public static class ErrorEntry {
         private String name;
         private List<String> triggers;
         private List<String> cleanedTriggers;

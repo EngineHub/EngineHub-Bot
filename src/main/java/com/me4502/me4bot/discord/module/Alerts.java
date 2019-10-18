@@ -29,14 +29,14 @@ import com.me4502.me4bot.discord.util.StringUtil;
 import com.sk89q.intake.Command;
 import com.sk89q.intake.Require;
 import com.sk89q.intake.fluent.DispatcherNode;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageChannel;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.events.Event;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberLeaveEvent;
-import net.dv8tion.jda.core.hooks.EventListener;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.GenericEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent;
+import net.dv8tion.jda.api.hooks.EventListener;
 import ninja.leaping.configurate.ConfigurationNode;
 
 import java.util.List;
@@ -63,7 +63,7 @@ public class Alerts implements Module, EventListener {
     }
 
     @Override
-    public void onEvent(Event event) {
+    public void onEvent(GenericEvent event) {
         if (event instanceof GuildMemberJoinEvent) {
             for (Pattern pattern : badNamePatterns) {
                 if (pattern.matcher(((GuildMemberJoinEvent) event).getUser().getName()).find()) {
@@ -101,7 +101,7 @@ public class Alerts implements Module, EventListener {
         if (user.isBot()) {
             annotatedName += "[Bot] ";
         }
-        if (!join && guild.getBanList().complete().stream().anyMatch(ban -> ban.getUser().getIdLong() == user.getIdLong())) {
+        if (!join && guild.retrieveBanList().complete().stream().anyMatch(ban -> ban.getUser().getIdLong() == user.getIdLong())) {
             channel.sendMessage(annotatedName + "has been banned!").queue();
             return;
         }
