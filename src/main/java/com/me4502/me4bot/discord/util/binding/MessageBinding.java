@@ -26,7 +26,7 @@ import com.sk89q.intake.parametric.argument.ArgumentStack;
 import com.sk89q.intake.parametric.binding.BindingBehavior;
 import com.sk89q.intake.parametric.binding.BindingHelper;
 import com.sk89q.intake.parametric.binding.BindingMatch;
-import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.api.entities.Message;
 
 public class MessageBinding extends BindingHelper {
 

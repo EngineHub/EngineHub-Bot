@@ -26,12 +26,12 @@ import com.me4502.me4bot.discord.util.PermissionRoles;
 import com.sk89q.intake.Command;
 import com.sk89q.intake.Require;
 import com.sk89q.intake.fluent.DispatcherNode;
-import net.dv8tion.jda.core.entities.Icon;
-import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.api.entities.Icon;
+import net.dv8tion.jda.api.entities.Message;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 public class SetProfilePicture implements Module {
 
@@ -47,11 +47,9 @@ public class SetProfilePicture implements Module {
         Optional<Message.Attachment> attachmentOptional = message.getAttachments().stream().filter(Message.Attachment::isImage).findFirst();
 
         if (attachmentOptional.isPresent()) {
-            File file = new File("avatar_cache.png");
-            attachmentOptional.get().download(file);
             try {
-                Me4Bot.bot.api.getSelfUser().getManager().setAvatar(Icon.from(file)).queue(aVoid -> file.delete());
-            } catch (IOException e) {
+                Me4Bot.bot.api.getSelfUser().getManager().setAvatar(Icon.from(attachmentOptional.get().retrieveInputStream().get())).queue();
+            } catch (IOException | InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
         } else {

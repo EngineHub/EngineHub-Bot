@@ -23,7 +23,9 @@ package com.me4502.me4bot.discord.module.audio;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.playback.AudioFrame;
-import net.dv8tion.jda.core.audio.AudioSendHandler;
+import net.dv8tion.jda.api.audio.AudioSendHandler;
+
+import java.nio.ByteBuffer;
 
 public class DiscordAudioSender implements AudioSendHandler {
     private final AudioPlayer audioPlayer;
@@ -40,8 +42,8 @@ public class DiscordAudioSender implements AudioSendHandler {
     }
 
     @Override
-    public byte[] provide20MsAudio() {
-        return lastFrame.getData();
+    public ByteBuffer provide20MsAudio() {
+        return ByteBuffer.wrap(lastFrame.getData());
     }
 
     @Override

@@ -21,11 +21,11 @@
  */
 package com.me4502.me4bot.discord.module;
 
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.events.Event;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
-import net.dv8tion.jda.core.hooks.EventListener;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.events.GenericEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.api.hooks.EventListener;
 
 public class JoinMessage implements Module, EventListener {
 
@@ -44,7 +44,7 @@ public class JoinMessage implements Module, EventListener {
     }
 
     @Override
-    public void onEvent(Event event) {
+    public void onEvent(GenericEvent event) {
         if (event instanceof GuildMemberJoinEvent) {
             ((GuildMemberJoinEvent) event).getUser().openPrivateChannel()
                     .queue(privateChannel -> privateChannel.sendMessage(message)
