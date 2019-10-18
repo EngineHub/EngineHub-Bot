@@ -46,18 +46,19 @@ import com.sk89q.intake.fluent.CommandGraph;
 import com.sk89q.intake.fluent.DispatcherNode;
 import com.sk89q.intake.parametric.ParametricBuilder;
 import com.sk89q.intake.util.auth.AuthorizationException;
-import net.dv8tion.jda.core.AccountType;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.JDABuilder;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.events.Event;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.core.exceptions.RateLimitedException;
-import net.dv8tion.jda.core.hooks.EventListener;
+import net.dv8tion.jda.api.AccountType;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.events.GenericEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.exceptions.RateLimitedException;
+import net.dv8tion.jda.api.hooks.EventListener;
 
 import java.util.Set;
 
+import javax.annotation.Nonnull;
 import javax.security.auth.login.LoginException;
 
 public class Me4Bot implements Runnable, EventListener {
@@ -134,7 +135,7 @@ public class Me4Bot implements Runnable, EventListener {
     private Me4Bot() throws LoginException, InterruptedException, RateLimitedException {
         bot = this;
         System.out.println("Connecting...");
-        api = new JDABuilder(AccountType.BOT).setToken(Settings.token).addEventListener(this).buildBlocking();
+        api = new JDABuilder(AccountType.BOT).setToken(Settings.token).addEventListeners(this).build();
         api.setAutoReconnect(true);
         System.out.println("Connected");
 
@@ -211,7 +212,7 @@ public class Me4Bot implements Runnable, EventListener {
     private static final String[] PARENT_COMANDS = new String[0];
 
     @Override
-    public void onEvent(Event event) {
+    public void onEvent(@Nonnull GenericEvent event) {
         if (event instanceof MessageReceivedEvent && ((MessageReceivedEvent) event).getMessage().getContentRaw().startsWith(COMMAND_PREFIX)) {
             String commandArgs = ((MessageReceivedEvent) event).getMessage().getContentRaw().substring(COMMAND_PREFIX.length());
 

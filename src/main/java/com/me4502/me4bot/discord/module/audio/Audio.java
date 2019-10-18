@@ -40,11 +40,11 @@ import com.sk89q.intake.Command;
 import com.sk89q.intake.Require;
 import com.sk89q.intake.fluent.DispatcherNode;
 import com.sk89q.intake.parametric.annotation.Text;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageChannel;
-import net.dv8tion.jda.core.entities.VoiceChannel;
-import net.dv8tion.jda.core.managers.AudioManager;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.managers.AudioManager;
 
 import java.util.List;
 import java.util.Optional;
