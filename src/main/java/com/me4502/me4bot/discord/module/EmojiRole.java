@@ -52,9 +52,10 @@ public class EmojiRole implements Module, EventListener {
     public void onEvent(@Nonnull GenericEvent event) {
         if (event instanceof MessageReactionAddEvent) {
             if (((MessageReactionAddEvent) event).getMessageId().equals(messageId)) {
-                System.out.println(((MessageReactionAddEvent) event).getReactionEmote().getId());
                 getRoleByEmoji(((MessageReactionAddEvent) event).getGuild(), ((MessageReactionAddEvent) event).getReactionEmote().getId())
                         .ifPresent(role -> ((MessageReactionAddEvent) event).getGuild().addRoleToMember(((MessageReactionAddEvent) event).getMember(), role).queue());
+            } else {
+                ((MessageReactionAddEvent) event).getReaction().removeReaction(((MessageReactionAddEvent) event).getUser()).queue();
             }
         } else if (event instanceof MessageReactionRemoveEvent) {
             if (((MessageReactionRemoveEvent) event).getMessageId().equals(messageId)) {
