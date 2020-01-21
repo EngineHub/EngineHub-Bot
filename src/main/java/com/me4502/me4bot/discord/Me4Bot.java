@@ -27,6 +27,7 @@ import com.google.common.collect.Sets;
 import com.me4502.me4bot.discord.module.Alerts;
 import com.me4502.me4bot.discord.module.AutoErase;
 import com.me4502.me4bot.discord.module.ChatFilter;
+import com.me4502.me4bot.discord.module.EmojiRole;
 import com.me4502.me4bot.discord.module.JoinMessage;
 import com.me4502.me4bot.discord.module.LinkGrabber;
 import com.me4502.me4bot.discord.module.Module;
@@ -182,7 +183,8 @@ public class Me4Bot implements Runnable, EventListener {
             new ErrorHelper(),
             new LinkGrabber(),
             new JoinMessage(),
-            new PingWarning()
+            new PingWarning(),
+            new EmojiRole()
     );
 
     public Set<Module> getModules() {
