@@ -62,6 +62,6 @@ public class NoSpam implements Module, EventListener {
 
     public static void banForSpam(Guild guild, User user, PrivateChannel privateChannel) {
         privateChannel.sendMessage("You have been banned for spamming. Contact " + Settings.hostUsername + "#" + Settings.hostIdentifier + " if you believe this is a mistake.")
-                .queue(message -> guild.ban(user, 0).queue());
+                .queue(message -> guild.ban(user, 0, "Ping spam").queue());
     }
 }
