@@ -23,7 +23,10 @@ package com.me4502.me4bot.discord.module;
 
 import com.me4502.me4bot.discord.Me4Bot;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
@@ -78,14 +81,21 @@ public class EmojiRole implements Module, EventListener {
         channelId = loadedNode.getNode("channelId").getString();
 
         try {
-            Me4Bot.bot.api.getTextChannelById(channelId).retrieveMessageById(messageId)
-                    .queue(message -> message.getReactions().forEach(reaction -> {
-                        getRoleByEmoji(message.getGuild(), reaction.getReactionEmote().getId()).ifPresent(role -> reaction.retrieveUsers()
-                                .queue(users -> users.stream().filter(user -> message.getGuild().getMember(user).getRoles().stream()
-                                        .noneMatch(r -> r.getIdLong() == role.getIdLong())).forEach(user -> {
-                                    message.getGuild().addRoleToMember(message.getGuild().getMember(user), role).queue();
-                                })));
-                    }));
+            TextChannel channel = Me4Bot.bot.api.getTextChannelById(channelId);
+            if (channel == null) {
+                throw new IllegalArgumentException("Invalid channel ID provided");
+            }
+            Message message = channel.retrieveMessageById(messageId).complete();
+            Guild guild = message.getGuild();
+            message.getReactions()
+                    .forEach(reaction -> getRoleByEmoji(guild, reaction.getReactionEmote().getId()).ifPresent(role -> reaction.retrieveUsers()
+                            .queue(users -> users.stream().filter(user -> guild.getMember(user).getRoles().stream()
+                                    .noneMatch(r -> r.getIdLong() == role.getIdLong())).forEach(user -> {
+                                Member member = guild.getMember(user);
+                                if (member != null) {
+                                    guild.addRoleToMember(member, role).queue();
+                                }
+                            }))));
         } catch (Throwable t) {
             t.printStackTrace();
         }
