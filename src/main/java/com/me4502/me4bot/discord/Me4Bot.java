@@ -138,6 +138,7 @@ public class Me4Bot implements Runnable, EventListener {
         System.out.println("Connecting...");
         api = new JDABuilder(AccountType.BOT).setToken(Settings.token).addEventListeners(this).build();
         api.setAutoReconnect(true);
+        api.awaitReady();
         System.out.println("Connected");
 
         Settings.loadModules();
