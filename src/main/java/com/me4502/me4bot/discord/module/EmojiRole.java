@@ -52,15 +52,15 @@ public class EmojiRole implements Module, EventListener {
     public void onEvent(@Nonnull GenericEvent event) {
         if (event instanceof MessageReactionAddEvent) {
             if (((MessageReactionAddEvent) event).getMessageId().equals(messageId)) {
-                getRoleByEmoji(((MessageReactionAddEvent) event).getGuild(), ((MessageReactionAddEvent) event).getReactionEmote().getId())
-                        .ifPresent(role -> ((MessageReactionAddEvent) event).getGuild().addRoleToMember(((MessageReactionAddEvent) event).getMember(), role).queue());
-            } else {
-                ((MessageReactionAddEvent) event).getReaction().removeReaction(((MessageReactionAddEvent) event).getUser()).queue();
+                getRoleByEmoji(((MessageReactionAddEvent) event).getGuild(), ((MessageReactionAddEvent) event).getReactionEmote().getId()).ifPresentOrElse(
+                    role -> ((MessageReactionAddEvent) event).getGuild().addRoleToMember(((MessageReactionAddEvent) event).getMember(), role).queue(),
+                    () -> ((MessageReactionAddEvent) event).getReaction().removeReaction(((MessageReactionAddEvent) event).getUser()).queue());
             }
         } else if (event instanceof MessageReactionRemoveEvent) {
             if (((MessageReactionRemoveEvent) event).getMessageId().equals(messageId)) {
-                getRoleByEmoji(((MessageReactionRemoveEvent) event).getGuild(), ((MessageReactionRemoveEvent) event).getReactionEmote().getId())
-                        .ifPresent(role -> ((MessageReactionRemoveEvent) event).getGuild().removeRoleFromMember(((MessageReactionRemoveEvent) event).getMember(), role).queue());
+                getRoleByEmoji(((MessageReactionRemoveEvent) event).getGuild(), ((MessageReactionRemoveEvent) event).getReactionEmote().getId()).ifPresent(
+                        role -> ((MessageReactionRemoveEvent) event).getGuild().removeRoleFromMember(((MessageReactionRemoveEvent) event).getMember(), role).queue()
+                );
             }
         }
     }
