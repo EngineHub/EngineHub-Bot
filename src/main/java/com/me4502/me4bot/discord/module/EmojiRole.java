@@ -23,7 +23,6 @@ package com.me4502.me4bot.discord.module;
 
 import com.me4502.me4bot.discord.Me4Bot;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -35,6 +34,7 @@ import ninja.leaping.configurate.ConfigurationNode;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -89,12 +89,9 @@ public class EmojiRole implements Module, EventListener {
             Guild guild = message.getGuild();
             message.getReactions()
                     .forEach(reaction -> getRoleByEmoji(guild, reaction.getReactionEmote().getId()).ifPresent(role -> reaction.retrieveUsers()
-                            .queue(users -> users.stream().filter(user -> guild.getMember(user).getRoles().stream()
-                                    .noneMatch(r -> r.getIdLong() == role.getIdLong())).forEach(user -> {
-                                Member member = guild.getMember(user);
-                                if (member != null) {
-                                    guild.addRoleToMember(member, role).queue();
-                                }
+                            .queue(users -> users.stream().map(guild::getMember).filter(Objects::nonNull).filter(mem -> mem.getRoles().stream()
+                                    .noneMatch(r -> r.getIdLong() == role.getIdLong())).forEach(mem -> {
+                                guild.addRoleToMember(mem, role).queue();
                             }))));
         } catch (Throwable t) {
             t.printStackTrace();
