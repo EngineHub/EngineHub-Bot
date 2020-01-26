@@ -21,6 +21,7 @@
  */
 package com.me4502.me4bot.discord.module;
 
+import com.me4502.me4bot.discord.Me4Bot;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.GenericEvent;
@@ -40,6 +41,7 @@ public class EmojiRole implements Module, EventListener {
 
     private Map<String, String> emojiToRole = new HashMap<>();
     private String messageId;
+    private String channelId;
 
     private Optional<Role> getRoleByEmoji(Guild guild, String emoji) {
         if (!emojiToRole.containsKey(emoji)) {
@@ -73,11 +75,26 @@ public class EmojiRole implements Module, EventListener {
                         e -> e.getValue().getString("FAILED TO LOAD")
                 ));
         messageId = loadedNode.getNode("messageId").getString();
+        channelId = loadedNode.getNode("channelId").getString();
+
+        try {
+            Me4Bot.bot.api.getTextChannelById(channelId).retrieveMessageById(messageId)
+                    .queue(message -> message.getReactions().forEach(reaction -> {
+                        getRoleByEmoji(message.getGuild(), reaction.getReactionEmote().getId()).ifPresent(role -> reaction.retrieveUsers()
+                                .queue(users -> users.stream().filter(user -> message.getGuild().getMember(user).getRoles().stream()
+                                        .noneMatch(r -> r.getIdLong() == role.getIdLong())).forEach(user -> {
+                                    message.getGuild().addRoleToMember(message.getGuild().getMember(user), role).queue();
+                                })));
+                    }));
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
     }
 
     @Override
     public void save(ConfigurationNode loadedNode) {
         loadedNode.getNode("roleMap").setValue(emojiToRole);
         loadedNode.getNode("messageId").setValue(messageId);
+        loadedNode.getNode("channelId").setValue(channelId);
     }
 }
