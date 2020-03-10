@@ -35,10 +35,8 @@ public class JoinMessage implements Module, EventListener {
         MessageBuilder builder = new MessageBuilder();
 
         builder.append("Hey! Welcome to the EngineHub Discord!\n\n");
-        builder.append("Before you get started, make sure you read the rules at <#139272202431234048>.\nwizjany, one of the "
-                + "developers, can be very helpful but also is angered easily. Make sure not to ping him, and don't mind him too "
-                + "much.\n\n");
-        builder.append("If you need help, put your server log `logs/latest.log` onto http://paste.enginehub.org and provide us with"
+        builder.append("Before you get started, make sure you read the rules at <#139272202431234048>.\n\n");
+        builder.append("If you need help, put your server log `logs/latest.log` onto https://paste.enginehub.org/ and provide us with"
                 + " the link in the appropriate channel.\n\n~ The EngineHub team");
         message = builder.build();
     }
