@@ -23,11 +23,12 @@ package com.me4502.me4bot.discord.module;
 
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
-import net.dv8tion.jda.api.hooks.EventListener;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
-public class JoinMessage implements Module, EventListener {
+import javax.annotation.Nonnull;
+
+public class JoinMessage extends ListenerAdapter implements Module {
 
     private static Message message;
 
@@ -42,12 +43,10 @@ public class JoinMessage implements Module, EventListener {
     }
 
     @Override
-    public void onEvent(GenericEvent event) {
-        if (event instanceof GuildMemberJoinEvent) {
-            ((GuildMemberJoinEvent) event).getUser().openPrivateChannel()
-                    .queue(privateChannel -> privateChannel.sendMessage(message)
-                            .queue(message -> privateChannel.close().queue()));
-        }
+    public void onGuildMemberJoin(@Nonnull GuildMemberJoinEvent event) {
+        event.getUser().openPrivateChannel()
+                .queue(privateChannel -> privateChannel.sendMessage(message)
+                        .queue(message -> privateChannel.close().queue()));
     }
 
 }
