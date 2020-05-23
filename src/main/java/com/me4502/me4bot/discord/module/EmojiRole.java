@@ -26,10 +26,9 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.events.GenericEvent;
-import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
-import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
-import net.dv8tion.jda.api.hooks.EventListener;
+import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionRemoveEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
 
 import java.util.HashMap;
@@ -40,7 +39,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
-public class EmojiRole implements Module, EventListener {
+public class EmojiRole extends ListenerAdapter implements Module {
 
     private Map<String, String> emojiToRole = new HashMap<>();
     private String messageId;
@@ -54,19 +53,20 @@ public class EmojiRole implements Module, EventListener {
     }
 
     @Override
-    public void onEvent(@Nonnull GenericEvent event) {
-        if (event instanceof MessageReactionAddEvent) {
-            if (((MessageReactionAddEvent) event).getMessageId().equals(messageId)) {
-                getRoleByEmoji(((MessageReactionAddEvent) event).getGuild(), ((MessageReactionAddEvent) event).getReactionEmote().getId()).ifPresentOrElse(
-                    role -> ((MessageReactionAddEvent) event).getGuild().addRoleToMember(((MessageReactionAddEvent) event).getMember(), role).queue(),
-                    () -> ((MessageReactionAddEvent) event).getReaction().removeReaction(((MessageReactionAddEvent) event).getUser()).queue());
-            }
-        } else if (event instanceof MessageReactionRemoveEvent) {
-            if (((MessageReactionRemoveEvent) event).getMessageId().equals(messageId)) {
-                getRoleByEmoji(((MessageReactionRemoveEvent) event).getGuild(), ((MessageReactionRemoveEvent) event).getReactionEmote().getId()).ifPresent(
-                        role -> ((MessageReactionRemoveEvent) event).getGuild().removeRoleFromMember(((MessageReactionRemoveEvent) event).getMember(), role).queue()
-                );
-            }
+    public void onGuildMessageReactionAdd(@Nonnull GuildMessageReactionAddEvent event) {
+        if (event.getMessageId().equals(messageId)) {
+            getRoleByEmoji(event.getGuild(), event.getReactionEmote().getId()).ifPresentOrElse(
+                    role -> event.getGuild().addRoleToMember(event.getMember(), role).queue(),
+                    () -> event.getReaction().removeReaction(event.getUser()).queue());
+        }
+    }
+
+    @Override
+    public void onGuildMessageReactionRemove(@Nonnull GuildMessageReactionRemoveEvent event) {
+        if (event.getMessageId().equals(messageId)) {
+            getRoleByEmoji(event.getGuild(), event.getReactionEmote().getId()).ifPresent(
+                    role -> event.getGuild().removeRoleFromMember(event.getMember(), role).queue()
+            );
         }
     }
 

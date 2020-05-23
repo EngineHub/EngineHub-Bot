@@ -19,35 +19,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.me4502.me4bot.discord.module.audio;
+package com.me4502.me4bot.discord.module.errorHelper.resolver;
 
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
-import com.sedmelluq.discord.lavaplayer.track.playback.AudioFrame;
-import net.dv8tion.jda.api.audio.AudioSendHandler;
+import java.util.List;
 
-import java.nio.ByteBuffer;
+@FunctionalInterface
+public interface ErrorResolver {
 
-public class DiscordAudioSender implements AudioSendHandler {
-    private final AudioPlayer audioPlayer;
-    private AudioFrame lastFrame;
-
-    DiscordAudioSender(AudioPlayer audioPlayer) {
-        this.audioPlayer = audioPlayer;
-    }
-
-    @Override
-    public boolean canProvide() {
-        lastFrame = audioPlayer.provide();
-        return lastFrame != null;
-    }
-
-    @Override
-    public ByteBuffer provide20MsAudio() {
-        return ByteBuffer.wrap(lastFrame.getData());
-    }
-
-    @Override
-    public boolean isOpus() {
-        return true;
-    }
+    /**
+     * Get a list of messages that can be parsed for errors from this message.
+     *
+     * <p>
+     *     This method should exit early if it's not worth checking.
+     * </p>
+     *
+     * @param message The message
+     * @return The parseable messages
+     */
+    List<String> foundText(String message);
 }

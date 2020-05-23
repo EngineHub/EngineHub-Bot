@@ -23,24 +23,23 @@ package com.me4502.me4bot.discord.module;
 
 import com.me4502.me4bot.discord.Me4Bot;
 import com.me4502.me4bot.discord.util.PermissionRoles;
-import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.hooks.EventListener;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ChatFilter implements Module, EventListener {
+import javax.annotation.Nonnull;
+
+public class ChatFilter extends ListenerAdapter implements Module {
 
     private static final Pattern INVITE_PATTERN = Pattern.compile("discord.gg/([a-zA-Z0-9\\-_]*)");
 
     @Override
-    public void onEvent(GenericEvent event) {
-        if (event instanceof MessageReceivedEvent) {
-            Matcher matcher = INVITE_PATTERN.matcher(((MessageReceivedEvent) event).getMessage().getContentRaw());
-            if (matcher.find() && !Me4Bot.isAuthorised(((MessageReceivedEvent) event).getMember(), PermissionRoles.TRUSTED)) {
-                ((MessageReceivedEvent) event).getMessage().delete().queue();
-            }
+    public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
+        Matcher matcher = INVITE_PATTERN.matcher(event.getMessage().getContentRaw());
+        if (matcher.find() && !Me4Bot.isAuthorised(event.getMember(), PermissionRoles.TRUSTED)) {
+            event.getMessage().delete().queue();
         }
     }
 }

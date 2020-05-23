@@ -19,20 +19,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.me4502.me4bot.discord.module.error_helper;
+package com.me4502.me4bot.discord.module.errorHelper;
 
 import com.google.common.reflect.TypeToken;
 import com.me4502.me4bot.discord.module.Module;
-import com.me4502.me4bot.discord.module.error_helper.resolver.ErrorResolver;
-import com.me4502.me4bot.discord.module.error_helper.resolver.GhostbinResolver;
-import com.me4502.me4bot.discord.module.error_helper.resolver.GistResolver;
-import com.me4502.me4bot.discord.module.error_helper.resolver.RawSubdirectoryUrlResolver;
+import com.me4502.me4bot.discord.module.errorHelper.resolver.ErrorResolver;
+import com.me4502.me4bot.discord.module.errorHelper.resolver.GhostbinResolver;
+import com.me4502.me4bot.discord.module.errorHelper.resolver.GistResolver;
+import com.me4502.me4bot.discord.module.errorHelper.resolver.RawSubdirectoryUrlResolver;
 import com.me4502.me4bot.discord.util.StringUtil;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.events.GenericEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.hooks.EventListener;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 
@@ -47,9 +46,11 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-public class ErrorHelper implements Module, EventListener {
+import javax.annotation.Nonnull;
 
-    private List<ErrorResolver> resolvers = List.of(
+public class ErrorHelper extends ListenerAdapter implements Module {
+
+    private final List<ErrorResolver> resolvers = List.of(
             List::of,
             new RawSubdirectoryUrlResolver("pastebin.com", "raw"), // PastebinResolver
             new RawSubdirectoryUrlResolver("hastebin.com", "raw"), // HastebinResolver
@@ -62,36 +63,34 @@ public class ErrorHelper implements Module, EventListener {
     private List<ErrorEntry> errorMessages = new ArrayList<>();
 
     @Override
-    public void onEvent(GenericEvent event) {
-        if (event instanceof MessageReceivedEvent) {
-            MessageChannel channel = ((MessageReceivedEvent) event).getChannel();
-            StringBuilder messageText = new StringBuilder(((MessageReceivedEvent) event).getMessage().getContentRaw());
-            for (Message.Attachment attachment : ((MessageReceivedEvent) event).getMessage().getAttachments()) {
-                if (attachment.isImage()) continue; // TODO Maybe text processing in images?
-                if (attachment.getFileName().endsWith(".txt") || attachment.getFileName().endsWith(".log")) {
-                    if (attachment.getSize() > 1024*1024*4) {
-                        channel.sendMessage("[AutoReply] " + StringUtil.annotateUser(((MessageReceivedEvent) event).getAuthor()) + " Log too large "
-                                + "to scan.").queue();
-                        continue; //Ignore >4MB for now.
+    public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event) {
+        MessageChannel channel = event.getChannel();
+        StringBuilder messageText = new StringBuilder(event.getMessage().getContentRaw());
+        for (Message.Attachment attachment : event.getMessage().getAttachments()) {
+            if (attachment.isImage()) continue; // TODO Maybe text processing in images?
+            if (attachment.getFileName().endsWith(".txt") || attachment.getFileName().endsWith(".log")) {
+                if (attachment.getSize() > 1024*1024*4) {
+                    channel.sendMessage("[AutoReply] " + StringUtil.annotateUser(event.getAuthor()) + " Log too large "
+                            + "to scan.").queue();
+                    continue; //Ignore >4MB for now.
+                }
+                try(BufferedReader reader = new BufferedReader(new InputStreamReader(attachment.retrieveInputStream().get()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        messageText.append(line);
                     }
-                    try(BufferedReader reader = new BufferedReader(new InputStreamReader(attachment.retrieveInputStream().get()))) {
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            messageText.append(line);
-                        }
-                    } catch (IOException | InterruptedException | ExecutionException e) {
-                        e.printStackTrace();
-                    }
+                } catch (IOException | InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
                 }
             }
-            resolvers.parallelStream()
-                    .flatMap(resolver -> resolver.foundText(messageText.toString()).stream())
-                    .map(ErrorHelper::cleanString)
-                    .flatMap(error -> messagesForError(error).stream())
-                    .distinct()
-                    .forEach(message ->
-                            channel.sendMessage("[AutoReply] " + StringUtil.annotateUser(((MessageReceivedEvent) event).getAuthor()) + ' ' + message).queue());
         }
+        resolvers.parallelStream()
+                .flatMap(resolver -> resolver.foundText(messageText.toString()).stream())
+                .map(ErrorHelper::cleanString)
+                .flatMap(error -> messagesForError(error).stream())
+                .distinct()
+                .forEach(message ->
+                        channel.sendMessage("[AutoReply] " + StringUtil.annotateUser(event.getAuthor()) + ' ' + message).queue());
     }
 
     private static String cleanString(String string) {

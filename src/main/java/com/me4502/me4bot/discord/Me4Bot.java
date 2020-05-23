@@ -23,7 +23,7 @@ package com.me4502.me4bot.discord;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import com.me4502.me4bot.discord.module.Alerts;
 import com.me4502.me4bot.discord.module.AutoErase;
 import com.me4502.me4bot.discord.module.ChatFilter;
@@ -34,8 +34,7 @@ import com.me4502.me4bot.discord.module.Module;
 import com.me4502.me4bot.discord.module.NoSpam;
 import com.me4502.me4bot.discord.module.PingWarning;
 import com.me4502.me4bot.discord.module.SetProfilePicture;
-import com.me4502.me4bot.discord.module.audio.Audio;
-import com.me4502.me4bot.discord.module.error_helper.ErrorHelper;
+import com.me4502.me4bot.discord.module.errorHelper.ErrorHelper;
 import com.me4502.me4bot.discord.util.PermissionRoles;
 import com.me4502.me4bot.discord.util.binding.MemberBinding;
 import com.me4502.me4bot.discord.util.binding.MessageBinding;
@@ -47,17 +46,18 @@ import com.sk89q.intake.fluent.CommandGraph;
 import com.sk89q.intake.fluent.DispatcherNode;
 import com.sk89q.intake.parametric.ParametricBuilder;
 import com.sk89q.intake.util.auth.AuthorizationException;
-import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.exceptions.RateLimitedException;
 import net.dv8tion.jda.api.hooks.EventListener;
+import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
-import java.util.Set;
+import java.util.Collection;
+import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.security.auth.login.LoginException;
@@ -125,19 +125,32 @@ public class Me4Bot implements Runnable, EventListener {
 
             // Force kill.
             System.exit(0);
-        } catch (LoginException | InterruptedException | RateLimitedException e) {
+        } catch (LoginException | InterruptedException e) {
             e.printStackTrace();
         }
     }
 
     public JDA api;
-    private Dispatcher commandDispatcher;
+    private final Dispatcher commandDispatcher;
 
-    private Me4Bot() throws LoginException, InterruptedException, RateLimitedException {
+    private final static List<GatewayIntent> intents = Lists.newArrayList(
+        GatewayIntent.GUILD_MESSAGES,
+        GatewayIntent.DIRECT_MESSAGES,
+        GatewayIntent.GUILD_MEMBERS,
+        GatewayIntent.GUILD_BANS,
+        GatewayIntent.GUILD_EMOJIS,
+        GatewayIntent.GUILD_INVITES,
+        GatewayIntent.GUILD_MESSAGE_REACTIONS
+    );
+
+    private Me4Bot() throws LoginException, InterruptedException {
         bot = this;
         System.out.println("Connecting...");
-        api = new JDABuilder(AccountType.BOT).setToken(Settings.token).addEventListeners(this).build();
-        api.setAutoReconnect(true);
+        api = JDABuilder.create(Settings.token, intents)
+                .setAutoReconnect(true)
+                .addEventListeners(this)
+                .disableCache(CacheFlag.ACTIVITY, CacheFlag.VOICE_STATE, CacheFlag.CLIENT_STATUS)
+                .build();
         api.awaitReady();
         System.out.println("Connected");
 
@@ -174,10 +187,9 @@ public class Me4Bot implements Runnable, EventListener {
         api.shutdown();
     }
 
-    private Set<Module> modules = Sets.newHashSet(
+    private final Collection<Module> modules = Lists.newArrayList(
             new AutoErase(),
             new Alerts(),
-            new Audio(),
             new ChatFilter(),
             new SetProfilePicture(),
             new NoSpam(),
@@ -188,7 +200,7 @@ public class Me4Bot implements Runnable, EventListener {
             new EmojiRole()
     );
 
-    public Set<Module> getModules() {
+    public Collection<Module> getModules() {
         return this.modules;
     }
 

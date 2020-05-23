@@ -19,22 +19,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.me4502.me4bot.discord.module.error_helper.resolver;
+package com.me4502.me4bot.discord.module.errorHelper.resolver;
 
+import com.me4502.me4bot.discord.module.errorHelper.ErrorHelper;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-@FunctionalInterface
-public interface ErrorResolver {
+public class GistResolver implements ErrorResolver {
 
-    /**
-     * Get a list of messages that can be parsed for errors from this message.
-     *
-     * <p>
-     *     This method should exit early if it's not worth checking.
-     * </p>
-     *
-     * @param message The message
-     * @return The parseable messages
-     */
-    List<String> foundText(String message);
+    private Pattern GIST_PATTERN = Pattern.compile("gist.github.com/([A-Za-z0-9]*)/([a-z0-9]*)");
+
+    @Override
+    public List<String> foundText(String message) {
+        List<String> foundText = new ArrayList<>();
+        Matcher matcher = GIST_PATTERN.matcher(message);
+        while (matcher.find()) {
+            foundText.add(ErrorHelper.getStringFromUrl("https://gist.github.com/" + matcher.group(1) + '/' + matcher.group(2) + "/raw"));
+        }
+
+        return foundText;
+    }
 }

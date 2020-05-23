@@ -27,36 +27,34 @@ import com.me4502.me4bot.discord.util.PermissionRoles;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.GenericEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.hooks.EventListener;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.util.HashMap;
 
-public class NoSpam implements Module, EventListener {
+import javax.annotation.Nonnull;
+
+public class NoSpam extends ListenerAdapter implements Module {
 
     private final HashMap<String, Integer> spamTimes = new HashMap<>();
 
     @Override
-    public void onEvent(GenericEvent event) {
-        if (event instanceof MessageReceivedEvent) {
-            int mentionCount = ((MessageReceivedEvent) event).getMessage().getMentionedUsers().size()
-                    + ((MessageReceivedEvent) event).getMessage().getMentionedRoles().size();
-            if (mentionCount >= 6 && !Me4Bot.isAuthorised(((MessageReceivedEvent) event).getMember(), PermissionRoles.TRUSTED)) {
-                ((MessageReceivedEvent) event).getMessage().delete().queue();
-                ((MessageReceivedEvent) event).getAuthor().openPrivateChannel().queue(privateChannel -> {
-                    privateChannel.sendMessage("Oi mate, you seem to be spamming mentions! If you keep doing this you will be banned.").queue();
-                    int spamTime = spamTimes.getOrDefault(((MessageReceivedEvent) event).getAuthor().getId(), 0);
-                    spamTime ++;
-                    spamTimes.put(((MessageReceivedEvent) event).getAuthor().getId(), spamTime);
-                    if (spamTime >= 3) {
-                        // Do the ban.
-                        banForSpam(((MessageReceivedEvent) event).getGuild(), ((MessageReceivedEvent) event).getAuthor(), privateChannel);
-                    }
-                });
-            } else {
-                spamTimes.remove(((MessageReceivedEvent) event).getAuthor().getId());
-            }
+    public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event) {
+        int mentionCount = event.getMessage().getMentionedUsers().size() + event.getMessage().getMentionedRoles().size();
+        if (mentionCount >= 6 && !Me4Bot.isAuthorised(event.getMember(), PermissionRoles.TRUSTED)) {
+            event.getMessage().delete().queue();
+            event.getAuthor().openPrivateChannel().queue(privateChannel -> {
+                privateChannel.sendMessage("Hey! Spamming messages is not allowed here. If you continue, you will be banned.").queue();
+                int spamTime = spamTimes.getOrDefault(event.getAuthor().getId(), 0);
+                spamTime ++;
+                spamTimes.put(event.getAuthor().getId(), spamTime);
+                if (spamTime >= 3) {
+                    // Do the ban.
+                    banForSpam(event.getGuild(), event.getAuthor(), privateChannel);
+                }
+            });
+        } else {
+            spamTimes.remove(event.getAuthor().getId());
         }
     }
 
