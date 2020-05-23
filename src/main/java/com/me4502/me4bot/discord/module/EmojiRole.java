@@ -21,6 +21,7 @@
  */
 package com.me4502.me4bot.discord.module;
 
+import com.google.common.reflect.TypeToken;
 import com.me4502.me4bot.discord.Me4Bot;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -30,6 +31,7 @@ import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEve
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionRemoveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -65,7 +67,11 @@ public class EmojiRole extends ListenerAdapter implements Module {
     public void onGuildMessageReactionRemove(@Nonnull GuildMessageReactionRemoveEvent event) {
         if (event.getMessageId().equals(messageId)) {
             getRoleByEmoji(event.getGuild(), event.getReactionEmote().getId()).ifPresent(
-                    role -> event.getGuild().removeRoleFromMember(event.getMember(), role).queue()
+                    role -> {
+                        if (event.getMember() != null) {
+                            event.getGuild().removeRoleFromMember(event.getMember(), role).queue();
+                        }
+                    }
             );
         }
     }
@@ -101,7 +107,11 @@ public class EmojiRole extends ListenerAdapter implements Module {
 
     @Override
     public void save(ConfigurationNode loadedNode) {
-        loadedNode.getNode("roleMap").setValue(emojiToRole);
+        try {
+            loadedNode.getNode("roleMap").setValue(new TypeToken<Map<String, String>>(){}, emojiToRole);
+        } catch (ObjectMappingException e) {
+            e.printStackTrace();
+        }
         loadedNode.getNode("messageId").setValue(messageId);
         loadedNode.getNode("channelId").setValue(channelId);
     }
