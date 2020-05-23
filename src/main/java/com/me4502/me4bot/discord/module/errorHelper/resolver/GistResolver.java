@@ -19,9 +19,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.me4502.me4bot.discord.module.error_helper.resolver;
+package com.me4502.me4bot.discord.module.errorHelper.resolver;
 
-import com.me4502.me4bot.discord.module.error_helper.ErrorHelper;
+import com.me4502.me4bot.discord.module.errorHelper.ErrorHelper;
 
 import java.util.ArrayList;
 import java.util.List;

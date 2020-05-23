@@ -36,6 +36,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import ninja.leaping.configurate.ConfigurationNode;
 
@@ -48,7 +49,7 @@ public class Alerts implements Module, EventListener {
 
     public static Map<String, String> alertChannels = Maps.newHashMap();
 
-    private List<Pattern> badNamePatterns = List.of(
+    private final List<Pattern> badNamePatterns = List.of(
             Pattern.compile("discord.me/"),
             Pattern.compile("twitter.com/"),
             Pattern.compile("twitter/"),
@@ -79,12 +80,12 @@ public class Alerts implements Module, EventListener {
                     sendMessage(((GuildMemberJoinEvent) event).getGuild(), channel, ((GuildMemberJoinEvent) event).getUser(), true);
                 }
             }
-        } else if (event instanceof GuildMemberLeaveEvent) {
-            String channelId = alertChannels.get(((GuildMemberLeaveEvent) event).getGuild().getId());
+        } else if (event instanceof GuildMemberRemoveEvent) {
+            String channelId = alertChannels.get(((GuildMemberRemoveEvent) event).getGuild().getId());
             if (channelId != null) {
                 MessageChannel channel = Me4Bot.bot.api.getTextChannelById(channelId);
                 if (channel != null) {
-                    sendMessage(((GuildMemberLeaveEvent) event).getGuild(), channel, ((GuildMemberLeaveEvent) event).getUser(), false);
+                    sendMessage(((GuildMemberRemoveEvent) event).getGuild(), channel, ((GuildMemberRemoveEvent) event).getUser(), false);
                 }
             }
         }

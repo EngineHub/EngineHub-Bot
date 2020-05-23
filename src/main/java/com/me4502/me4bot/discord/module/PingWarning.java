@@ -27,40 +27,39 @@ import com.me4502.me4bot.discord.util.PermissionRoles;
 import com.me4502.me4bot.discord.util.StringUtil;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.GenericEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.hooks.EventListener;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.util.HashMap;
 
-public class PingWarning implements Module, EventListener {
+import javax.annotation.Nonnull;
+
+public class PingWarning extends ListenerAdapter implements Module {
 
     private final HashMap<String, Integer> spamTimes = new HashMap<>();
 
     @Override
-    public void onEvent(GenericEvent event) {
-        if (event instanceof MessageReceivedEvent) {
-            boolean mentionsDev =
-                    ((MessageReceivedEvent) event).getMessage().getMentionedMembers().stream().anyMatch(user -> Me4Bot.isAuthorised(user,
-                    PermissionRoles.MODERATOR));
-            if (mentionsDev && !Me4Bot.isAuthorised(((MessageReceivedEvent) event).getMember(), PermissionRoles.TRUSTED)) {
-                ((MessageReceivedEvent) event).getChannel().sendMessage("Hey " + StringUtil.annotateUser(
-                        ((MessageReceivedEvent) event).getMember().getUser()
-                ) + "! It's against the rule to ping the developers, make sure to read the rules!").queue();
-                int spamTime = spamTimes.getOrDefault(((MessageReceivedEvent) event).getAuthor().getId(), 0);
-                spamTime ++;
-                spamTimes.put(((MessageReceivedEvent) event).getAuthor().getId(), spamTime);
-                if (spamTime >= 3) {
-                    // Do the ban.
-                    kickForSpam(((MessageReceivedEvent) event).getGuild(), ((MessageReceivedEvent) event).getAuthor(), spamTime >= 4);
-                }
+    public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event) {
+        boolean mentionsDev = event.getMessage().getMentionedMembers().stream().anyMatch(user -> Me4Bot.isAuthorised(user,
+                PermissionRoles.MODERATOR));
+        if (mentionsDev && !Me4Bot.isAuthorised(event.getMember(), PermissionRoles.TRUSTED)) {
+            event.getChannel().sendMessage("Hey " + StringUtil.annotateUser(
+                    event.getAuthor()
+            ) + "! It's against the rule to ping the developers, make sure to read the rules!").queue();
+            int spamTime = spamTimes.getOrDefault(event.getAuthor().getId(), 0);
+            spamTime ++;
+            spamTimes.put(event.getAuthor().getId(), spamTime);
+            if (spamTime >= 3) {
+                // Do the ban.
+                kickForSpam(event.getGuild(), event.getAuthor(), spamTime >= 4);
             }
         }
     }
 
     public static void kickForSpam(Guild guild, User user, boolean ban) {
         user.openPrivateChannel().queue((privateChannel -> {
-            privateChannel.sendMessage("You have been kicked for repeatedly pinging devs. Contact " + Settings.hostUsername + "#" + Settings.hostIdentifier + " if you believe this is a mistake.")
+            privateChannel.sendMessage("You have been " + (ban ? "banned" : "kicked") +
+                    " for repeatedly pinging devs. Contact " + Settings.hostUsername + "#" + Settings.hostIdentifier + " if you believe this is a mistake.")
                     .queue(message -> {
                         if (ban) {
                             guild.ban(user, 0, "Repeatedly pinging devs").queue();
