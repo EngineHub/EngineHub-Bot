@@ -21,16 +21,32 @@
  */
 package com.me4502.me4bot.discord.util;
 
-import net.dv8tion.jda.api.entities.GuildChannel;
+import com.me4502.me4bot.discord.Settings;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 
-public class StringUtil {
+public class PunishmentUtil {
 
-    public static String annotateUser(User user) {
-        return "<@" + user.getIdLong() + '>';
+    private static String getContactString() {
+        return "Contact " + Settings.hostUsername + '#' + Settings.hostIdentifier + " if you believe this is a mistake.";
     }
 
-    public static String annotateChannel(GuildChannel channel) {
-        return "<#" + channel.getIdLong() + '>';
+    public static void kickUser(Guild guild, Member member, String reason) {
+        member.getUser().openPrivateChannel().queue((privateChannel ->
+                privateChannel.sendMessage("You have been kicked for `" + reason + "`. " + getContactString())
+                .queue(message -> {
+                    guild.kick(member, reason).queue();
+                })
+        ));
+    }
+
+    public static void banUser(Guild guild, User user, String reason) {
+        user.openPrivateChannel().queue((privateChannel ->
+                privateChannel.sendMessage("You have been banned for `" + reason + "`. " + getContactString())
+                .queue(message -> {
+                    guild.ban(user, 0, reason).queue();
+                })
+        ));
     }
 }

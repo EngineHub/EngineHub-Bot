@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 
 public class GistResolver implements ErrorResolver {
 
-    private Pattern GIST_PATTERN = Pattern.compile("gist.github.com/([A-Za-z0-9]*)/([a-z0-9]*)");
+    private final Pattern GIST_PATTERN = Pattern.compile("gist.github.com/([A-Za-z0-9]*)/([a-z0-9]*)");
 
     @Override
     public List<String> foundText(String message) {

@@ -22,11 +22,9 @@
 package com.me4502.me4bot.discord.module;
 
 import com.me4502.me4bot.discord.Me4Bot;
-import com.me4502.me4bot.discord.Settings;
 import com.me4502.me4bot.discord.util.PermissionRoles;
+import com.me4502.me4bot.discord.util.PunishmentUtil;
 import com.me4502.me4bot.discord.util.StringUtil;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
@@ -40,33 +38,28 @@ public class PingWarning extends ListenerAdapter implements Module {
 
     @Override
     public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event) {
-        boolean mentionsDev = event.getMessage().getMentionedMembers().stream().anyMatch(user -> Me4Bot.isAuthorised(user,
-                PermissionRoles.MODERATOR));
-        if (mentionsDev && !Me4Bot.isAuthorised(event.getMember(), PermissionRoles.TRUSTED)) {
+        // Don't check for people who are allowed to ping
+        if (Me4Bot.isAuthorised(event.getMember(), PermissionRoles.TRUSTED) || event.getMember() == null) {
+            return;
+        }
+
+        boolean mentionsDev = event.getMessage().getMentionedMembers()
+                .stream()
+                .anyMatch(user -> Me4Bot.isAuthorised(user, PermissionRoles.MODERATOR));
+
+        if (mentionsDev) {
             event.getChannel().sendMessage("Hey " + StringUtil.annotateUser(
                     event.getAuthor()
             ) + "! It's against the rule to ping the developers, make sure to read the rules!").queue();
-            int spamTime = spamTimes.getOrDefault(event.getAuthor().getId(), 0);
-            spamTime ++;
+            int spamTime = spamTimes.getOrDefault(event.getAuthor().getId(), 0) + 1;
             spamTimes.put(event.getAuthor().getId(), spamTime);
-            if (spamTime >= 3) {
+            if (spamTime >= 4) {
                 // Do the ban.
-                kickForSpam(event.getGuild(), event.getAuthor(), spamTime >= 4);
+                PunishmentUtil.banUser(event.getGuild(), event.getAuthor(), "Repeatedly pinging developers.");
+            } else if (spamTime >= 3) {
+                // Kick
+                PunishmentUtil.kickUser(event.getGuild(), event.getMember(), "Repeatedly pinging developers.");
             }
         }
-    }
-
-    public static void kickForSpam(Guild guild, User user, boolean ban) {
-        user.openPrivateChannel().queue((privateChannel -> {
-            privateChannel.sendMessage("You have been " + (ban ? "banned" : "kicked") +
-                    " for repeatedly pinging devs. Contact " + Settings.hostUsername + "#" + Settings.hostIdentifier + " if you believe this is a mistake.")
-                    .queue(message -> {
-                        if (ban) {
-                            guild.ban(user, 0, "Repeatedly pinging devs").queue();
-                        } else {
-                            guild.kick(guild.getMember(user), "Pinging devs").queue();
-                        }
-                    });
-        }));
     }
 }

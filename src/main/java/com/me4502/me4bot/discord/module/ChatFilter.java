@@ -37,8 +37,13 @@ public class ChatFilter extends ListenerAdapter implements Module {
 
     @Override
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
+        // Don't check for people who are allowed to send invites
+        if (Me4Bot.isAuthorised(event.getMember(), PermissionRoles.TRUSTED)) {
+            return;
+        }
+
         Matcher matcher = INVITE_PATTERN.matcher(event.getMessage().getContentRaw());
-        if (matcher.find() && !Me4Bot.isAuthorised(event.getMember(), PermissionRoles.TRUSTED)) {
+        if (matcher.find()) {
             event.getMessage().delete().queue();
         }
     }

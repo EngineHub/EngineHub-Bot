@@ -70,13 +70,15 @@ public class LinkGrabber implements Module {
             return;
         }
 
+        String noticeMessage = "Hey, " + StringUtil.annotateUser(user) + "! ";
+
         if (alias.contains("\n")) {
             MessageBuilder builder = new MessageBuilder();
-            builder.append("Hey ").append(StringUtil.annotateUser(user)).append("!\n\n");
+            builder.append(noticeMessage).append("\n\n");
             builder.append(alias);
             builder.buildAll(MessageBuilder.SplitPolicy.NEWLINE).forEach(mess -> message.getChannel().sendMessage(mess).queue());
         } else {
-            message.getChannel().sendMessage("Here you go, " + StringUtil.annotateUser(user) + "! " + alias).queue();
+            message.getChannel().sendMessage(noticeMessage + alias).queue();
         }
     }
 

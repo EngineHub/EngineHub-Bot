@@ -25,6 +25,7 @@ import com.google.common.collect.Maps;
 import com.me4502.me4bot.discord.Me4Bot;
 import com.me4502.me4bot.discord.Settings;
 import com.me4502.me4bot.discord.util.PermissionRoles;
+import com.me4502.me4bot.discord.util.PunishmentUtil;
 import com.me4502.me4bot.discord.util.StringUtil;
 import com.sk89q.intake.Command;
 import com.sk89q.intake.Require;
@@ -33,11 +34,9 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
-import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
-import net.dv8tion.jda.api.hooks.EventListener;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
 
 import java.util.List;
@@ -45,7 +44,9 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class Alerts implements Module, EventListener {
+import javax.annotation.Nonnull;
+
+public class Alerts extends ListenerAdapter implements Module {
 
     public static Map<String, String> alertChannels = Maps.newHashMap();
 
@@ -64,29 +65,29 @@ public class Alerts implements Module, EventListener {
     }
 
     @Override
-    public void onEvent(GenericEvent event) {
-        if (event instanceof GuildMemberJoinEvent) {
-            for (Pattern pattern : badNamePatterns) {
-                if (pattern.matcher(((GuildMemberJoinEvent) event).getUser().getName()).find()) {
-                    ((GuildMemberJoinEvent) event).getUser().openPrivateChannel().queue(privateChannel
-                            -> NoSpam.banForSpam(((GuildMemberJoinEvent) event).getGuild(), ((GuildMemberJoinEvent) event).getUser(), privateChannel));
-                    return;
-                }
+    public void onGuildMemberJoin(@Nonnull GuildMemberJoinEvent event) {
+        for (Pattern pattern : badNamePatterns) {
+            if (pattern.matcher(event.getUser().getName()).find()) {
+                PunishmentUtil.banUser(event.getGuild(), event.getUser(), "Banned URL in username");
+                return;
             }
-            String channelId = alertChannels.get(((GuildMemberJoinEvent) event).getGuild().getId());
-            if (channelId != null) {
-                MessageChannel channel = Me4Bot.bot.api.getTextChannelById(channelId);
-                if (channel != null) {
-                    sendMessage(((GuildMemberJoinEvent) event).getGuild(), channel, ((GuildMemberJoinEvent) event).getUser(), true);
-                }
+        }
+        String channelId = alertChannels.get(event.getGuild().getId());
+        if (channelId != null) {
+            MessageChannel channel = Me4Bot.bot.api.getTextChannelById(channelId);
+            if (channel != null) {
+                sendMessage(event.getGuild(), channel, event.getUser(), true);
             }
-        } else if (event instanceof GuildMemberRemoveEvent) {
-            String channelId = alertChannels.get(((GuildMemberRemoveEvent) event).getGuild().getId());
-            if (channelId != null) {
-                MessageChannel channel = Me4Bot.bot.api.getTextChannelById(channelId);
-                if (channel != null) {
-                    sendMessage(((GuildMemberRemoveEvent) event).getGuild(), channel, ((GuildMemberRemoveEvent) event).getUser(), false);
-                }
+        }
+    }
+
+    @Override
+    public void onGuildMemberRemove(@Nonnull GuildMemberRemoveEvent event) {
+        String channelId = alertChannels.get(event.getGuild().getId());
+        if (channelId != null) {
+            MessageChannel channel = Me4Bot.bot.api.getTextChannelById(channelId);
+            if (channel != null) {
+                sendMessage(event.getGuild(), channel, event.getUser(), false);
             }
         }
     }
