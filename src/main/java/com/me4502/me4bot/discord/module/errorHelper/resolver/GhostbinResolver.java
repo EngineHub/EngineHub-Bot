@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 
 public class GhostbinResolver implements ErrorResolver {
 
-    private Pattern GHOSTBIN_PATTERN = Pattern.compile("ghostbin.com/paste/([A-Za-z0-9]*)");
+    private final Pattern GHOSTBIN_PATTERN = Pattern.compile("ghostbin.com/paste/([A-Za-z0-9]*)");
 
     @Override
     public List<String> foundText(String message) {

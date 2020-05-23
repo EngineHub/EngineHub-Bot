@@ -22,11 +22,9 @@
 package com.me4502.me4bot.discord.module;
 
 import com.me4502.me4bot.discord.Me4Bot;
-import com.me4502.me4bot.discord.Settings;
 import com.me4502.me4bot.discord.util.PermissionRoles;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.PrivateChannel;
-import net.dv8tion.jda.api.entities.User;
+import com.me4502.me4bot.discord.util.PunishmentUtil;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
@@ -40,26 +38,24 @@ public class NoSpam extends ListenerAdapter implements Module {
 
     @Override
     public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event) {
-        int mentionCount = event.getMessage().getMentionedUsers().size() + event.getMessage().getMentionedRoles().size();
-        if (mentionCount >= 6 && !Me4Bot.isAuthorised(event.getMember(), PermissionRoles.TRUSTED)) {
-            event.getMessage().delete().queue();
-            event.getAuthor().openPrivateChannel().queue(privateChannel -> {
-                privateChannel.sendMessage("Hey! Spamming messages is not allowed here. If you continue, you will be banned.").queue();
-                int spamTime = spamTimes.getOrDefault(event.getAuthor().getId(), 0);
-                spamTime ++;
-                spamTimes.put(event.getAuthor().getId(), spamTime);
-                if (spamTime >= 3) {
-                    // Do the ban.
-                    banForSpam(event.getGuild(), event.getAuthor(), privateChannel);
-                }
-            });
-        } else {
-            spamTimes.remove(event.getAuthor().getId());
+        // Don't check for people who are allowed to ping
+        if (Me4Bot.isAuthorised(event.getMember(), PermissionRoles.TRUSTED)) {
+            return;
         }
-    }
 
-    public static void banForSpam(Guild guild, User user, PrivateChannel privateChannel) {
-        privateChannel.sendMessage("You have been banned for spamming. Contact " + Settings.hostUsername + "#" + Settings.hostIdentifier + " if you believe this is a mistake.")
-                .queue(message -> guild.ban(user, 0, "Ping spam").queue());
+        int mentionCount = event.getMessage().getMentions(Message.MentionType.ROLE, Message.MentionType.USER).size();
+
+        if (mentionCount >= 6) {
+            event.getMessage().delete().queue();
+            int spamTime = spamTimes.getOrDefault(event.getAuthor().getId(), 0) + 1;
+            spamTimes.put(event.getAuthor().getId(), spamTime);
+            if (spamTime >= 3) {
+                // Do the ban.
+                PunishmentUtil.banUser(event.getGuild(), event.getAuthor(), "Ping spam");
+            } else {
+                event.getAuthor().openPrivateChannel().queue(privateChannel ->
+                        privateChannel.sendMessage("Hey! Spamming messages is not allowed here. If you continue, you will be banned.").queue());
+            }
+        }
     }
 }
