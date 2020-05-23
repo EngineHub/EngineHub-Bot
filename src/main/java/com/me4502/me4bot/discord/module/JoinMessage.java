@@ -30,7 +30,7 @@ import javax.annotation.Nonnull;
 
 public class JoinMessage extends ListenerAdapter implements Module {
 
-    private static Message message;
+    private static final Message message;
 
     static {
         MessageBuilder builder = new MessageBuilder();
