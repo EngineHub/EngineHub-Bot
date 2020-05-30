@@ -52,11 +52,11 @@ public class LinkGrabber implements Module {
 
     @Command(aliases = {"get", "g", "~"}, desc = "Grabs an alias.")
     public void aliasGrabber(Message message, String key, @Optional String userName) {
-        User user = message.getAuthor();
+        User user = null;
         if (userName != null) {
             List<User> users = message.getMentionedUsers();
             if (users.size() != 1) {
-                message.getChannel().sendMessage("I don't know who you want me to send that to, sorry " + StringUtil.annotateUser(user) + '!').queue();
+                message.getChannel().sendMessage("I don't know who you want me to send that to, sorry!").queue();
                 return;
             }
             user = users.get(0);
@@ -64,13 +64,13 @@ public class LinkGrabber implements Module {
 
         String alias = aliasMap.get(key);
         if (alias == null) {
-            message.getChannel().sendMessage("I don't know what that alias is, sorry " + StringUtil.annotateUser(user) + '!').queue();
+            message.getChannel().sendMessage("I don't know what that alias is, sorry!").queue();
             aliasMap.keySet().stream().min(Comparator.comparingInt(o -> StringUtils.getLevenshteinDistance(key, o)))
             .ifPresent(possibleKey -> message.getChannel().sendMessage("Did you mean `" + possibleKey + "`?").queue());
             return;
         }
 
-        String noticeMessage = "Hey, " + StringUtil.annotateUser(user) + "! ";
+        String noticeMessage = user == null ? "" : "Hey, " + StringUtil.annotateUser(user) + "! ";
 
         if (alias.contains("\n")) {
             MessageBuilder builder = new MessageBuilder();
