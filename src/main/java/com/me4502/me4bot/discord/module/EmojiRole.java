@@ -98,7 +98,6 @@ public class EmojiRole extends ListenerAdapter implements Module {
                             .queue(users -> {
                                 users.stream().map(guild::getMember).filter(Objects::nonNull).filter(mem -> mem.getRoles().stream()
                                         .noneMatch(r -> r.getIdLong() == role.getIdLong())).forEach(mem -> guild.addRoleToMember(mem, role).queue());
-                                users.stream().filter(user -> !guild.isMember(user)).forEach(user -> reaction.removeReaction(user).queue());
                             })));
         } catch (Throwable t) {
             t.printStackTrace();
