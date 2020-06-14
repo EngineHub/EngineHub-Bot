@@ -27,6 +27,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionRemoveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -35,7 +36,6 @@ import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -94,11 +94,21 @@ public class EmojiRole extends ListenerAdapter implements Module {
             Message message = channel.retrieveMessageById(messageId).complete();
             Guild guild = message.getGuild();
             message.getReactions()
-                    .forEach(reaction -> getRoleByEmoji(guild, reaction.getReactionEmote().getId()).ifPresent(role -> reaction.retrieveUsers()
-                            .queue(users -> {
-                                users.stream().map(guild::getMember).filter(Objects::nonNull).filter(mem -> mem.getRoles().stream()
-                                        .noneMatch(r -> r.getIdLong() == role.getIdLong())).forEach(mem -> guild.addRoleToMember(mem, role).queue());
-                            })));
+                    .forEach(reaction -> getRoleByEmoji(guild, reaction.getReactionEmote().getId())
+                            .ifPresent(role -> reaction.retrieveUsers()
+                                    .queue(users -> {
+                                        for (User user : users) {
+                                            guild.retrieveMember(user).queue(mem -> {
+                                                if (mem != null) {
+                                                    if (mem.getRoles()
+                                                            .stream()
+                                                            .noneMatch(r -> r.getIdLong() == role.getIdLong())) {
+                                                        guild.addRoleToMember(mem, role).queue();
+                                                    }
+                                                }
+                                            }, throwable -> message.removeReaction(reaction.getReactionEmote().getEmote(), user).queue());
+                                        }
+                                    })));
         } catch (Throwable t) {
             t.printStackTrace();
         }
