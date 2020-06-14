@@ -67,7 +67,7 @@ public class Me4Bot implements Runnable, EventListener {
     public static final String COMMAND_PREFIX = "~";
 
     public static Me4Bot bot;
-    private static boolean running = true;
+    private static volatile boolean running = true;
 
     public static boolean isAuthorised(Member member, String permission) {
         if (permission.equalsIgnoreCase(PermissionRoles.ANY)) {
@@ -116,11 +116,7 @@ public class Me4Bot implements Runnable, EventListener {
             thread.start();
 
             while (running) {
-                try {
-                    Thread.sleep(1000L);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                Thread.onSpinWait();
             }
 
             bot.disconnect();
@@ -177,7 +173,7 @@ public class Me4Bot implements Runnable, EventListener {
         for (Module module : modules) {
             node = module.setupCommands(node);
             if (module instanceof EventListener) {
-                api.addEventListener((EventListener) module);
+                api.addEventListener(module);
             }
         }
 
