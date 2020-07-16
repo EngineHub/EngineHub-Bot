@@ -51,7 +51,7 @@ public class NoSpam extends ListenerAdapter implements Module {
             spamTimes.put(event.getAuthor().getId(), spamTime);
             if (spamTime >= 3) {
                 // Do the ban.
-                PunishmentUtil.banUser(event.getGuild(), event.getAuthor(), "Ping spam");
+                PunishmentUtil.banUser(event.getGuild(), event.getAuthor(), "Ping spam", true);
             } else {
                 event.getAuthor().openPrivateChannel().queue(privateChannel ->
                         privateChannel.sendMessage("Hey! Spamming messages is not allowed here. If you continue, you will be banned.").queue());
