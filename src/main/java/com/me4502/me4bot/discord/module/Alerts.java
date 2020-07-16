@@ -69,8 +69,7 @@ public class Alerts extends ListenerAdapter implements Module {
     public void onGuildMemberJoin(@Nonnull GuildMemberJoinEvent event) {
         for (Pattern pattern : badNamePatterns) {
             if (pattern.matcher(event.getUser().getName()).find()) {
-                PunishmentUtil.banUser(event.getGuild(), event.getUser(), "Banned URL in username");
-
+                PunishmentUtil.banUser(event.getGuild(), event.getUser(), "Banned URL in username", true);
                 return;
             }
         }

@@ -41,11 +41,11 @@ public class PunishmentUtil {
         ));
     }
 
-    public static void banUser(Guild guild, User user, String reason) {
+    public static void banUser(Guild guild, User user, String reason, boolean eraseHistory) {
         user.openPrivateChannel().queue((privateChannel ->
                 privateChannel.sendMessage("You have been banned for `" + reason + "`. " + getContactString())
                 .queue(message -> {
-                    guild.ban(user, 0, reason).queue();
+                    guild.ban(user, eraseHistory ? 7 : 0, "[Bot Ban] " + reason).queue();
                 })
         ));
     }
