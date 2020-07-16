@@ -41,6 +41,7 @@ import ninja.leaping.configurate.ConfigurationNode;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -69,14 +70,8 @@ public class Alerts extends ListenerAdapter implements Module {
         for (Pattern pattern : badNamePatterns) {
             if (pattern.matcher(event.getUser().getName()).find()) {
                 PunishmentUtil.banUser(event.getGuild(), event.getUser(), "Banned URL in username");
+
                 return;
-            }
-        }
-        String channelId = alertChannels.get(event.getGuild().getId());
-        if (channelId != null) {
-            MessageChannel channel = Me4Bot.bot.api.getTextChannelById(channelId);
-            if (channel != null) {
-                sendMessage(event.getGuild(), channel, event.getUser(), true);
             }
         }
     }
@@ -87,7 +82,7 @@ public class Alerts extends ListenerAdapter implements Module {
         if (channelId != null) {
             MessageChannel channel = Me4Bot.bot.api.getTextChannelById(channelId);
             if (channel != null) {
-                sendMessage(event.getGuild(), channel, event.getUser(), false);
+                sendMessage(event.getGuild(), channel, event.getUser());
             }
         }
     }
@@ -96,22 +91,25 @@ public class Alerts extends ListenerAdapter implements Module {
      * Sends the alert message.
      *
      * @param user The user
-     * @param join True for join false for leave
      */
-    private void sendMessage(Guild guild, MessageChannel channel, User user, boolean join) {
+    private static void sendMessage(Guild guild, MessageChannel channel, User user) {
         String annotatedName = "**" + StringUtil.annotateUser(user) + "** (" + user.getName() + ") ";
         if (user.isBot()) {
             annotatedName += "[Bot] ";
         }
-        if (!join && guild.retrieveBanList().complete().stream().anyMatch(ban -> ban.getUser().getIdLong() == user.getIdLong())) {
-            channel.sendMessage(annotatedName + "has been banned!").queue();
+        Optional<Guild.Ban> banEntry = guild.retrieveBanList().complete()
+                        .stream()
+                        .filter(ban -> ban.getUser().getIdLong() == user.getIdLong())
+                        .findAny();
+        if (banEntry.isPresent()) {
+            channel.sendMessage(annotatedName + "has been banned! `" + banEntry.get().getReason() + '`').queue();
             return;
         }
 
         if (user.isBot()) {
-            channel.sendMessage(annotatedName + "has been " + (join ? "added to" : "removed from") + " the server!").queue();
+            channel.sendMessage(annotatedName + "has been removed from the server!").queue();
         } else {
-            channel.sendMessage(annotatedName + "has " + (join ? "joined" : "left") + " the server!").queue();
+            channel.sendMessage(annotatedName + "has left the server!").queue();
         }
     }
 
