@@ -22,9 +22,9 @@
 package com.me4502.me4bot.discord.module;
 
 import com.me4502.me4bot.discord.Me4Bot;
-import com.me4502.me4bot.discord.util.StringUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -37,12 +37,15 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
     @Override
     public void onPrivateMessageReceived(@NotNull PrivateMessageReceivedEvent event) {
         if (forwardChannel != null) {
-            String userAnnotation = StringUtil.annotateUser(event.getAuthor());
             var channel = Me4Bot.bot.api.getGuildChannelById(forwardChannel);
             if (channel instanceof TextChannel) {
+                User user = event.getAuthor();
                 ((TextChannel) channel).sendMessage(
                     new EmbedBuilder()
-                        .setAuthor(userAnnotation)
+                        .setAuthor(user.getAsTag(),
+                            "https://discord.com/channels/@me/" + user.getId(),
+                            user.getEffectiveAvatarUrl()
+                        )
                         .setDescription(event.getMessage().getContentRaw())
                         .build()
                 ).queue();
