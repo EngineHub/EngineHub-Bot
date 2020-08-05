@@ -33,6 +33,7 @@ import com.me4502.me4bot.discord.module.LinkGrabber;
 import com.me4502.me4bot.discord.module.Module;
 import com.me4502.me4bot.discord.module.NoSpam;
 import com.me4502.me4bot.discord.module.PingWarning;
+import com.me4502.me4bot.discord.module.PrivateForwarding;
 import com.me4502.me4bot.discord.module.SetProfilePicture;
 import com.me4502.me4bot.discord.module.errorHelper.ErrorHelper;
 import com.me4502.me4bot.discord.util.PermissionRoles;
@@ -198,7 +199,8 @@ public class Me4Bot implements Runnable, EventListener {
             new LinkGrabber(),
             new JoinMessage(),
             new PingWarning(),
-            new EmojiRole()
+            new EmojiRole(),
+            new PrivateForwarding()
     );
 
     public Collection<Module> getModules() {
