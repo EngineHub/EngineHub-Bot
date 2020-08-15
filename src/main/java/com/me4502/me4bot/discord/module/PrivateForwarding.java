@@ -44,15 +44,17 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
             var channel = Me4Bot.bot.api.getGuildChannelById(forwardChannel);
             if (channel instanceof TextChannel) {
                 User user = event.getAuthor();
-                ((TextChannel) channel).sendMessage(
-                    new EmbedBuilder()
-                        .setAuthor(user.getAsTag(),
-                            "https://discord.com/channels/@me/" + user.getId(),
-                            user.getEffectiveAvatarUrl()
-                        )
-                        .setDescription(event.getMessage().getContentRaw())
-                        .build()
-                ).queue();
+
+                EmbedBuilder builder = new EmbedBuilder()
+                    .setAuthor(user.getAsTag(),
+                        "https://discord.com/channels/@me/" + user.getId(),
+                        user.getEffectiveAvatarUrl()
+                    )
+                    .setDescription(event.getMessage().getContentRaw());
+
+                event.getMessage().getAttachments().forEach(att -> builder.addField(att.getFileName(), att.getUrl(), false));
+
+                ((TextChannel) channel).sendMessage(builder.build()).queue();
             }
         }
     }
