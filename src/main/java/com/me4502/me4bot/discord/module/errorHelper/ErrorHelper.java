@@ -26,6 +26,7 @@ import com.me4502.me4bot.discord.module.Module;
 import com.me4502.me4bot.discord.module.errorHelper.resolver.ErrorResolver;
 import com.me4502.me4bot.discord.module.errorHelper.resolver.GhostbinResolver;
 import com.me4502.me4bot.discord.module.errorHelper.resolver.GistResolver;
+import com.me4502.me4bot.discord.module.errorHelper.resolver.MCLogsResolver;
 import com.me4502.me4bot.discord.module.errorHelper.resolver.RawSubdirectoryUrlResolver;
 import com.me4502.me4bot.discord.util.StringUtil;
 import net.dv8tion.jda.api.entities.Message;
@@ -59,6 +60,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
             new RawSubdirectoryUrlResolver("paste.helpch.at", "raw"), // PasteHelpchatResolver
             new GhostbinResolver(),
             new GistResolver(),
+            new MCLogsResolver(),
             new RawSubdirectoryUrlResolver("paste.enginehub.org", "documents", true) // EngineHubResolver
     );
 
