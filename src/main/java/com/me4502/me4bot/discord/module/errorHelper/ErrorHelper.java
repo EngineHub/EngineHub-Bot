@@ -30,7 +30,9 @@ import com.me4502.me4bot.discord.module.errorHelper.resolver.RawSubdirectoryUrlR
 import com.me4502.me4bot.discord.util.StringUtil;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
@@ -64,14 +66,21 @@ public class ErrorHelper extends ListenerAdapter implements Module {
 
     @Override
     public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event) {
-        MessageChannel channel = event.getChannel();
-        StringBuilder messageText = new StringBuilder(event.getMessage().getContentRaw());
-        for (Message.Attachment attachment : event.getMessage().getAttachments()) {
+        scanMessage(event.getMessage(), event.getAuthor(), event.getChannel());
+    }
+
+    public void onPrivateMessageReceived(@Nonnull PrivateMessageReceivedEvent event) {
+        scanMessage(event.getMessage(), event.getAuthor(), event.getChannel());
+    }
+
+    public void scanMessage(Message message, User author, MessageChannel channel) {
+        StringBuilder messageText = new StringBuilder(message.getContentRaw());
+        for (Message.Attachment attachment : message.getAttachments()) {
             if (attachment.isImage()) continue; // TODO Maybe text processing in images?
             if (attachment.getFileName().endsWith(".txt") || attachment.getFileName().endsWith(".log")) {
                 if (attachment.getSize() > 1024*1024*4) {
-                    channel.sendMessage("[AutoReply] " + StringUtil.annotateUser(event.getAuthor()) + " Log too large "
-                            + "to scan.").queue();
+                    channel.sendMessage("[AutoReply] " + StringUtil.annotateUser(author) + " Log too large "
+                        + "to scan.").queue();
                     continue; //Ignore >4MB for now.
                 }
                 try(BufferedReader reader = new BufferedReader(new InputStreamReader(attachment.retrieveInputStream().get()))) {
@@ -85,12 +94,12 @@ public class ErrorHelper extends ListenerAdapter implements Module {
             }
         }
         resolvers.parallelStream()
-                .flatMap(resolver -> resolver.foundText(messageText.toString()).stream())
-                .map(ErrorHelper::cleanString)
-                .flatMap(error -> messagesForError(error).stream())
-                .distinct()
-                .forEach(message ->
-                        channel.sendMessage("[AutoReply] " + StringUtil.annotateUser(event.getAuthor()) + ' ' + message).queue());
+            .flatMap(resolver -> resolver.foundText(messageText.toString()).stream())
+            .map(ErrorHelper::cleanString)
+            .flatMap(error -> messagesForError(error).stream())
+            .distinct()
+            .forEach(mes ->
+                channel.sendMessage("[AutoReply] " + StringUtil.annotateUser(author) + ' ' + mes).queue());
     }
 
     private static String cleanString(String string) {
