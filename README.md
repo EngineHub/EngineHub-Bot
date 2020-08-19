@@ -17,7 +17,7 @@ Dependencies are automatically handled by Gradle.
 
 Running
 -------
-The main class is `Me4Bot`.
+The main class is `org.enginehub.discord.EngineHubBot`.
 
 The following is an example script, that will automatically update the bot during the automated restart.
 
