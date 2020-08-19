@@ -1,10 +1,10 @@
-Me4Bot
-============
-Me4Bot is a Discord bot providing basic administrative and music playing services.
+EngineHub Bot
+=============
+EngineHub Bot is the Discord bot to assist in moderating and providing support in the EngineHub Discord.
 
 Downloading
 -----------
-The bot can be downloaded from [Jitpack](https://jitpack.io/com/github/me4502/Me4Bot/-SNAPSHOT/Me4Bot--SNAPSHOT.jar).
+The bot can be downloaded from [Jitpack](https://jitpack.io/com/github/EngineHub/EngineHub-Bot/-SNAPSHOT/EngineHub-Bot--SNAPSHOT.jar).
 
 Compiling
 ---------
@@ -17,7 +17,7 @@ Dependencies are automatically handled by Gradle.
 
 Running
 -------
-The main class is `com.me4502.me4bot.discord.Me4Bot`.
+The main class is `Me4Bot`.
 
 The following is an example script, that will automatically update the bot during the automated restart.
 
@@ -26,9 +26,9 @@ The following is an example script, that will automatically update the bot durin
 
 while true
 do
-    rm Me4Bot.jar
-    wget https://jitpack.io/com/github/me4502/Me4Bot/-SNAPSHOT/Me4Bot--SNAPSHOT.jar -O Me4Bot.jar
-    java -cp Me4Bot.jar com.me4502.me4bot.discord.Me4Bot
+    rm EngineHub-Bot.jar
+    wget https://jitpack.io/com/github/EngineHub/EngineHub-Bot/-SNAPSHOT/EngineHub-Bot--SNAPSHOT.jar -O EngineHub-Bot.jar
+    java -cp EngineHub-Bot.jar org.enginehub.discord.EngineHubBot
     sleep 10
 done
 ```
@@ -48,4 +48,4 @@ make comments, and merge it into the project if everything works out.
 In addition, please ensure your code is compliant with the [Google Java
 Conventions](https://google.github.io/styleguide/javaguide.html) to keep things neat and readable.
 
-By submitting code, you agree to place to license your code under the [MIT License](https://raw.githubusercontent.com/me4502/Me4Bot/master/LICENSE.txt).
+By submitting code, you agree to place to license your code under the [GPL License](https://raw.githubusercontent.com/EngineHub/EngineHub-Bot/master/LICENSE.txt).
