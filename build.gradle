@@ -63,10 +63,11 @@ shadowJar {
 }
 
 dependencies {
-    compile 'net.dv8tion:JDA:4.2.0_179'
+    compile 'net.dv8tion:JDA:4.2.0_204'
     compile(group: 'org.spongepowered', name: 'configurate-hocon', version: '3.7-SNAPSHOT') { changing = true }
     compile 'com.typesafe:config:1.4.0'
     compile 'com.sk89q:intake:3.1.2'
+    compile 'com.google.code.gson:gson:2.8.6'
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
 

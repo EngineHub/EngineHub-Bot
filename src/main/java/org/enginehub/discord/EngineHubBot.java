@@ -29,6 +29,7 @@ import org.enginehub.discord.module.Alerts;
 import org.enginehub.discord.module.AutoErase;
 import org.enginehub.discord.module.ChatFilter;
 import org.enginehub.discord.module.EmojiRole;
+import org.enginehub.discord.module.IdleRPG;
 import org.enginehub.discord.module.JoinMessage;
 import org.enginehub.discord.module.LinkGrabber;
 import org.enginehub.discord.module.Module;
@@ -201,7 +202,8 @@ public class EngineHubBot implements Runnable, EventListener {
             new JoinMessage(),
             new PingWarning(),
             new EmojiRole(),
-            new PrivateForwarding()
+            new PrivateForwarding(),
+            new IdleRPG()
     );
 
     public Collection<Module> getModules() {
