@@ -93,6 +93,7 @@ public class Settings {
         ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setPath(new File("settings.conf").getAbsoluteFile().toPath()).build(); // Create the loader
         try {
             loadedNode.getNode("token").setValue(token);
+            // Using generic inference on the next line breaks javac. This is a load-bearing generic.
             loadedNode.getNode("auto-erase-channels").setValue(new TypeToken<List<String>>(){}, autoEraseChannels);
 
             loader.save(loadedNode);

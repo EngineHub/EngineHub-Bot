@@ -249,7 +249,8 @@ public class EngineHubBot implements Runnable, EventListener {
             } catch (InvalidUsageException e) {
                 String usage = e.getMessage();
                 if ("Please choose a sub-command.".equals(usage)) {
-                    usage = "Unknown command!";
+                    // Don't send a message.
+                    return;
                 }
                 ((MessageReceivedEvent) event).getChannel().sendMessage(usage == null ? "No help text available." : usage).queue();
             } catch (CommandException e) {
