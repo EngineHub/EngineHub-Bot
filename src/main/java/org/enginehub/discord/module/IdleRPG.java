@@ -42,6 +42,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
@@ -50,28 +51,30 @@ public class IdleRPG extends ListenerAdapter implements Module {
     private static final String IDLE_RPG_TOKEN = ">";
     private static final String IDLE_RPG_LEADERBOARD_TOKEN = ">l";
     private static final String IDLE_RPG_FILE = "idlerpg_data.json";
-    private static final BigDecimal XP_FACTOR = new BigDecimal("1.5");
+    private static final BigDecimal XP_FACTOR = new BigDecimal("681.19");
+    private static final BigDecimal XP_POWER = new BigDecimal("0.0991");
+    private static final BigDecimal BIG_E = BigDecimal.valueOf(Math.E);
     private static final DecimalFormat PERCENTAGE_FORMAT = new DecimalFormat();
 
     private final static Gson IDLE_RPG_SERIALISER = new GsonBuilder().create();
 
     private final Map<Long, PlayerData> players = Maps.newConcurrentMap();
 
-    private BigDecimal getXpForLevelUp(int level) {
-        return XP_FACTOR.pow(level);
-    }
+    private final Map<Integer, Long> xpCacheMap = Maps.newHashMap();
 
-    private final static BigDecimal MINUTES_TO_MILLIS = new BigDecimal("60000");
-
-    private long xpToTimestamp(BigDecimal requiredXp) {
-        return requiredXp.multiply(MINUTES_TO_MILLIS).longValue();
+    private long getXpForLevelUp(int level) {
+        if (level <= 1) {
+            return 0;
+        }
+        return xpCacheMap.computeIfAbsent(level,
+            integer -> XP_FACTOR.multiply(BIG_E.pow(XP_POWER.multiply(BigDecimal.valueOf(level)).intValue())).longValue());
     }
 
     @Override
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
         if (Objects.equals(event.getMessage().getContentRaw(), IDLE_RPG_TOKEN)) {
             PlayerData data = players.computeIfAbsent(event.getAuthor().getIdLong(), _l -> new PlayerData());
-            if (System.currentTimeMillis() >= data.levelTime + xpToTimestamp(getXpForLevelUp(data.level + 1))) {
+            if (System.currentTimeMillis() >= data.levelTime + TimeUnit.SECONDS.toMillis(getXpForLevelUp(data.level + 1))) {
                 event.getChannel().sendMessage(StringUtil.annotateUser(event.getAuthor()) + " LEVEL UP! You are now level " + (data.level + 1) + '!').queue();
                 data.lastName = event.getAuthor().getName();
                 data.levelTime = System.currentTimeMillis();
@@ -79,7 +82,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
                 isDirty = true;
             } else {
                 long diff = System.currentTimeMillis() - data.levelTime;
-                long required = xpToTimestamp(getXpForLevelUp(data.level + 1));
+                long required = TimeUnit.SECONDS.toMillis(getXpForLevelUp(data.level + 1));
                 String remaining = PERCENTAGE_FORMAT.format(BigDecimal
                     .valueOf(diff)
                     .setScale(5, RoundingMode.DOWN)
@@ -93,7 +96,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
                 .stream()
                 .sorted(Comparator
                     .comparingInt((PlayerData p) -> p.level)
-                    .thenComparingLong((PlayerData p) -> p.levelTime)
+                    .thenComparing(Comparator.comparingLong((PlayerData p) -> p.levelTime).reversed())
                     .reversed())
                 .limit(10)
                 .collect(Collectors.toList());
