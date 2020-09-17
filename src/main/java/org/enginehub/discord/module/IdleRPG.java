@@ -70,6 +70,45 @@ public class IdleRPG extends ListenerAdapter implements Module {
             integer -> XP_FACTOR.multiply(BIG_E.pow(XP_POWER.multiply(BigDecimal.valueOf(level)).intValue())).longValue());
     }
 
+    public String formatTimeTo(long timestamp) {
+        // Down to seconds
+        timestamp /= 1000;
+
+        // Extract seconds
+        long seconds = timestamp % 60;
+        timestamp -= seconds;
+        timestamp /= 60;
+
+        // Extract minutes
+        long minutes = timestamp % 60;
+        timestamp -= minutes;
+        timestamp /= 60;
+
+        // Extract hours
+        long hours = timestamp % 24;
+        timestamp -= hours;
+        timestamp /= 24;
+
+        // Extract days
+        long days = timestamp;
+
+        StringBuilder timeBuilder = new StringBuilder();
+        if (days > 0) {
+            timeBuilder.append(days).append(" days ");
+        }
+        if (hours > 0) {
+            timeBuilder.append(hours).append(" hours ");
+        }
+        if (minutes > 0 && days == 0) {
+            timeBuilder.append(minutes).append(" minutes ");
+        }
+        if (seconds > 0 && hours == 0 && days == 0) {
+            timeBuilder.append(seconds).append(" seconds ");
+        }
+
+        return timeBuilder.append("remaining").toString();
+    }
+
     @Override
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
         if (Objects.equals(event.getMessage().getContentRaw(), IDLE_RPG_TOKEN)) {
@@ -78,7 +117,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
                 event.getChannel().sendMessage(StringUtil.annotateUser(event.getAuthor()) + " LEVEL UP! You are now level " + (data.level + 1) + '!').queue();
                 data.lastName = event.getAuthor().getName();
                 data.levelTime = System.currentTimeMillis();
-                data.level ++;
+                data.level++;
                 isDirty = true;
             } else {
                 long diff = System.currentTimeMillis() - data.levelTime;
@@ -89,7 +128,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
                     .divide(BigDecimal.valueOf(required), RoundingMode.HALF_EVEN)
                     .multiply(BigDecimal.valueOf(100))
                     .setScale(2, RoundingMode.DOWN));
-                event.getChannel().sendMessage(StringUtil.annotateUser(event.getAuthor()) + " you're " + remaining + "% of the way there!").queue();
+                event.getChannel().sendMessage(StringUtil.annotateUser(event.getAuthor()) + " you're " + remaining + "% of the way there! " + formatTimeTo(required - diff)).queue();
             }
         } else if (Objects.equals(event.getMessage().getContentRaw(), IDLE_RPG_LEADERBOARD_TOKEN)) {
             List<PlayerData> topPlayers = players.values()
@@ -103,8 +142,18 @@ public class IdleRPG extends ListenerAdapter implements Module {
             StringBuilder leaderboardMessage = new StringBuilder("IdleRPG Leaderboard\n\n");
             for (int i = 0; i < topPlayers.size(); i++) {
                 PlayerData data = topPlayers.get(i);
-                leaderboardMessage.append('#').append(i + 1).append(' ').append(data.lastName).append(": Level ").append(data.level).append('\n');
+                boolean canLevelUp = System.currentTimeMillis() >= data.levelTime + TimeUnit.SECONDS.toMillis(getXpForLevelUp(data.level + 1));
+                leaderboardMessage
+                    .append('#')
+                    .append(i + 1)
+                    .append(' ')
+                    .append(data.lastName)
+                    .append(": Level ")
+                    .append(data.level)
+                    .append(canLevelUp ? '*' : ' ')
+                    .append("\n\n");
             }
+            leaderboardMessage.append("(Showing ").append(topPlayers.size()).append(" out of ").append(players.size()).append(')');
             event.getChannel().sendMessage(leaderboardMessage.toString()).queue();
         }
     }
@@ -131,8 +180,9 @@ public class IdleRPG extends ListenerAdapter implements Module {
         lastSave = 0;
         players.clear();
 
-        try(FileReader reader = new FileReader(new File(IDLE_RPG_FILE))) {
-            Map<Long, PlayerData> map = IDLE_RPG_SERIALISER.fromJson(reader, new TypeToken<Map<Long, PlayerData>>(){}.getType());
+        try (FileReader reader = new FileReader(new File(IDLE_RPG_FILE))) {
+            Map<Long, PlayerData> map = IDLE_RPG_SERIALISER.fromJson(reader, new TypeToken<Map<Long, PlayerData>>() {
+            }.getType());
             if (map != null) {
                 players.putAll(map);
             }
@@ -149,7 +199,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
 
     public void save() {
         if (isDirty) {
-            try(FileWriter writer = new FileWriter(new File(IDLE_RPG_FILE))) {
+            try (FileWriter writer = new FileWriter(new File(IDLE_RPG_FILE))) {
                 IDLE_RPG_SERIALISER.toJson(players, writer);
                 isDirty = false;
             } catch (IOException e) {
