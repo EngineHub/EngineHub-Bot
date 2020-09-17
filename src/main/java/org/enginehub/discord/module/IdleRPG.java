@@ -151,9 +151,9 @@ public class IdleRPG extends ListenerAdapter implements Module {
                     .append(": Level ")
                     .append(data.level)
                     .append(canLevelUp ? '*' : ' ')
-                    .append("\n\n");
+                    .append("\n");
             }
-            leaderboardMessage.append("(Showing ").append(topPlayers.size()).append(" out of ").append(players.size()).append(')');
+            leaderboardMessage.append("\n(Showing ").append(topPlayers.size()).append(" out of ").append(players.size()).append(')');
             event.getChannel().sendMessage(leaderboardMessage.toString()).queue();
         }
     }
