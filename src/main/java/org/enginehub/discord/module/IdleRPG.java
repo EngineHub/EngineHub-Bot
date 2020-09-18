@@ -28,6 +28,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.enginehub.discord.util.BigMath;
 import org.enginehub.discord.util.StringUtil;
 
 import java.io.File;
@@ -53,8 +54,12 @@ public class IdleRPG extends ListenerAdapter implements Module {
     private static final String IDLE_RPG_FILE = "idlerpg_data.json";
     private static final BigDecimal XP_FACTOR = new BigDecimal("681.19");
     private static final BigDecimal XP_POWER = new BigDecimal("0.0991");
-    private static final BigDecimal BIG_E = BigDecimal.valueOf(Math.E);
     private static final DecimalFormat PERCENTAGE_FORMAT = new DecimalFormat();
+
+    private static long getXpForLevelUpUncached(int level) {
+        BigDecimal exponent = XP_POWER.multiply(BigDecimal.valueOf(level));
+        return XP_FACTOR.multiply(BigMath.exp(exponent)).longValue();
+    }
 
     private final static Gson IDLE_RPG_SERIALISER = new GsonBuilder().create();
 
@@ -66,8 +71,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
         if (level <= 1) {
             return 0;
         }
-        return xpCacheMap.computeIfAbsent(level,
-            integer -> XP_FACTOR.multiply(BIG_E.pow(XP_POWER.multiply(BigDecimal.valueOf(level)).intValue())).longValue());
+        return xpCacheMap.computeIfAbsent(level, IdleRPG::getXpForLevelUpUncached);
     }
 
     public String formatTimeTo(long timestamp) {
