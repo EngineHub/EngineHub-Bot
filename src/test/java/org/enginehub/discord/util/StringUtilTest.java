@@ -93,4 +93,24 @@ public class StringUtilTest {
             StringUtil.formatDurationHumanReadable(Duration.parse("P7DT5H3M1S"))
         );
     }
+
+    @Test
+    public void testSingular() {
+        assertEquals(
+            "1 day remaining",
+            StringUtil.formatDurationHumanReadable(Duration.ofDays(1))
+        );
+        assertEquals(
+            "1 hour remaining",
+            StringUtil.formatDurationHumanReadable(Duration.ofHours(1))
+        );
+        assertEquals(
+            "1 minute remaining",
+            StringUtil.formatDurationHumanReadable(Duration.ofMinutes(1))
+        );
+        assertEquals(
+            "1 second remaining",
+            StringUtil.formatDurationHumanReadable(Duration.ofSeconds(1))
+        );
+    }
 }
