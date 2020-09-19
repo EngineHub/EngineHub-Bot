@@ -22,28 +22,37 @@
  */
 package org.enginehub.discord.module;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Maps;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.enginehub.discord.util.BigMath;
+import org.enginehub.discord.util.StringUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAmount;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
@@ -58,111 +67,91 @@ public class IdleRPG extends ListenerAdapter implements Module {
     private static final BigDecimal XP_POWER = new BigDecimal("0.0991");
     private static final DecimalFormat PERCENTAGE_FORMAT = new DecimalFormat();
 
-    private static long getXpForLevelUpUncached(int level) {
+    @VisibleForTesting
+    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+        .registerModules(new Jdk8Module(), new JavaTimeModule(), new ParameterNamesModule());
+    private static final TypeReference<Map<Long, PlayerData>> PLAYER_DATA_MAP_TYPE =
+        new TypeReference<>() {
+        };
+
+    private static Duration getXpForLevelUpUncached(int level) {
         BigDecimal exponent = XP_POWER.multiply(BigDecimal.valueOf(level));
-        return XP_FACTOR.multiply(BigMath.exp(exponent)).longValue();
+        return Duration.ofSeconds(XP_FACTOR.multiply(BigMath.exp(exponent)).longValue());
     }
 
-    private final static Gson IDLE_RPG_SERIALISER = new GsonBuilder().create();
-
     private final Map<Long, PlayerData> players = Maps.newConcurrentMap();
+    private final Map<Integer, Duration> xpCacheMap = Maps.newHashMap();
+    private Instant nextSave;
+    private volatile boolean isDirty;
 
-    private final Map<Integer, Long> xpCacheMap = Maps.newHashMap();
-
-    private long getXpForLevelUp(int level) {
+    private TemporalAmount getXpForLevelUp(int level) {
         if (level <= 1) {
-            return 0;
+            return Duration.ZERO;
         }
         return xpCacheMap.computeIfAbsent(level, IdleRPG::getXpForLevelUpUncached);
     }
 
-    public String formatTimeTo(long timestamp) {
-        // Down to seconds
-        timestamp /= 1000;
-
-        // Extract seconds
-        long seconds = timestamp % 60;
-        timestamp -= seconds;
-        timestamp /= 60;
-
-        // Extract minutes
-        long minutes = timestamp % 60;
-        timestamp -= minutes;
-        timestamp /= 60;
-
-        // Extract hours
-        long hours = timestamp % 24;
-        timestamp -= hours;
-        timestamp /= 24;
-
-        // Extract days
-        long days = timestamp;
-
-        StringBuilder timeBuilder = new StringBuilder();
-        if (days > 0) {
-            timeBuilder.append(days).append(" days ");
-        }
-        if (hours > 0) {
-            timeBuilder.append(hours).append(" hours ");
-        }
-        if (minutes > 0 && days == 0) {
-            timeBuilder.append(minutes).append(" minutes ");
-        }
-        if (seconds > 0 && hours == 0 && days == 0) {
-            timeBuilder.append(seconds).append(" seconds ");
-        }
-
-        return timeBuilder.append("remaining").toString();
+    private Instant getLevelUpInstant(PlayerData data) {
+        return data.getLevelTime().plus(getXpForLevelUp(data.getLevel() + 1));
     }
 
     @Override
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
         if (Objects.equals(event.getMessage().getContentRaw(), IDLE_RPG_TOKEN)) {
-            PlayerData data = players.computeIfAbsent(event.getAuthor().getIdLong(), _l -> new PlayerData());
-            if (System.currentTimeMillis() >= data.levelTime + TimeUnit.SECONDS.toMillis(getXpForLevelUp(data.level + 1))) {
+            PlayerData data = players.computeIfAbsent(
+                event.getAuthor().getIdLong(),
+                _l -> new PlayerData(Instant.EPOCH, 0, event.getAuthor().getName())
+            );
+            var now = Instant.now();
+            var levelUpTime = getLevelUpInstant(data);
+            if (now.isAfter(levelUpTime)) {
+                var postLevelUp = data.applyLevelUp(now, event.getAuthor().getName());
                 EmbedBuilder builder = createEmbed();
                 builder.setAuthor("IdleRPG");
-                builder.appendDescription(event.getAuthor().getAsMention() + " LEVEL UP! You are now level " + (data.level + 1) + '!');
+                builder.appendDescription(event.getAuthor().getAsMention()
+                    + " LEVEL UP! You are now level "
+                    + postLevelUp.getLevel()
+                    + '!'
+                );
 
                 event.getChannel().sendMessage(builder.build()).queue();
-                data.lastName = event.getAuthor().getName();
-                data.levelTime = System.currentTimeMillis();
-                data.level++;
+                players.put(event.getAuthor().getIdLong(), postLevelUp);
                 isDirty = true;
             } else {
-                long diff = System.currentTimeMillis() - data.levelTime;
-                long required = TimeUnit.SECONDS.toMillis(getXpForLevelUp(data.level + 1));
-                String remaining = PERCENTAGE_FORMAT.format(BigDecimal
-                    .valueOf(diff)
-                    .setScale(5, RoundingMode.DOWN)
-                    .divide(BigDecimal.valueOf(required), RoundingMode.HALF_EVEN)
+                var durationUntil = Duration.between(now, levelUpTime);
+                var fullDuration = Duration.between(data.getLevelTime(), levelUpTime);
+                var percentRemaining = BigDecimal.valueOf(fullDuration.minus(durationUntil).toMillis())
+                    .divide(BigDecimal.valueOf(fullDuration.toMillis()), MathContext.DECIMAL128)
                     .multiply(BigDecimal.valueOf(100))
-                    .setScale(2, RoundingMode.DOWN));
+                    .setScale(2, RoundingMode.DOWN);
                 EmbedBuilder builder = createEmbed();
                 builder.setAuthor("IdleRPG");
-                builder.appendDescription(event.getAuthor().getAsMention() + " you're " + remaining + "% of the way there! " + formatTimeTo(required - diff));
+                builder.appendDescription(
+                    event.getAuthor().getAsMention()
+                        + " you're "
+                        + PERCENTAGE_FORMAT.format(percentRemaining)
+                        + "% of the way there! "
+                        + StringUtil.formatDurationHumanReadable(durationUntil));
                 event.getChannel().sendMessage(builder.build()).queue();
             }
         } else if (Objects.equals(event.getMessage().getContentRaw(), IDLE_RPG_LEADERBOARD_TOKEN)) {
             List<PlayerData> topPlayers = players.values()
                 .stream()
-                .sorted(Comparator
-                    .comparingInt((PlayerData p) -> p.level)
-                    .thenComparing(Comparator.comparingLong((PlayerData p) -> p.levelTime).reversed())
-                    .reversed())
+                .sorted(Comparator.<PlayerData>naturalOrder().reversed())
                 .limit(10)
                 .collect(Collectors.toList());
+            var now = Instant.now();
             StringBuilder leaderboardMessage = new StringBuilder("IdleRPG Leaderboard\n\n");
             for (int i = 0; i < topPlayers.size(); i++) {
                 PlayerData data = topPlayers.get(i);
-                boolean canLevelUp = System.currentTimeMillis() >= data.levelTime + TimeUnit.SECONDS.toMillis(getXpForLevelUp(data.level + 1));
+                boolean canLevelUp = now.isAfter(getLevelUpInstant(data));
                 leaderboardMessage
                     .append('#')
                     .append(i + 1)
                     .append(' ')
-                    .append(data.lastName)
+                    .append(data.getLastName())
                     .append(": Level ")
-                    .append(data.level)
+                    .append(data.getLevel())
                     .append(canLevelUp ? '*' : ' ')
                     .append('\n');
             }
@@ -176,13 +165,10 @@ public class IdleRPG extends ListenerAdapter implements Module {
         }
     }
 
-    private long lastSave;
-    private boolean isDirty;
-
     @Override
     public void onTick() {
-        if (lastSave + 1000 * 60 < System.currentTimeMillis()) {
-            lastSave = System.currentTimeMillis();
+        if (Instant.now().isAfter(nextSave)) {
+            nextSave = Instant.now().plus(1, ChronoUnit.MINUTES);
 
             save();
         }
@@ -195,12 +181,13 @@ public class IdleRPG extends ListenerAdapter implements Module {
         PERCENTAGE_FORMAT.setGroupingUsed(false);
 
         isDirty = false;
-        lastSave = 0;
+        nextSave = Instant.EPOCH;
         players.clear();
 
-        try (FileReader reader = new FileReader(new File(IDLE_RPG_FILE))) {
-            Map<Long, PlayerData> map = IDLE_RPG_SERIALISER.fromJson(reader, new TypeToken<Map<Long, PlayerData>>() {
-            }.getType());
+        try{
+            Map<Long, PlayerData> map = OBJECT_MAPPER.readValue(
+                new File(IDLE_RPG_FILE), PLAYER_DATA_MAP_TYPE
+            );
             if (map != null) {
                 players.putAll(map);
             }
@@ -217,8 +204,8 @@ public class IdleRPG extends ListenerAdapter implements Module {
 
     public void save() {
         if (isDirty) {
-            try (FileWriter writer = new FileWriter(new File(IDLE_RPG_FILE))) {
-                IDLE_RPG_SERIALISER.toJson(players, writer);
+            try {
+                OBJECT_MAPPER.writeValue(new File(IDLE_RPG_FILE), players);
                 isDirty = false;
             } catch (IOException e) {
                 e.printStackTrace();
@@ -226,9 +213,41 @@ public class IdleRPG extends ListenerAdapter implements Module {
         }
     }
 
-    public static class PlayerData {
-        long levelTime;
-        int level;
-        String lastName;
+    public static final class PlayerData implements Comparable<PlayerData> {
+        private final Instant levelTime;
+        private final int level;
+        private final String lastName;
+
+        @JsonCreator
+        public PlayerData(Instant levelTime, int level, String lastName) {
+            this.levelTime = levelTime;
+            this.level = level;
+            this.lastName = lastName;
+        }
+
+        public Instant getLevelTime() {
+            return levelTime;
+        }
+
+        public int getLevel() {
+            return level;
+        }
+
+        public String getLastName() {
+            return lastName;
+        }
+
+        public PlayerData applyLevelUp(Instant now, String name) {
+            return new PlayerData(now, level + 1, name);
+        }
+
+        @Override
+        public int compareTo(@NotNull IdleRPG.PlayerData o) {
+            return ComparisonChain.start()
+                .compare(level, o.level)
+                // purposefully backwards
+                .compare(o.levelTime, levelTime)
+                .result();
+        }
     }
 }
