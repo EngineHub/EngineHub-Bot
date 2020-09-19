@@ -49,23 +49,32 @@ public class StringUtil {
         StringBuilder timeBuilder = new StringBuilder();
         var days = duration.toDaysPart();
         if (days > 0) {
-            timeBuilder.append(days).append(" days ");
+            appendDurationPart(timeBuilder, days, "day");
         }
         var hours = duration.toHoursPart();
         if (hours > 0) {
-            timeBuilder.append(hours).append(" hours ");
+            appendDurationPart(timeBuilder, hours, "hour");
         }
         if (days == 0) {
             var minutes = duration.toMinutesPart();
             if (minutes > 0) {
-                timeBuilder.append(minutes).append(" minutes ");
+                appendDurationPart(timeBuilder, minutes, "minute");
             }
             var seconds = duration.toSecondsPart();
             if (hours == 0 && seconds > 0) {
-                timeBuilder.append(seconds).append(" seconds ");
+                appendDurationPart(timeBuilder, seconds, "second");
             }
         }
 
         return timeBuilder.append("remaining").toString();
+    }
+
+
+    private static void appendDurationPart(StringBuilder builder, long part, String base) {
+        builder.append(part).append(" ").append(base);
+        if (part != 1) {
+            builder.append("s");
+        }
+        builder.append(" ");
     }
 }
