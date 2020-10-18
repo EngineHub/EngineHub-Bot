@@ -23,13 +23,6 @@
 package org.enginehub.discord.module.errorHelper;
 
 import com.google.common.reflect.TypeToken;
-import org.enginehub.discord.module.Module;
-import org.enginehub.discord.module.errorHelper.resolver.ErrorResolver;
-import org.enginehub.discord.module.errorHelper.resolver.GhostbinResolver;
-import org.enginehub.discord.module.errorHelper.resolver.GistResolver;
-import org.enginehub.discord.module.errorHelper.resolver.MCLogsResolver;
-import org.enginehub.discord.module.errorHelper.resolver.RawSubdirectoryUrlResolver;
-import org.enginehub.discord.util.StringUtil;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
@@ -38,6 +31,12 @@ import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
+import org.enginehub.discord.module.Module;
+import org.enginehub.discord.module.errorHelper.resolver.ErrorResolver;
+import org.enginehub.discord.module.errorHelper.resolver.GhostbinResolver;
+import org.enginehub.discord.module.errorHelper.resolver.GistResolver;
+import org.enginehub.discord.module.errorHelper.resolver.MCLogsResolver;
+import org.enginehub.discord.module.errorHelper.resolver.RawSubdirectoryUrlResolver;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -49,7 +48,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nonnull;
 
 public class ErrorHelper extends ListenerAdapter implements Module {
@@ -82,7 +80,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
             if (attachment.isImage()) continue; // TODO Maybe text processing in images?
             if (attachment.getFileName().endsWith(".txt") || attachment.getFileName().endsWith(".log")) {
                 if (attachment.getSize() > 1024*1024*4) {
-                    channel.sendMessage("[AutoReply] " + StringUtil.annotateUser(author) + " Log too large "
+                    channel.sendMessage("[AutoReply] " + author.getAsMention() + " Log too large "
                         + "to scan.").queue();
                     continue; //Ignore >4MB for now.
                 }
@@ -102,7 +100,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
             .flatMap(error -> messagesForError(error).stream())
             .distinct()
             .forEach(mes ->
-                channel.sendMessage("[AutoReply] " + StringUtil.annotateUser(author) + ' ' + mes).queue());
+                channel.sendMessage("[AutoReply] " + author.getAsMention() + ' ' + mes).queue());
     }
 
     private static String cleanString(String string) {

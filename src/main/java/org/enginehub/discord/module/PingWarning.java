@@ -22,15 +22,13 @@
  */
 package org.enginehub.discord.module;
 
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.enginehub.discord.EngineHubBot;
 import org.enginehub.discord.util.PermissionRoles;
 import org.enginehub.discord.util.PunishmentUtil;
-import org.enginehub.discord.util.StringUtil;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.util.HashMap;
-
 import javax.annotation.Nonnull;
 
 public class PingWarning extends ListenerAdapter implements Module {
@@ -49,9 +47,7 @@ public class PingWarning extends ListenerAdapter implements Module {
                 .anyMatch(user -> EngineHubBot.isAuthorised(user, PermissionRoles.MODERATOR));
 
         if (mentionsDev) {
-            event.getChannel().sendMessage("Hey " + StringUtil.annotateUser(
-                    event.getAuthor()
-            ) + "! It's against the rule to ping the developers, make sure to read the rules!").queue();
+            event.getChannel().sendMessage("Hey " + event.getAuthor().getAsMention() + "! It's against the rule to ping the developers, make sure to read the rules!").queue();
             int spamTime = spamTimes.getOrDefault(event.getAuthor().getId(), 0) + 1;
             spamTimes.put(event.getAuthor().getId(), spamTime);
             if (spamTime >= 4) {

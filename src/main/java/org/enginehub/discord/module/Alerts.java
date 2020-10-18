@@ -23,11 +23,6 @@
 package org.enginehub.discord.module;
 
 import com.google.common.collect.Maps;
-import org.enginehub.discord.EngineHubBot;
-import org.enginehub.discord.Settings;
-import org.enginehub.discord.util.PermissionRoles;
-import org.enginehub.discord.util.PunishmentUtil;
-import org.enginehub.discord.util.StringUtil;
 import com.sk89q.intake.Command;
 import com.sk89q.intake.Require;
 import com.sk89q.intake.fluent.DispatcherNode;
@@ -39,13 +34,16 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
+import org.enginehub.discord.EngineHubBot;
+import org.enginehub.discord.Settings;
+import org.enginehub.discord.util.PermissionRoles;
+import org.enginehub.discord.util.PunishmentUtil;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nonnull;
 
 public class Alerts extends ListenerAdapter implements Module {
@@ -93,7 +91,7 @@ public class Alerts extends ListenerAdapter implements Module {
      * @param user The user
      */
     private static void sendMessage(Guild guild, MessageChannel channel, User user) {
-        String annotatedName = "**" + StringUtil.annotateUser(user) + "** (" + user.getName() + ") ";
+        String annotatedName = "**" + user.getAsMention() + "** (" + user.getName() + ") ";
         if (user.isBot()) {
             annotatedName += "[Bot] ";
         }

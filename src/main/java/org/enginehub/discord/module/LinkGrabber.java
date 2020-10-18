@@ -33,14 +33,14 @@ import net.dv8tion.jda.api.entities.User;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.enginehub.discord.Settings;
 import org.enginehub.discord.util.PermissionRoles;
-import org.enginehub.discord.util.StringUtil;
 
-import java.awt.Color;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static org.enginehub.discord.util.StringUtil.createEmbed;
 
 public class LinkGrabber implements Module {
 
@@ -72,19 +72,13 @@ public class LinkGrabber implements Module {
             return;
         }
 
-        String noticeMessage = user == null ? "" : "Hey, " + StringUtil.annotateUser(user) + "! ";
-
-        if (alias.contains("\n")) {
-            EmbedBuilder builder = new EmbedBuilder();
-            builder.appendDescription(noticeMessage).appendDescription("\n\n");
-            builder.appendDescription(alias);
-            builder.setColor(new Color(87, 61, 129));
-            builder.setAuthor("EngineHub Bot", "https://github.com/EngineHub/EngineHub-Bot");
-            builder.setFooter("Requested by " + message.getAuthor().getName());
-            message.getChannel().sendMessage(builder.build()).queue();
-        } else {
-            message.getChannel().sendMessage(noticeMessage + alias).queue();
+        EmbedBuilder builder = createEmbed();
+        if (user != null) {
+            builder.appendDescription("Hey, " + user.getAsMention() + "! \n\n");
         }
+        builder.appendDescription(alias);
+        builder.setFooter("Requested by " + message.getAuthor().getName());
+        message.getChannel().sendMessage(builder.build()).queue();
     }
 
     @Command(aliases = {"addalias", "addlink"}, desc = "Adds an alias.")
@@ -99,7 +93,7 @@ public class LinkGrabber implements Module {
 
     @Command(aliases = {"listaliases", "aliases", "listlinks"}, desc = "Lists all available aliases.")
     public void aliasLister(Message message) {
-        message.getChannel().sendMessage("Here you go, " + StringUtil.annotateUser(message.getAuthor()) + "! " + String.join(", ", aliasMap.keySet())).queue();
+        message.getChannel().sendMessage("Here you go, " + message.getAuthor().getAsMention() + "! " + String.join(", ", aliasMap.keySet())).queue();
     }
 
     @Override
