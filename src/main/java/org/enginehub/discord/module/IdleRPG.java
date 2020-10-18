@@ -26,10 +26,10 @@ import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.enginehub.discord.util.BigMath;
-import org.enginehub.discord.util.StringUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -46,6 +46,8 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+
+import static org.enginehub.discord.util.StringUtil.createEmbed;
 
 public class IdleRPG extends ListenerAdapter implements Module {
 
@@ -118,7 +120,11 @@ public class IdleRPG extends ListenerAdapter implements Module {
         if (Objects.equals(event.getMessage().getContentRaw(), IDLE_RPG_TOKEN)) {
             PlayerData data = players.computeIfAbsent(event.getAuthor().getIdLong(), _l -> new PlayerData());
             if (System.currentTimeMillis() >= data.levelTime + TimeUnit.SECONDS.toMillis(getXpForLevelUp(data.level + 1))) {
-                event.getChannel().sendMessage(StringUtil.annotateUser(event.getAuthor()) + " LEVEL UP! You are now level " + (data.level + 1) + '!').queue();
+                EmbedBuilder builder = createEmbed();
+                builder.setAuthor("IdleRPG");
+                builder.appendDescription(event.getAuthor().getAsMention() + " LEVEL UP! You are now level " + (data.level + 1) + '!');
+
+                event.getChannel().sendMessage(builder.build()).queue();
                 data.lastName = event.getAuthor().getName();
                 data.levelTime = System.currentTimeMillis();
                 data.level++;
@@ -132,7 +138,10 @@ public class IdleRPG extends ListenerAdapter implements Module {
                     .divide(BigDecimal.valueOf(required), RoundingMode.HALF_EVEN)
                     .multiply(BigDecimal.valueOf(100))
                     .setScale(2, RoundingMode.DOWN));
-                event.getChannel().sendMessage(StringUtil.annotateUser(event.getAuthor()) + " you're " + remaining + "% of the way there! " + formatTimeTo(required - diff)).queue();
+                EmbedBuilder builder = createEmbed();
+                builder.setAuthor("IdleRPG");
+                builder.appendDescription(event.getAuthor().getAsMention() + " you're " + remaining + "% of the way there! " + formatTimeTo(required - diff));
+                event.getChannel().sendMessage(builder.build()).queue();
             }
         } else if (Objects.equals(event.getMessage().getContentRaw(), IDLE_RPG_LEADERBOARD_TOKEN)) {
             List<PlayerData> topPlayers = players.values()
@@ -155,10 +164,15 @@ public class IdleRPG extends ListenerAdapter implements Module {
                     .append(": Level ")
                     .append(data.level)
                     .append(canLevelUp ? '*' : ' ')
-                    .append("\n");
+                    .append('\n');
             }
             leaderboardMessage.append("\n(Showing ").append(topPlayers.size()).append(" out of ").append(players.size()).append(')');
-            event.getChannel().sendMessage(leaderboardMessage.toString()).queue();
+
+            EmbedBuilder builder = createEmbed();
+            builder.setAuthor("IdleRPG");
+            builder.appendDescription(leaderboardMessage.toString());
+
+            event.getChannel().sendMessage(builder.build()).queue();
         }
     }
 

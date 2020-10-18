@@ -22,16 +22,20 @@
  */
 package org.enginehub.discord.util;
 
-import net.dv8tion.jda.api.entities.GuildChannel;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.EmbedBuilder;
+
+import java.awt.Color;
+import java.time.Instant;
 
 public class StringUtil {
 
-    public static String annotateUser(User user) {
-        return "<@" + user.getIdLong() + '>';
-    }
+    public static EmbedBuilder createEmbed() {
+        EmbedBuilder builder = new EmbedBuilder();
+        builder.setAuthor("EngineHub Bot", "https://github.com/EngineHub/EngineHub-Bot", "https://enginehub.org/icons/icon-256x256.png");
+        builder.setColor(new Color(87, 61, 129));
+        builder.setThumbnail("https://enginehub.org/icons/icon-256x256.png");
+        builder.setTimestamp(Instant.now());
 
-    public static String annotateChannel(GuildChannel channel) {
-        return "<#" + channel.getIdLong() + '>';
+        return builder;
     }
 }
