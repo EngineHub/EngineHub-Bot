@@ -22,19 +22,20 @@
  */
 package org.enginehub.discord.module;
 
-import org.enginehub.discord.Settings;
-import org.enginehub.discord.util.PermissionRoles;
-import org.enginehub.discord.util.StringUtil;
 import com.sk89q.intake.Command;
 import com.sk89q.intake.Require;
 import com.sk89q.intake.fluent.DispatcherNode;
 import com.sk89q.intake.parametric.annotation.Optional;
 import com.sk89q.intake.util.StringUtils;
-import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import ninja.leaping.configurate.ConfigurationNode;
+import org.enginehub.discord.Settings;
+import org.enginehub.discord.util.PermissionRoles;
+import org.enginehub.discord.util.StringUtil;
 
+import java.awt.Color;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -74,10 +75,13 @@ public class LinkGrabber implements Module {
         String noticeMessage = user == null ? "" : "Hey, " + StringUtil.annotateUser(user) + "! ";
 
         if (alias.contains("\n")) {
-            MessageBuilder builder = new MessageBuilder();
-            builder.append(noticeMessage).append("\n\n");
-            builder.append(alias);
-            builder.buildAll(MessageBuilder.SplitPolicy.NEWLINE).forEach(mess -> message.getChannel().sendMessage(mess).queue());
+            EmbedBuilder builder = new EmbedBuilder();
+            builder.appendDescription(noticeMessage).appendDescription("\n\n");
+            builder.appendDescription(alias);
+            builder.setColor(new Color(87, 61, 129));
+            builder.setAuthor("EngineHub Bot", "https://github.com/EngineHub/EngineHub-Bot");
+            builder.setFooter("Requested by " + message.getAuthor().getName());
+            message.getChannel().sendMessage(builder.build()).queue();
         } else {
             message.getChannel().sendMessage(noticeMessage + alias).queue();
         }
