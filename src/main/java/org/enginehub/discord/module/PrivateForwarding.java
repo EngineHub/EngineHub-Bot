@@ -22,14 +22,16 @@
  */
 package org.enginehub.discord.module;
 
-import org.enginehub.discord.EngineHubBot;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
+import org.enginehub.discord.EngineHubBot;
 import org.jetbrains.annotations.NotNull;
+
+import static org.enginehub.discord.util.StringUtil.createEmbed;
 
 public class PrivateForwarding extends ListenerAdapter implements Module {
 
@@ -46,12 +48,13 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
             if (channel instanceof TextChannel) {
                 User user = event.getAuthor();
 
-                EmbedBuilder builder = new EmbedBuilder()
+                EmbedBuilder builder = createEmbed()
                     .setAuthor(user.getAsTag(),
                         "https://discord.com/channels/@me/" + user.getId(),
                         user.getEffectiveAvatarUrl()
                     )
-                    .setDescription(event.getMessage().getContentRaw());
+                    .setDescription(event.getMessage().getContentRaw())
+                    .setTimestamp(event.getMessage().getTimeCreated());
 
                 event.getMessage().getAttachments().forEach(att -> builder.addField(att.getFileName(), att.getUrl(), false));
 
