@@ -44,7 +44,7 @@ public class PingWarning extends ListenerAdapter implements Module {
 
         boolean mentionsDev = event.getMessage().getMentionedMembers()
                 .stream()
-                .anyMatch(user -> EngineHubBot.isAuthorised(user, PermissionRoles.MODERATOR));
+                .anyMatch(user -> EngineHubBot.isAuthorised(user, PermissionRoles.MODERATOR) || EngineHubBot.isAuthorised(user, "Contributor"));
 
         if (mentionsDev) {
             event.getChannel().sendMessage("Hey " + event.getAuthor().getAsMention() + "! It's against the rule to ping the developers, make sure to read the rules!").queue();
