@@ -24,7 +24,9 @@ package org.enginehub.discord.module;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
@@ -69,7 +71,9 @@ public class IdleRPG extends ListenerAdapter implements Module {
 
     @VisibleForTesting
     public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-        .registerModules(new Jdk8Module(), new JavaTimeModule(), new ParameterNamesModule());
+        .registerModules(new Jdk8Module(), new JavaTimeModule(), new ParameterNamesModule())
+        .disable(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
+        .disable(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
     private static final TypeReference<Map<Long, PlayerData>> PLAYER_DATA_MAP_TYPE =
         new TypeReference<>() {
         };

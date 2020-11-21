@@ -30,13 +30,13 @@ public class IdleRPGTest {
         var playerData = new IdleRPG.PlayerData(Instant.parse("2420-03-16T04:20:44Z"), 42, "Tester");
 
         var json = IdleRPG.OBJECT_MAPPER.writeValueAsString(playerData);
-        assertEquals("{\"levelTime\":14207113244.000000000,\"level\":42,\"lastName\":\"Tester\"}", json);
+        assertEquals("{\"levelTime\":14207113244000,\"level\":42,\"lastName\":\"Tester\"}", json);
     }
 
     @Test
     public void testLoadPlayerData() throws JsonProcessingException {
         var playerData = new IdleRPG.PlayerData(Instant.parse("2420-03-16T04:20:44Z"), 42, "Tester");
-        var json = "{\"levelTime\":14207113244.000000000,\"level\":42,\"lastName\":\"Tester\"}";
+        var json = "{\"levelTime\":14207113244000,\"level\":42,\"lastName\":\"Tester\"}";
         var loaded = IdleRPG.OBJECT_MAPPER.readValue(json, IdleRPG.PlayerData.class);
 
         assertPlayerDataEquals(playerData, loaded);
@@ -45,8 +45,8 @@ public class IdleRPGTest {
     // legacy data serialized a straight long
     @Test
     public void testLoadLegacyPlayerData() throws JsonProcessingException {
-        var playerData = new IdleRPG.PlayerData(Instant.parse("2420-03-16T04:20:44Z"), 42, "Tester");
-        var json = "{\"levelTime\":14207113244,\"level\":42,\"lastName\":\"Tester\"}";
+        var playerData = new IdleRPG.PlayerData(Instant.parse("2020-11-21T02:30:02.154Z"), 42, "Tester");
+        var json = "{\"levelTime\":1605925802154,\"level\":42,\"lastName\":\"Tester\"}";
         var loaded = IdleRPG.OBJECT_MAPPER.readValue(json, IdleRPG.PlayerData.class);
 
         assertPlayerDataEquals(playerData, loaded);
