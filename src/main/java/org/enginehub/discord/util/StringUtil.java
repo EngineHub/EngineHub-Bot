@@ -27,6 +27,8 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import java.awt.Color;
 import java.time.Instant;
 
+import java.time.Duration;
+
 public class StringUtil {
 
     public static EmbedBuilder createEmbed() {
@@ -37,5 +39,42 @@ public class StringUtil {
         builder.setTimestamp(Instant.now());
 
         return builder;
+    }
+
+    public static String formatDurationHumanReadable(Duration duration) {
+        if (duration.isZero() || duration.isNegative()) {
+            return "No time left";
+        }
+
+        StringBuilder timeBuilder = new StringBuilder();
+        var days = duration.toDaysPart();
+        if (days > 0) {
+            appendDurationPart(timeBuilder, days, "day");
+        }
+        var hours = duration.toHoursPart();
+        if (hours > 0) {
+            appendDurationPart(timeBuilder, hours, "hour");
+        }
+        if (days == 0) {
+            var minutes = duration.toMinutesPart();
+            if (minutes > 0) {
+                appendDurationPart(timeBuilder, minutes, "minute");
+            }
+            var seconds = duration.toSecondsPart();
+            if (hours == 0 && seconds > 0) {
+                appendDurationPart(timeBuilder, seconds, "second");
+            }
+        }
+
+        return timeBuilder.append("remaining").toString();
+    }
+
+
+    private static void appendDurationPart(StringBuilder builder, long part, String base) {
+        builder.append(part).append(" ").append(base);
+        if (part != 1) {
+            builder.append("s");
+        }
+        builder.append(" ");
     }
 }
