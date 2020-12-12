@@ -79,10 +79,10 @@ public class ErrorHelper extends ListenerAdapter implements Module {
         for (Message.Attachment attachment : message.getAttachments()) {
             if (attachment.isImage()) continue; // TODO Maybe text processing in images?
             if (attachment.getFileName().endsWith(".txt") || attachment.getFileName().endsWith(".log")) {
-                if (attachment.getSize() > 1024*1024*4) {
+                if (attachment.getSize() > 1024*1024*10) {
                     channel.sendMessage("[AutoReply] " + author.getAsMention() + " Log too large "
                         + "to scan.").queue();
-                    continue; //Ignore >4MB for now.
+                    continue; //Ignore >10MB for now.
                 }
                 try(BufferedReader reader = new BufferedReader(new InputStreamReader(attachment.retrieveInputStream().get()))) {
                     String line;
