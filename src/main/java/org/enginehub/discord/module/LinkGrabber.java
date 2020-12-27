@@ -72,13 +72,21 @@ public class LinkGrabber implements Module {
             return;
         }
 
-        EmbedBuilder builder = createEmbed();
-        if (user != null) {
-            builder.appendDescription("Hey, " + user.getAsMention() + "! \n\n");
+        if (alias.contains("\n")) {
+            EmbedBuilder builder = createEmbed();
+            if (user != null) {
+                builder.appendDescription("Hey, " + user.getAsMention() + "! \n\n");
+            }
+            builder.appendDescription(alias);
+            builder.setFooter("Requested by " + message.getAuthor().getName());
+            message.getChannel().sendMessage(builder.build()).queue();
+        } else {
+            String prefix = "";
+            if (user != null) {
+                prefix = "Hey, " + user.getAsMention() + '!';
+            }
+            message.getChannel().sendMessage(prefix + "Here you go, " + alias).queue();
         }
-        builder.appendDescription(alias);
-        builder.setFooter("Requested by " + message.getAuthor().getName());
-        message.getChannel().sendMessage(builder.build()).queue();
     }
 
     @Command(aliases = {"addalias", "addlink"}, desc = "Adds an alias.")
