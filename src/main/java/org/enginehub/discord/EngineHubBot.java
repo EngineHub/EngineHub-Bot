@@ -22,25 +22,7 @@
  */
 package org.enginehub.discord;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.google.common.collect.Lists;
-import org.enginehub.discord.module.Alerts;
-import org.enginehub.discord.module.AutoErase;
-import org.enginehub.discord.module.ChatFilter;
-import org.enginehub.discord.module.EmojiRole;
-import org.enginehub.discord.module.IdleRPG;
-import org.enginehub.discord.module.JoinMessage;
-import org.enginehub.discord.module.LinkGrabber;
-import org.enginehub.discord.module.Module;
-import org.enginehub.discord.module.NoSpam;
-import org.enginehub.discord.module.PingWarning;
-import org.enginehub.discord.module.PrivateForwarding;
-import org.enginehub.discord.module.SetProfilePicture;
-import org.enginehub.discord.module.errorHelper.ErrorHelper;
-import org.enginehub.discord.util.PermissionRoles;
-import org.enginehub.discord.util.binding.MemberBinding;
-import org.enginehub.discord.util.binding.MessageBinding;
 import com.sk89q.intake.CommandException;
 import com.sk89q.intake.InvalidUsageException;
 import com.sk89q.intake.context.CommandLocals;
@@ -58,12 +40,30 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import org.enginehub.discord.module.Alerts;
+import org.enginehub.discord.module.AutoErase;
+import org.enginehub.discord.module.ChatFilter;
+import org.enginehub.discord.module.EmojiRole;
+import org.enginehub.discord.module.IdleRPG;
+import org.enginehub.discord.module.JoinMessage;
+import org.enginehub.discord.module.LinkGrabber;
+import org.enginehub.discord.module.Module;
+import org.enginehub.discord.module.NoSpam;
+import org.enginehub.discord.module.PingWarning;
+import org.enginehub.discord.module.PrivateForwarding;
+import org.enginehub.discord.module.RoryFetch;
+import org.enginehub.discord.module.SetProfilePicture;
+import org.enginehub.discord.module.errorHelper.ErrorHelper;
+import org.enginehub.discord.util.PermissionRoles;
+import org.enginehub.discord.util.binding.MemberBinding;
+import org.enginehub.discord.util.binding.MessageBinding;
 
 import java.util.Collection;
 import java.util.List;
-
 import javax.annotation.Nonnull;
 import javax.security.auth.login.LoginException;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class EngineHubBot implements Runnable, EventListener {
 
@@ -203,7 +203,8 @@ public class EngineHubBot implements Runnable, EventListener {
             new PingWarning(),
             new EmojiRole(),
             new PrivateForwarding(),
-            new IdleRPG()
+            new IdleRPG(),
+            new RoryFetch()
     );
 
     public Collection<Module> getModules() {
