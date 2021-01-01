@@ -33,6 +33,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -40,6 +41,7 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -67,7 +69,9 @@ public class RoryFetch implements Module {
 
     private static MessageEmbed createRoryEmbed(String roryId, String imageUrl) {
         EmbedBuilder builder = new EmbedBuilder();
-        builder.setThumbnail(imageUrl);
+        builder.setImage(imageUrl);
+        builder.setColor(new Color(87, 61, 129));
+        builder.setTimestamp(Instant.now());
         builder.setFooter("ID: " + roryId);
 
         return builder.build();
