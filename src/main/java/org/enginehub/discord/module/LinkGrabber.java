@@ -72,7 +72,7 @@ public class LinkGrabber implements Module {
             return;
         }
 
-        if (alias.contains("\n")) {
+        if (alias.contains("\n") || alias.contains(" ")) {
             EmbedBuilder builder = createEmbed();
             if (user != null) {
                 builder.appendDescription("Hey, " + user.getAsMention() + "! \n\n");
@@ -83,9 +83,9 @@ public class LinkGrabber implements Module {
         } else {
             String prefix = "";
             if (user != null) {
-                prefix = "Hey, " + user.getAsMention() + '!';
+                prefix = "Hey, " + user.getAsMention() + "! ";
             }
-            message.getChannel().sendMessage(prefix + "Here you go, " + alias).queue();
+            message.getChannel().sendMessage(prefix + alias).queue();
         }
     }
 
