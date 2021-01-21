@@ -37,6 +37,14 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
 
     private String forwardChannel;
 
+    private static boolean shouldIgnore(String text) {
+        return text.startsWith("Hey! Welcome to the EngineHub Discord")
+            || text.contains("Hey! Spamming messages is not allowed here")
+            || text.contains("It's against the rules")
+            || text.contains("You have been kicked")
+            || text.contains("You have been banned");
+    }
+
     @Override
     public void onPrivateMessageReceived(@NotNull PrivateMessageReceivedEvent event) {
         if (forwardChannel != null) {
@@ -44,13 +52,19 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
             if (channel instanceof TextChannel) {
                 User user = event.getAuthor();
 
+                if (user.getIdLong() == event.getJDA().getSelfUser().getIdLong() && shouldIgnore(event.getMessage().getContentRaw())) {
+                    // Ignore some of our own messages.
+                    return;
+                }
+
                 EmbedBuilder builder = createEmbed()
                     .setAuthor(user.getAsTag(),
                         "https://discord.com/channels/@me/" + user.getId(),
                         user.getEffectiveAvatarUrl()
                     )
                     .setDescription(event.getMessage().getContentRaw())
-                    .setTimestamp(event.getMessage().getTimeCreated());
+                    .setTimestamp(event.getMessage().getTimeCreated())
+                    .setFooter("Sent to " + event.getChannel().getUser().getAsMention());
 
                 event.getMessage().getAttachments().forEach(att -> builder.addField(att.getFileName(), att.getUrl(), false));
 
