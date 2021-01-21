@@ -22,10 +22,10 @@
  */
 package org.enginehub.discord.util;
 
-import org.enginehub.discord.Settings;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
+import org.enginehub.discord.Settings;
 
 public class PunishmentUtil {
 
@@ -36,18 +36,14 @@ public class PunishmentUtil {
     public static void kickUser(Guild guild, Member member, String reason) {
         member.getUser().openPrivateChannel().queue((privateChannel ->
                 privateChannel.sendMessage("You have been kicked for `" + reason + "`. " + getContactString())
-                .queue(message -> {
-                    guild.kick(member, reason).queue();
-                })
+                .queue(message -> guild.kick(member, reason).queue())
         ));
     }
 
     public static void banUser(Guild guild, User user, String reason, boolean eraseHistory) {
         user.openPrivateChannel().queue((privateChannel ->
                 privateChannel.sendMessage("You have been banned for `" + reason + "`. " + getContactString())
-                .queue(message -> {
-                    guild.ban(user, eraseHistory ? 7 : 0, "[Bot Ban] " + reason).queue();
-                })
+                .queue(message -> guild.ban(user, eraseHistory ? 7 : 0, "[Bot Ban] " + reason).queue())
         ));
     }
 }
