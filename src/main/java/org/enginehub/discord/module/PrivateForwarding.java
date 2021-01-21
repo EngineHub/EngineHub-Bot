@@ -39,10 +39,6 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
 
     @Override
     public void onPrivateMessageReceived(@NotNull PrivateMessageReceivedEvent event) {
-        if (event.getAuthor().getIdLong() == EngineHubBot.bot.api.getSelfUser().getIdLong()) {
-            // Ignore messages sent by us.
-            return;
-        }
         if (forwardChannel != null) {
             var channel = EngineHubBot.bot.api.getGuildChannelById(forwardChannel);
             if (channel instanceof TextChannel) {
