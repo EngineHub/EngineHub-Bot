@@ -23,23 +23,24 @@
 package org.enginehub.discord.module;
 
 import com.google.common.reflect.TypeToken;
-import org.enginehub.discord.EngineHubBot;
+import net.dv8tion.jda.api.entities.Emote;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
-import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionRemoveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
+import org.enginehub.discord.EngineHubBot;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nonnull;
 
 public class EmojiRole extends ListenerAdapter implements Module {
@@ -55,25 +56,22 @@ public class EmojiRole extends ListenerAdapter implements Module {
         return Optional.ofNullable(guild.getRoleById(emojiToRole.get(emoji)));
     }
 
+    private static void toggleRole(Guild guild, Role role, Member member, MessageReaction reaction) {
+        boolean hasRole = member.getRoles().stream().anyMatch(testRole -> role.getIdLong() == testRole.getIdLong());
+        if (hasRole) {
+            guild.removeRoleFromMember(member, role).queue();
+        } else {
+            guild.addRoleToMember(member, role).queue();
+        }
+        reaction.removeReaction(member.getUser()).queue();
+    }
+
     @Override
     public void onGuildMessageReactionAdd(@Nonnull GuildMessageReactionAddEvent event) {
         if (event.getMessageId().equals(messageId)) {
             getRoleByEmoji(event.getGuild(), event.getReactionEmote().getId()).ifPresentOrElse(
-                    role -> event.getGuild().addRoleToMember(event.getMember(), role).queue(),
+                    role -> toggleRole(event.getGuild(), role, event.getMember(), event.getReaction()),
                     () -> event.getReaction().removeReaction(event.getUser()).queue());
-        }
-    }
-
-    @Override
-    public void onGuildMessageReactionRemove(@Nonnull GuildMessageReactionRemoveEvent event) {
-        if (event.getMessageId().equals(messageId)) {
-            getRoleByEmoji(event.getGuild(), event.getReactionEmote().getId()).ifPresent(
-                    role -> {
-                        if (event.getMember() != null) {
-                            event.getGuild().removeRoleFromMember(event.getMember(), role).queue();
-                        }
-                    }
-            );
         }
     }
 
@@ -101,15 +99,19 @@ public class EmojiRole extends ListenerAdapter implements Module {
                                         for (User user : users) {
                                             guild.retrieveMember(user).queue(mem -> {
                                                 if (mem != null) {
-                                                    if (mem.getRoles()
-                                                            .stream()
-                                                            .noneMatch(r -> r.getIdLong() == role.getIdLong())) {
-                                                        guild.addRoleToMember(mem, role).queue();
-                                                    }
+                                                    toggleRole(guild, role, mem, reaction);
                                                 }
-                                            }, throwable -> message.removeReaction(reaction.getReactionEmote().getEmote(), user).queue());
+                                            });
                                         }
                                     })));
+
+            message.clearReactions().complete();
+            for (String emoteKey : emojiToRole.keySet()) {
+                Emote emote = guild.getEmoteById(emoteKey);
+                if (emote != null) {
+                    message.addReaction(emote).complete();
+                }
+            }
         } catch (Throwable t) {
             t.printStackTrace();
         }
