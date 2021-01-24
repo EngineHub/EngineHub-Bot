@@ -22,7 +22,10 @@
  */
 package org.enginehub.discord.module;
 
+import com.sk89q.intake.Command;
+import com.sk89q.intake.fluent.DispatcherNode;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
@@ -46,6 +49,23 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
     }
 
     @Override
+    public DispatcherNode setupCommands(DispatcherNode dispatcherNode) {
+        return dispatcherNode
+            .registerMethods(this);
+    }
+
+    @Command(aliases = {"replydm"}, desc = "Manually reply to a DM to the bot.")
+    public void replyDM(Message message, String userId, String response) {
+        User user = EngineHubBot.bot.api.getUserByTag(userId);
+        if (user == null) {
+            message.getChannel().sendMessage("Unknown user!").queue();
+            return;
+        }
+
+        user.openPrivateChannel().queue(privateChannel -> privateChannel.sendMessage(response).queue());
+    }
+
+    @Override
     public void onPrivateMessageReceived(@NotNull PrivateMessageReceivedEvent event) {
         if (forwardChannel != null) {
             var channel = EngineHubBot.bot.api.getGuildChannelById(forwardChannel);
@@ -64,7 +84,7 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
                     )
                     .setDescription(event.getMessage().getContentRaw())
                     .setTimestamp(event.getMessage().getTimeCreated())
-                    .setFooter("Sent to " + event.getChannel().getUser().getAsMention());
+                    .setFooter("Sent to " + event.getChannel().getUser().getAsTag());
 
                 event.getMessage().getAttachments().forEach(att -> builder.addField(att.getFileName(), att.getUrl(), false));
 
