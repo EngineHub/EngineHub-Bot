@@ -47,7 +47,7 @@ public class PingWarning extends ListenerAdapter implements Module {
                 .anyMatch(user -> EngineHubBot.isAuthorised(user, PermissionRoles.MODERATOR) || EngineHubBot.isAuthorised(user, "Contributor"));
 
         if (mentionsDev) {
-            event.getChannel().sendMessage("Hey " + event.getAuthor().getAsMention() + "! It's against the rules to ping the developers, make sure to read the rules!").queue();
+            event.getChannel().sendMessage("Hey " + event.getAuthor().getAsMention() + "! It's against the rules to ping the developers (replies count too, unless you turn it off!), make sure to read the rules!").queue();
             int spamTime = spamTimes.getOrDefault(event.getAuthor().getId(), 0) + 1;
             spamTimes.put(event.getAuthor().getId(), spamTime);
             if (spamTime >= 4) {
