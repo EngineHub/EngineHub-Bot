@@ -10,25 +10,23 @@ version = '1.0-SNAPSHOT'
 
 defaultTasks 'licenseFormat', 'build'
 
-sourceCompatibility = JavaVersion.VERSION_12
-targetCompatibility = JavaVersion.VERSION_12
+java.toolchain.languageVersion.set(JavaLanguageVersion.of(12))
 
 repositories {
     mavenLocal()
     mavenCentral()
-    jcenter()
     maven {
-        url = 'https://jitpack.io'
+        url = 'https://m2.dv8tion.net/releases'
     }
     maven {
         name = 'sponge'
         url = 'https://repo.spongepowered.org/maven'
     }
     maven {
-        url = "http://dl.bintray.com/dv8fromtheworld/maven"
+        url = "https://maven.enginehub.org/repo/"
     }
     maven {
-        url = "https://maven.enginehub.org/repo/"
+        url = 'https://jitpack.io'
     }
 }
 
@@ -67,16 +65,16 @@ shadowJar {
 }
 
 dependencies {
-    compile 'net.dv8tion:JDA:4.2.0_224'
-    compile(group: 'org.spongepowered', name: 'configurate-hocon', version: '3.7-SNAPSHOT') { changing = true }
-    compile 'com.typesafe:config:1.4.0'
-    compile 'com.sk89q:intake:3.1.2'
-    compile platform("com.fasterxml.jackson:jackson-bom:2.11.2")
-    compile "com.fasterxml.jackson.core:jackson-core"
-    compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
-    compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8"
-    compile "com.fasterxml.jackson.module:jackson-module-parameter-names"
-    testCompile group: 'junit', name: 'junit', version: '4.11'
+    implementation 'net.dv8tion:JDA:4.3.0_277'
+    implementation(group: 'org.spongepowered', name: 'configurate-hocon', version: '3.7.2')
+    implementation 'com.typesafe:config:1.4.0'
+    implementation 'com.sk89q:intake:3.1.2'
+    implementation platform("com.fasterxml.jackson:jackson-bom:2.11.2")
+    implementation "com.fasterxml.jackson.core:jackson-core"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jdk8"
+    implementation "com.fasterxml.jackson.module:jackson-module-parameter-names"
+    testImplementation group: 'junit', name: 'junit', version: '4.11'
 }
 
 artifacts {
