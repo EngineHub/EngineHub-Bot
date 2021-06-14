@@ -77,14 +77,20 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
                     return;
                 }
 
+                System.err.println("Forwarding DM from " + user.getAsTag() + " (" + user.getId() + ") with message "
+                    + event.getMessage().getContentRaw()
+                    + " (attachments: " + event.getMessage().getAttachments() + ")");
+
                 EmbedBuilder builder = createEmbed()
-                    .setAuthor(user.getAsTag(),
+                    .setAuthor(
+                        user.getAsTag(),
                         "https://discord.com/channels/@me/" + user.getId(),
                         user.getEffectiveAvatarUrl()
                     )
                     .setDescription(event.getMessage().getContentRaw())
                     .setTimestamp(event.getMessage().getTimeCreated())
-                    .setFooter("Sent to " + event.getChannel().getUser().getAsTag());
+                    .setFooter("In DM " + event.getChannel().getUser().getAsTag()
+                        + " (" + event.getChannel().getUser().getId() + ")");
 
                 event.getMessage().getAttachments().forEach(att -> builder.addField(att.getFileName(), att.getUrl(), false));
 
