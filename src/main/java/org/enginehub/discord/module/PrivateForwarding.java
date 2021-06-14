@@ -70,16 +70,17 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
         if (forwardChannel != null) {
             var channel = EngineHubBot.bot.api.getGuildChannelById(forwardChannel);
             if (channel instanceof TextChannel) {
+                if (event.getMessage().getType().isSystem()) {
+                    // Ignore any system messages
+                    return;
+                }
+
                 User user = event.getAuthor();
 
                 if (user.getIdLong() == event.getJDA().getSelfUser().getIdLong() && shouldIgnore(event.getMessage().getContentRaw())) {
                     // Ignore some of our own messages.
                     return;
                 }
-
-                System.err.println("Forwarding DM from " + user.getAsTag() + " (" + user.getId() + ") with message "
-                    + event.getMessage().getContentRaw()
-                    + " (attachments: " + event.getMessage().getAttachments() + ")");
 
                 EmbedBuilder builder = createEmbed()
                     .setAuthor(
