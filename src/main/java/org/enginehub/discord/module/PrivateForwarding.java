@@ -77,6 +77,13 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
 
                 User user = event.getAuthor();
 
+                if (event.getMessage().getContentRaw().isBlank()) {
+                    // Ignore this blank message
+                    // TODO figure out what causes these
+                    System.err.println("Ignoring message from " + user.getIdLong() + " (" + user.getAsTag() + ")"
+                        + " because it is empty, the type of the message was " + event.getMessage().getType());
+                }
+
                 if (user.getIdLong() == event.getJDA().getSelfUser().getIdLong() && shouldIgnore(event.getMessage().getContentRaw())) {
                     // Ignore some of our own messages.
                     return;
