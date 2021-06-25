@@ -35,7 +35,7 @@ public class PunishmentUtil {
     public static void kickUser(Guild guild, Member member, String reason) {
         member.getUser().openPrivateChannel().queue((privateChannel ->
                 privateChannel.sendMessage("You have been kicked for `" + reason + "`. " + getContactString())
-                    .queue()
+                .queue()
         ));
         guild.kick(member, reason).queue();
     }
