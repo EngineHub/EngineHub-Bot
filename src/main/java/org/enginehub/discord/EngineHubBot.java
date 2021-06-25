@@ -47,7 +47,8 @@ import org.enginehub.discord.module.IdleRPG;
 import org.enginehub.discord.module.JoinMessage;
 import org.enginehub.discord.module.LinkGrabber;
 import org.enginehub.discord.module.Module;
-import org.enginehub.discord.module.NoSpam;
+import org.enginehub.discord.module.NoMessageSpam;
+import org.enginehub.discord.module.NoPingSpam;
 import org.enginehub.discord.module.PingWarning;
 import org.enginehub.discord.module.PrivateForwarding;
 import org.enginehub.discord.module.RoryFetch;
@@ -195,7 +196,8 @@ public class EngineHubBot implements Runnable, EventListener {
             new Alerts(),
             new ChatFilter(),
             new SetProfilePicture(),
-            new NoSpam(),
+            new NoPingSpam(),
+            new NoMessageSpam(),
             new ErrorHelper(),
             new LinkGrabber(),
             new JoinMessage(),

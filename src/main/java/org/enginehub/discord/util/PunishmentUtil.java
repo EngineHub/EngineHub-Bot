@@ -35,14 +35,16 @@ public class PunishmentUtil {
     public static void kickUser(Guild guild, Member member, String reason) {
         member.getUser().openPrivateChannel().queue((privateChannel ->
                 privateChannel.sendMessage("You have been kicked for `" + reason + "`. " + getContactString())
-                .queue(message -> guild.kick(member, reason).queue())
+                    .queue()
         ));
+        guild.kick(member, reason).queue();
     }
 
     public static void banUser(Guild guild, User user, String reason, boolean eraseHistory) {
         user.openPrivateChannel().queue((privateChannel ->
                 privateChannel.sendMessage("You have been banned for `" + reason + "`. " + getContactString())
-                .queue(message -> guild.ban(user, eraseHistory ? 7 : 0, "[Bot Ban] " + reason).queue())
+                .queue()
         ));
+        guild.ban(user, eraseHistory ? 1 : 0, "[Bot Ban] " + reason).queue();
     }
 }
