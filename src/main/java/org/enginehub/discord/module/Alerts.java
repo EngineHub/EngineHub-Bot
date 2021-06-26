@@ -1,5 +1,4 @@
 /*
- * Copyright (c) Me4502 (Matthew Miller)
  * Copyright (c) EngineHub and Contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
