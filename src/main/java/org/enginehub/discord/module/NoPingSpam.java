@@ -32,7 +32,7 @@ import java.util.HashMap;
 
 import javax.annotation.Nonnull;
 
-public class NoSpam extends ListenerAdapter implements Module {
+public class NoPingSpam extends ListenerAdapter implements Module {
 
     private final HashMap<String, Integer> spamTimes = new HashMap<>();
 
