@@ -117,10 +117,7 @@ public class EngineHubBot implements Runnable, EventListener {
             thread.setDaemon(false);
             thread.setName("Main Bot Thread");
             thread.start();
-
-            while (running) {
-                Thread.onSpinWait();
-            }
+            thread.join();
 
             bot.disconnect();
 
