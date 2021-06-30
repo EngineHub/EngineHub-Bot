@@ -150,7 +150,10 @@ public class EngineHubBot implements Runnable, EventListener {
         api = JDABuilder.create(Settings.token, intents)
                 .setAutoReconnect(true)
                 .addEventListeners(this)
-                .disableCache(CacheFlag.ACTIVITY, CacheFlag.VOICE_STATE, CacheFlag.CLIENT_STATUS)
+                .disableCache(
+                    CacheFlag.ACTIVITY, CacheFlag.VOICE_STATE, CacheFlag.CLIENT_STATUS,
+                    CacheFlag.ONLINE_STATUS
+                )
                 .build();
         api.awaitReady();
         System.out.println("Connected");
