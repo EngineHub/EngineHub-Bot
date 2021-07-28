@@ -1,7 +1,7 @@
 plugins {
     id("java")
     id("maven-publish")
-    id("com.github.johnrengelman.shadow") version "5.2.0"
+    id("com.github.johnrengelman.shadow") version "7.0.0"
     id("org.cadixdev.licenser") version "0.6.1"
 }
 
@@ -69,9 +69,6 @@ publishing {
     publications {
         register<MavenPublication>("java") {
             from(components["java"])
-        }
-        register<MavenPublication>("shadow") {
-            project.shadow.component(this)
         }
     }
 }
