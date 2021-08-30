@@ -24,18 +24,17 @@ package org.enginehub.discord.util;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
-import org.enginehub.discord.Settings;
 
 public class PunishmentUtil {
 
     private static String getContactString() {
-        return "Contact " + Settings.hostUsername + '#' + Settings.hostIdentifier + " if you believe this is a mistake.";
+        return "Submit an appeal via https://forms.gle/h2DVBUP9srCH4vHV9 if you wish to appeal.";
     }
 
     public static void kickUser(Guild guild, Member member, String reason) {
         member.getUser().openPrivateChannel().submit()
             .thenCompose(privateChannel ->
-                privateChannel.sendMessage("You have been kicked for `" + reason + "`. " + getContactString())
+                privateChannel.sendMessage("You have been kicked for `" + reason + "`. Make sure to read the rules before you join again!")
                     .submit()
             )
             .whenComplete((v, ex) -> guild.kick(member, reason).queue());
