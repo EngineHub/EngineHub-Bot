@@ -65,7 +65,7 @@ public class NoMessageSpam extends ListenerAdapter implements Module {
 
     // Track messages from a user for the last 10 minutes.
     private final LoadingCache<CacheKey, AtomicInteger> messageCounts = CacheBuilder.newBuilder()
-        .expireAfterAccess(10, TimeUnit.MINUTES)
+        .expireAfterAccess(1, TimeUnit.MINUTES)
         .build(CacheLoader.from(() -> new AtomicInteger(0)));
 
     @Override
