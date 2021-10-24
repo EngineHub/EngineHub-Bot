@@ -46,6 +46,7 @@ import org.enginehub.discord.module.EmojiRole;
 import org.enginehub.discord.module.IdleRPG;
 import org.enginehub.discord.module.JoinMessage;
 import org.enginehub.discord.module.LinkGrabber;
+import org.enginehub.discord.module.Literally1984;
 import org.enginehub.discord.module.Module;
 import org.enginehub.discord.module.NoMessageSpam;
 import org.enginehub.discord.module.NoPingSpam;
@@ -198,6 +199,7 @@ public class EngineHubBot implements Runnable, EventListener {
             new SetProfilePicture(),
             new NoPingSpam(),
             new NoMessageSpam(),
+            new Literally1984(),
             new ErrorHelper(),
             new LinkGrabber(),
             new JoinMessage(),

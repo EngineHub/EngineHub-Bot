@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class NoMessageSpam extends ListenerAdapter implements Module {
 
-    private final class CacheKey {
+    private static final class CacheKey {
         final long userId;
         final int messageHash;
 
@@ -63,7 +63,7 @@ public class NoMessageSpam extends ListenerAdapter implements Module {
         }
     }
 
-    // Track messages from a user for the last 10 minutes.
+    // Track messages from a user for the last 1 minute.
     private final LoadingCache<CacheKey, AtomicInteger> messageCounts = CacheBuilder.newBuilder()
         .expireAfterAccess(1, TimeUnit.MINUTES)
         .build(CacheLoader.from(() -> new AtomicInteger(0)));
@@ -82,7 +82,9 @@ public class NoMessageSpam extends ListenerAdapter implements Module {
         var hashCount = messageCounts.getUnchecked(cacheKey).incrementAndGet();
 
         // We only want one thread to run this, so use an exact equality to ensure this
-        if (hashCount == 6) {
+        if (hashCount == 5) {
+            PunishmentUtil.kickUser(event.getGuild(), event.getMember(), "Message spam");
+        } else if (hashCount == 6) {
             PunishmentUtil.banUser(event.getGuild(), event.getAuthor(), "Message spam", true);
         }
     }
