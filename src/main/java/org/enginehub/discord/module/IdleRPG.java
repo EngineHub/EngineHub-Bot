@@ -98,74 +98,102 @@ public class IdleRPG extends ListenerAdapter implements Module {
         return data.getLevelTime().plus(getXpForLevelUp(data.getLevel() + 1));
     }
 
+    private PlayerData getPlayerData(@Nonnull MessageReceivedEvent event) {
+        return players.computeIfAbsent(
+            event.getAuthor().getIdLong(),
+            _l -> new PlayerData(Instant.EPOCH, 0, event.getAuthor().getName())
+        );
+    }
+
     @Override
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
+        String[] commandArguments = event.getMessage().getContentRaw().split(" ");
         if (Objects.equals(event.getMessage().getContentRaw(), IDLE_RPG_TOKEN)) {
-            PlayerData data = players.computeIfAbsent(
-                event.getAuthor().getIdLong(),
-                _l -> new PlayerData(Instant.EPOCH, 0, event.getAuthor().getName())
-            );
-            var now = Instant.now();
-            var levelUpTime = getLevelUpInstant(data);
-            if (now.isAfter(levelUpTime)) {
-                var postLevelUp = data.applyLevelUp(now, event.getAuthor().getName());
-                EmbedBuilder builder = createEmbed();
-                builder.setAuthor("IdleRPG");
-                builder.appendDescription(event.getAuthor().getAsMention()
-                    + " LEVEL UP! You are now level "
-                    + postLevelUp.getLevel()
-                    + '!'
-                );
+            tryLevelUpgrade(event);
+        } else if ((commandArguments.length == 1 || commandArguments.length == 2)
+                && Objects.equals(commandArguments[0], IDLE_RPG_LEADERBOARD_TOKEN)) {
+            listLeaderboard(event, commandArguments);
+        }
+    }
 
-                event.getChannel().sendMessage(builder.build()).queue();
-                players.put(event.getAuthor().getIdLong(), postLevelUp);
-                isDirty = true;
-            } else {
-                var durationUntil = Duration.between(now, levelUpTime);
-                var fullDuration = Duration.between(data.getLevelTime(), levelUpTime);
-                var percentRemaining = BigDecimal.valueOf(fullDuration.minus(durationUntil).toMillis())
-                    .divide(BigDecimal.valueOf(fullDuration.toMillis()), MathContext.DECIMAL128)
-                    .multiply(BigDecimal.valueOf(100))
-                    .setScale(2, RoundingMode.DOWN);
+    private void tryLevelUpgrade(@NotNull MessageReceivedEvent event) {
+        PlayerData data = getPlayerData(event);
+        var now = Instant.now();
+        var levelUpTime = getLevelUpInstant(data);
+        if (now.isAfter(levelUpTime)) {
+            var postLevelUp = data.applyLevelUp(now, event.getAuthor().getName());
+            EmbedBuilder builder = createEmbed();
+            builder.setAuthor("IdleRPG");
+            builder.appendDescription(event.getAuthor().getAsMention()
+                + " LEVEL UP! You are now level "
+                + postLevelUp.getLevel()
+                + '!'
+            );
+
+            event.getChannel().sendMessage(builder.build()).queue();
+            players.put(event.getAuthor().getIdLong(), postLevelUp);
+            isDirty = true;
+        } else {
+            var durationUntil = Duration.between(now, levelUpTime);
+            var fullDuration = Duration.between(data.getLevelTime(), levelUpTime);
+            var percentRemaining = BigDecimal.valueOf(fullDuration.minus(durationUntil).toMillis())
+                .divide(BigDecimal.valueOf(fullDuration.toMillis()), MathContext.DECIMAL128)
+                .multiply(BigDecimal.valueOf(100))
+                .setScale(2, RoundingMode.DOWN);
+            EmbedBuilder builder = createEmbed();
+            builder.setAuthor("IdleRPG");
+            builder.appendDescription(
+                event.getAuthor().getAsMention()
+                    + " you're "
+                    + PERCENTAGE_FORMAT.format(percentRemaining)
+                    + "% of the way there! "
+                    + StringUtil.formatDurationHumanReadable(durationUntil));
+            event.getChannel().sendMessage(builder.build()).queue();
+        }
+    }
+
+    private void listLeaderboard(@NotNull MessageReceivedEvent event, String[] commandArguments) {
+        int page = 1;
+        if (commandArguments.length == 2) {
+            try {
+                page = Integer.parseUnsignedInt(commandArguments[1]);
+            } catch (NumberFormatException e) {
                 EmbedBuilder builder = createEmbed();
                 builder.setAuthor("IdleRPG");
                 builder.appendDescription(
                     event.getAuthor().getAsMention()
-                        + " you're "
-                        + PERCENTAGE_FORMAT.format(percentRemaining)
-                        + "% of the way there! "
-                        + StringUtil.formatDurationHumanReadable(durationUntil));
+                        + " that's not a valid page number!");
                 event.getChannel().sendMessage(builder.build()).queue();
             }
-        } else if (Objects.equals(event.getMessage().getContentRaw(), IDLE_RPG_LEADERBOARD_TOKEN)) {
-            List<PlayerData> topPlayers = players.values()
-                .stream()
-                .sorted(Comparator.<PlayerData>naturalOrder().reversed())
-                .limit(10)
-                .collect(Collectors.toList());
-            var now = Instant.now();
-            StringBuilder leaderboardMessage = new StringBuilder("IdleRPG Leaderboard\n\n");
-            for (int i = 0; i < topPlayers.size(); i++) {
-                PlayerData data = topPlayers.get(i);
-                boolean canLevelUp = now.isAfter(getLevelUpInstant(data));
-                leaderboardMessage
-                    .append('#')
-                    .append(i + 1)
-                    .append(' ')
-                    .append(data.getLastName())
-                    .append(": Level ")
-                    .append(data.getLevel())
-                    .append(canLevelUp ? '*' : ' ')
-                    .append('\n');
-            }
-            leaderboardMessage.append("\n(Showing ").append(topPlayers.size()).append(" out of ").append(players.size()).append(')');
-
-            EmbedBuilder builder = createEmbed();
-            builder.setAuthor("IdleRPG");
-            builder.appendDescription(leaderboardMessage.toString());
-
-            event.getChannel().sendMessage(builder.build()).queue();
         }
+        List<PlayerData> topPlayers = players.values()
+            .stream()
+            .sorted(Comparator.<PlayerData>naturalOrder().reversed())
+            .limit(10)
+            .skip((page - 1) * 10L)
+            .collect(Collectors.toList());
+        var now = Instant.now();
+        StringBuilder leaderboardMessage = new StringBuilder("IdleRPG Leaderboard (Page " + page + ")\n\n");
+        for (int i = 0; i < topPlayers.size(); i++) {
+            PlayerData data = topPlayers.get(i);
+            boolean canLevelUp = now.isAfter(getLevelUpInstant(data));
+            leaderboardMessage
+                .append('#')
+                .append(i + 1)
+                .append(' ')
+                .append(data.getLastName())
+                .append(": Level ")
+                .append(data.getLevel())
+                .append(canLevelUp ? '*' : ' ')
+                .append('\n');
+        }
+        leaderboardMessage.append("\n(Showing ").append(topPlayers.size()).append(" out of ").append(players.size()).append(')');
+
+        EmbedBuilder builder = createEmbed();
+        builder.setAuthor("IdleRPG");
+        builder.appendDescription(leaderboardMessage.toString());
+
+        event.getChannel().sendMessage(builder.build()).queue();
     }
 
     @Override
