@@ -116,7 +116,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
         }
     }
 
-    private void tryLevelUpgrade(@NotNull MessageReceivedEvent event) {
+    private void tryLevelUpgrade(@Nonnull MessageReceivedEvent event) {
         PlayerData data = getPlayerData(event);
         var now = Instant.now();
         var levelUpTime = getLevelUpInstant(data);
@@ -152,11 +152,12 @@ public class IdleRPG extends ListenerAdapter implements Module {
         }
     }
 
-    private void listLeaderboard(@NotNull MessageReceivedEvent event, String[] commandArguments) {
+    private void listLeaderboard(@Nonnull MessageReceivedEvent event, String[] commandArguments) {
         int page = 1;
         if (commandArguments.length == 2) {
             try {
                 page = Integer.parseUnsignedInt(commandArguments[1]);
+                if (page == 0) throw new NumberFormatException();
             } catch (NumberFormatException e) {
                 EmbedBuilder builder = createEmbed();
                 builder.setAuthor("IdleRPG");
