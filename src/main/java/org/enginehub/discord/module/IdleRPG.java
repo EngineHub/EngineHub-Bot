@@ -165,6 +165,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
                     event.getAuthor().getAsMention()
                         + " that's not a valid page number!");
                 event.getChannel().sendMessage(builder.build()).queue();
+                return;
             }
         }
         List<PlayerData> topPlayers = players.values()
