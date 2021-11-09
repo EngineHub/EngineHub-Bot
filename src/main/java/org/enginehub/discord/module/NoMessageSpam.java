@@ -24,23 +24,31 @@ package org.enginehub.discord.module;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import ninja.leaping.configurate.ConfigurationNode;
 import org.enginehub.discord.EngineHubBot;
 import org.enginehub.discord.util.PermissionRoles;
 import org.enginehub.discord.util.PunishmentUtil;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * A simple anti-same-message spam filter.
  */
 public class NoMessageSpam extends ListenerAdapter implements Module {
 
-    private final class CacheKey {
+    private static final class CacheKey {
         final long userId;
         final int messageHash;
 
@@ -63,10 +71,12 @@ public class NoMessageSpam extends ListenerAdapter implements Module {
         }
     }
 
-    // Track messages from a user for the last 10 minutes.
+    // Track messages from a user for the last 1 minute.
     private final LoadingCache<CacheKey, AtomicInteger> messageCounts = CacheBuilder.newBuilder()
         .expireAfterAccess(1, TimeUnit.MINUTES)
         .build(CacheLoader.from(() -> new AtomicInteger(0)));
+    private final HashSet<Long> hasPingedBefore = new HashSet<>();
+    private volatile Set<Long> guildsForPunish;
 
     @Override
     public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event) {
@@ -82,8 +92,59 @@ public class NoMessageSpam extends ListenerAdapter implements Module {
         var hashCount = messageCounts.getUnchecked(cacheKey).incrementAndGet();
 
         // We only want one thread to run this, so use an exact equality to ensure this
-        if (hashCount == 6) {
+        if (hashCount == 5) {
+            PunishmentUtil.kickUser(event.getGuild(), event.getMember(), "Message spam");
+        } else if (hashCount == 6) {
             PunishmentUtil.banUser(event.getGuild(), event.getAuthor(), "Message spam", true);
         }
+    }
+
+    @Override
+    public void onPrivateMessageReceived(@NotNull PrivateMessageReceivedEvent event) {
+        if (!(event.getMessage().mentionsEveryone() || event.getMessage().getContentRaw().contains("@everyone"))) {
+            return;
+        }
+
+        if (hasPingedBefore.add(event.getAuthor().getIdLong())) {
+            // They haven't pinged before, kick.
+            punishForAtEveryone(event, PunishmentUtil::kickUser);
+        } else {
+            // It's ban time.
+            punishForAtEveryone(
+                event,
+                (guild, member, reason) -> PunishmentUtil.banUser(guild, member.getUser(), reason, false)
+            );
+        }
+    }
+
+    // TODO: Consider extracting out?
+    private interface Punishment {
+        void enact(Guild guild, Member member, String reason);
+    }
+
+    private void punishForAtEveryone(@NotNull PrivateMessageReceivedEvent event, Punishment punishment) {
+        for (long guildId : guildsForPunish) {
+            Guild guild = event.getJDA().getGuildById(guildId);
+            if (guild == null) {
+                System.err.println("Warning, guild " + guildId + " does not appear to be known to this bot.");
+                continue;
+            }
+            Member member = guild.getMember(event.getAuthor());
+            if (member != null) {
+                punishment.enact(guild, member, "Attempting to ping everyone in DMs");
+            }
+        }
+    }
+
+    @Override
+    public void load(ConfigurationNode loadedNode) {
+        guildsForPunish = loadedNode.getNode("default-punishment-guilds").getChildrenList().stream()
+            .map(ConfigurationNode::getLong)
+            .collect(Collectors.toUnmodifiableSet());
+    }
+
+    @Override
+    public void save(ConfigurationNode loadedNode) {
+        loadedNode.getNode("default-punishment-guilds").setValue(guildsForPunish);
     }
 }
