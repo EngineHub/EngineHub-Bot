@@ -33,6 +33,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Maps;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.enginehub.discord.util.BigMath;
@@ -98,10 +99,10 @@ public class IdleRPG extends ListenerAdapter implements Module {
         return data.getLevelTime().plus(getXpForLevelUp(data.getLevel() + 1));
     }
 
-    private PlayerData getPlayerData(@Nonnull MessageReceivedEvent event) {
+    private PlayerData getPlayerData(User author) {
         return players.computeIfAbsent(
-            event.getAuthor().getIdLong(),
-            _l -> new PlayerData(Instant.EPOCH, 0, event.getAuthor().getName())
+                author.getIdLong(),
+            _l -> new PlayerData(Instant.EPOCH, 0, author.getName())
         );
     }
 
@@ -117,7 +118,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
     }
 
     private void tryLevelUpgrade(@Nonnull MessageReceivedEvent event) {
-        PlayerData data = getPlayerData(event);
+        PlayerData data = getPlayerData(event.getAuthor());
         var now = Instant.now();
         var levelUpTime = getLevelUpInstant(data);
         if (now.isAfter(levelUpTime)) {
