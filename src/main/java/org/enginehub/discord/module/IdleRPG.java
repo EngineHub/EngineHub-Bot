@@ -172,8 +172,8 @@ public class IdleRPG extends ListenerAdapter implements Module {
         List<PlayerData> topPlayers = players.values()
             .stream()
             .sorted(Comparator.<PlayerData>naturalOrder().reversed())
-            .limit(10)
             .skip((page - 1) * 10L)
+            .limit(10)
             .collect(Collectors.toList());
         var now = Instant.now();
         StringBuilder leaderboardMessage = new StringBuilder("IdleRPG Leaderboard (Page " + page + ")\n\n");
