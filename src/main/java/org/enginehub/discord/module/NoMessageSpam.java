@@ -85,11 +85,18 @@ public class NoMessageSpam extends ListenerAdapter implements Module {
             return;
         }
 
+        var contentRaw = event.getMessage().getContentRaw();
         var cacheKey = new CacheKey(
             event.getAuthor().getIdLong(),
-            event.getMessage().getContentRaw().hashCode()
+            contentRaw.hashCode()
         );
         var hashCount = messageCounts.getUnchecked(cacheKey).incrementAndGet();
+
+        if (contentRaw.length() < 10) {
+            // This is unlikely to be a "true" spam message. Only kick people if they repeat it
+            // an unrealistic amount (given our 1 minute counter, more than 10/12 is likely spam)
+            hashCount /= 2;
+        }
 
         // We only want one thread to run this, so use an exact equality to ensure this
         if (hashCount == 5) {
