@@ -79,7 +79,7 @@ public class RoryFetch implements Module {
     @Command(aliases = {"rory"}, desc = "Grabs a rory pic.")
     public void rory(Message message, @Optional String roryId) {
         if (roryId != null && roryOverrides.containsKey(roryId)) {
-            message.getChannel().sendMessage(createRoryEmbed(roryId, roryOverrides.get(roryId))).queue();
+            message.getChannel().sendMessageEmbeds(createRoryEmbed(roryId, roryOverrides.get(roryId))).queue();
         } else {
             String url = "https://rory.cat/purr";
             if (roryId != null) {
@@ -97,7 +97,7 @@ public class RoryFetch implements Module {
                 }
 
                 Map<String, String> parsedResponse = OBJECT_MAPPER.readValue(response.body(), RORY_RESPONSE);
-                message.getChannel().sendMessage(createRoryEmbed(parsedResponse.get("id"), parsedResponse.get("url"))).queue();
+                message.getChannel().sendMessageEmbeds(createRoryEmbed(parsedResponse.get("id"), parsedResponse.get("url"))).queue();
             } catch (MalformedURLException | URISyntaxException e) {
                 message.getChannel().sendMessage(message.getAuthor().getAsTag() + ", that's an invalid URL!").queue();
             } catch (InterruptedException | IOException e) {

@@ -35,41 +35,19 @@ import org.enginehub.discord.util.PermissionRoles;
 import org.enginehub.discord.util.PunishmentUtil;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 
 /**
  * A simple anti-same-message spam filter.
  */
 public class NoMessageSpam extends ListenerAdapter implements Module {
 
-    private static final class CacheKey {
-        final long userId;
-        final int messageHash;
-
-        private CacheKey(long userId, int messageHash) {
-            this.userId = userId;
-            this.messageHash = messageHash;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            CacheKey cacheKey = (CacheKey) o;
-            return userId == cacheKey.userId && messageHash == cacheKey.messageHash;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(userId, messageHash);
-        }
-    }
+    private record CacheKey(long userId, int messageHash) { }
 
     // Track messages from a user for the last 1 minute.
     private final LoadingCache<CacheKey, AtomicInteger> messageCounts = CacheBuilder.newBuilder()

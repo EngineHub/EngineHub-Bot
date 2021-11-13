@@ -23,12 +23,12 @@ package org.enginehub.discord;
 
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
-import org.enginehub.discord.module.Module;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
+import org.enginehub.discord.module.Module;
 
 import java.io.File;
 import java.io.IOException;
@@ -92,8 +92,7 @@ public class Settings {
         ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setPath(new File("settings.conf").getAbsoluteFile().toPath()).build(); // Create the loader
         try {
             loadedNode.getNode("token").setValue(token);
-            // Using generic inference on the next line breaks javac. This is a load-bearing generic.
-            loadedNode.getNode("auto-erase-channels").setValue(new TypeToken<List<String>>(){}, autoEraseChannels);
+            loadedNode.getNode("auto-erase-channels").setValue(new TypeToken<>() {}, autoEraseChannels);
 
             loader.save(loadedNode);
         } catch (IOException | ObjectMappingException e) {

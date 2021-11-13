@@ -131,7 +131,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
                 + '!'
             );
 
-            event.getChannel().sendMessage(builder.build()).queue();
+            event.getChannel().sendMessageEmbeds(builder.build()).queue();
             players.put(event.getAuthor().getIdLong(), postLevelUp);
             isDirty = true;
         } else {
@@ -149,7 +149,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
                     + PERCENTAGE_FORMAT.format(percentRemaining)
                     + "% of the way there! "
                     + StringUtil.formatDurationHumanReadable(durationUntil));
-            event.getChannel().sendMessage(builder.build()).queue();
+            event.getChannel().sendMessageEmbeds(builder.build()).queue();
         }
     }
 
@@ -167,7 +167,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
                 builder.appendDescription(
                     event.getAuthor().getAsMention()
                         + " that's not a valid page number!");
-                event.getChannel().sendMessage(builder.build()).queue();
+                event.getChannel().sendMessageEmbeds(builder.build()).queue();
                 return;
             }
         }
@@ -198,7 +198,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
         builder.setAuthor("IdleRPG");
         builder.appendDescription(leaderboardMessage.toString());
 
-        event.getChannel().sendMessage(builder.build()).queue();
+        event.getChannel().sendMessageEmbeds(builder.build()).queue();
     }
 
     @Override

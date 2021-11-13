@@ -21,8 +21,6 @@
  */
 package org.enginehub.discord.module;
 
-import net.dv8tion.jda.api.MessageBuilder;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
@@ -30,22 +28,20 @@ import javax.annotation.Nonnull;
 
 public class JoinMessage extends ListenerAdapter implements Module {
 
-    private static final Message message;
+    private final static String JOIN_TEXT = """
+        Hey! Welcome to the EngineHub Discord!
 
-    static {
-        MessageBuilder builder = new MessageBuilder();
-
-        builder.append("Hey! Welcome to the EngineHub Discord!\n\n");
-        builder.append("Before you get started, make sure you read the rules at <#139272202431234048>.\n\n");
-        builder.append("If you need help, put your server log `logs/latest.log` onto https://paste.enginehub.org/ and provide us with"
-                + " the link in the appropriate channel.\n\n~ The EngineHub team");
-        message = builder.build();
-    }
+        Before you get started, make sure you read the rules at <#139272202431234048>.
+            
+        If you need help, put your server log (`logs/latest.log`) onto https://paste.enginehub.org/ and provide us with the link in the appropriate channel.
+        
+        ~ The EngineHub team
+        """;
 
     @Override
     public void onGuildMemberJoin(@Nonnull GuildMemberJoinEvent event) {
         event.getUser().openPrivateChannel()
-                .queue(privateChannel -> privateChannel.sendMessage(message)
+                .queue(privateChannel -> privateChannel.sendMessage(JOIN_TEXT)
                         .queue(message -> privateChannel.close().queue()));
     }
 
