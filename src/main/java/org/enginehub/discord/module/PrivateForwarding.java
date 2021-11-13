@@ -68,13 +68,13 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
     public void onPrivateMessageReceived(@NotNull PrivateMessageReceivedEvent event) {
         if (forwardChannel != null) {
             var channel = EngineHubBot.bot.api.getGuildChannelById(forwardChannel);
-            if (channel instanceof TextChannel) {
+            if (channel instanceof TextChannel textChannel) {
                 if (event.getMessage().getType().isSystem()) {
                     // Ignore any system messages
                     return;
                 }
 
-                User user = event.getAuthor();
+                var user = event.getAuthor();
 
                 if (event.getMessage().getContentRaw().isBlank()) {
                     // Ignore this blank message
@@ -102,7 +102,7 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
 
                 event.getMessage().getAttachments().forEach(att -> builder.addField(att.getFileName(), att.getUrl(), false));
 
-                ((TextChannel) channel).sendMessage(builder.build()).queue();
+                textChannel.sendMessageEmbeds(builder.build()).queue();
             }
         }
     }

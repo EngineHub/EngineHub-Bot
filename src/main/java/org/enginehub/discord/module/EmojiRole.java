@@ -67,7 +67,7 @@ public class EmojiRole extends ListenerAdapter implements Module {
 
     @Override
     public void onGuildMessageReactionAdd(@Nonnull GuildMessageReactionAddEvent event) {
-        if (event.getMessageId().equals(messageId)) {
+        if (event.getMessageId().equals(messageId) && !event.getMember().getUser().isBot()) {
             getRoleByEmoji(event.getGuild(), event.getReactionEmote().getId()).ifPresentOrElse(
                     role -> toggleRole(event.getGuild(), role, event.getMember(), event.getReaction()),
                     () -> event.getReaction().removeReaction(event.getUser()).queue());
