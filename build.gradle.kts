@@ -9,7 +9,7 @@ group = "org.enginehub"
 version = "1.0-SNAPSHOT"
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(12))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
     withJavadocJar()
     withSourcesJar()
 }
@@ -53,9 +53,9 @@ tasks.named<Jar>("shadowJar") {
 }
 
 dependencies {
-    implementation("net.dv8tion:JDA:4.3.0_277")
+    implementation("net.dv8tion:JDA:4.3.0_346")
     implementation("org.spongepowered:configurate-hocon:3.7.2")
-    implementation("com.typesafe:config:1.4.0")
+    implementation("com.typesafe:config:1.4.1")
     implementation("com.sk89q:intake:3.1.2")
     implementation(platform("com.fasterxml.jackson:jackson-bom:2.11.2"))
     implementation("com.fasterxml.jackson.core:jackson-core")
