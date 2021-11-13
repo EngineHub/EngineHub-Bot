@@ -94,8 +94,8 @@ public class NoMessageSpam extends ListenerAdapter implements Module {
 
         if (contentRaw.length() < 10) {
             // This is unlikely to be a "true" spam message. Only kick people if they repeat it
-            // an unrealistic amount (given our 1 minute counter, more than 20/30 is likely spam)
-            hashCount /= 4;
+            // an unrealistic amount (given our 1 minute counter, more than 10/12 is likely spam)
+            hashCount /= 2;
         }
 
         // We only want one thread to run this, so use an exact equality to ensure this
