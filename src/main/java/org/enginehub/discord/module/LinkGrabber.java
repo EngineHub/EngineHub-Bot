@@ -78,7 +78,7 @@ public class LinkGrabber implements Module {
             }
             builder.appendDescription(alias);
             builder.setFooter("Requested by " + message.getAuthor().getName());
-            message.getChannel().sendMessage(builder.build()).queue();
+            message.getChannel().sendMessageEmbeds(builder.build()).queue();
         } else {
             String prefix = "";
             if (user != null) {
