@@ -158,7 +158,9 @@ public class IdleRPG extends ListenerAdapter implements Module {
         if (commandArguments.length == 2) {
             try {
                 page = Integer.parseUnsignedInt(commandArguments[1]);
-                if (page == 0) throw new NumberFormatException();
+                if (page == 0 || page > (Math.ceil(players.size() / 10.0))) {
+                    throw new NumberFormatException();
+                }
             } catch (NumberFormatException e) {
                 EmbedBuilder builder = createEmbed();
                 builder.setAuthor("IdleRPG");
@@ -182,7 +184,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
             boolean canLevelUp = now.isAfter(getLevelUpInstant(data));
             leaderboardMessage
                 .append('#')
-                .append(i + 1)
+                .append(((page - 1) * 10) + i + 1)
                 .append(' ')
                 .append(data.getLastName())
                 .append(": Level ")
