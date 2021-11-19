@@ -78,8 +78,6 @@ public class NoMessageSpam extends ListenerAdapter implements Module {
 
         // We only want one thread to run this, so use an exact equality to ensure this
         if (hashCount == 5) {
-            PunishmentUtil.kickUser(event.getGuild(), event.getMember(), "Message spam");
-        } else if (hashCount == 6) {
             PunishmentUtil.banUser(event.getGuild(), event.getAuthor(), "Message spam", true);
         }
     }
