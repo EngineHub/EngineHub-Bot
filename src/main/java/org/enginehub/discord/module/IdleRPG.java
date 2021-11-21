@@ -283,7 +283,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
         }
 
         public boolean isNotParticipating() {
-            return level == 1 && levelTime.isBefore(Instant.now().minus(1, ChronoUnit.WEEKS));
+            return level == 1 && levelTime.isBefore(Instant.now().minus(7, ChronoUnit.DAYS));
         }
 
         @Override
