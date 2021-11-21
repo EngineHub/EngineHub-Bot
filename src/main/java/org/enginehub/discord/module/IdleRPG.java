@@ -21,7 +21,7 @@
  */
 package org.enginehub.discord.module;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,6 +40,7 @@ import org.enginehub.discord.util.BigMath;
 import org.enginehub.discord.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -56,7 +57,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 
 import static org.enginehub.discord.util.StringUtil.createEmbed;
 
@@ -96,7 +96,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
     }
 
     private Instant getLevelUpInstant(PlayerData data) {
-        return data.getLevelTime().plus(getXpForLevelUp(data.getLevel() + 1));
+        return data.levelTime().plus(getXpForLevelUp(data.level() + 1));
     }
 
     private PlayerData getPlayerData(User author) {
@@ -127,7 +127,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
             builder.setAuthor("IdleRPG");
             builder.appendDescription(event.getAuthor().getAsMention()
                 + " LEVEL UP! You are now level "
-                + postLevelUp.getLevel()
+                + postLevelUp.level()
                 + '!'
             );
 
@@ -136,7 +136,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
             isDirty = true;
         } else {
             var durationUntil = Duration.between(now, levelUpTime);
-            var fullDuration = Duration.between(data.getLevelTime(), levelUpTime);
+            var fullDuration = Duration.between(data.levelTime(), levelUpTime);
             var percentRemaining = BigDecimal.valueOf(fullDuration.minus(durationUntil).toMillis())
                 .divide(BigDecimal.valueOf(fullDuration.toMillis()), MathContext.DECIMAL128)
                 .multiply(BigDecimal.valueOf(100))
@@ -186,9 +186,9 @@ public class IdleRPG extends ListenerAdapter implements Module {
                 .append('#')
                 .append(((page - 1) * 10) + i + 1)
                 .append(' ')
-                .append(data.getLastName())
+                .append(data.lastName())
                 .append(": Level ")
-                .append(data.getLevel())
+                .append(data.level())
                 .append(canLevelUp ? '*' : ' ')
                 .append('\n');
         }
@@ -254,34 +254,16 @@ public class IdleRPG extends ListenerAdapter implements Module {
         }
     }
 
-    public static final class PlayerData implements Comparable<PlayerData> {
-        private final Instant levelTime;
-        private final int level;
-        private final String lastName;
-
-        @JsonCreator
-        public PlayerData(Instant levelTime, int level, String lastName) {
-            this.levelTime = levelTime;
-            this.level = level;
-            this.lastName = lastName;
-        }
-
-        public Instant getLevelTime() {
-            return levelTime;
-        }
-
-        public int getLevel() {
-            return level;
-        }
-
-        public String getLastName() {
-            return lastName;
-        }
-
+    public record PlayerData(
+        Instant levelTime,
+        int level,
+        String lastName
+    ) implements Comparable<PlayerData> {
         public PlayerData applyLevelUp(Instant now, String name) {
             return new PlayerData(now, level + 1, name);
         }
 
+        @JsonIgnore
         public boolean isNotParticipating() {
             return level == 1 && levelTime.isBefore(Instant.now().minus(7, ChronoUnit.DAYS));
         }

@@ -1,2 +1,2 @@
-jdk:
-  - openjdk12
+install:
+  - ./gradlew build publishToMavenLocal -s
