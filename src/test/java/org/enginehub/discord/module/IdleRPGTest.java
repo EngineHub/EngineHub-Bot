@@ -31,9 +31,9 @@ import static org.junit.Assert.assertEquals;
 public class IdleRPGTest {
 
     private static void assertPlayerDataEquals(IdleRPG.PlayerData expected, IdleRPG.PlayerData actual) {
-        assertEquals(expected.getLastName(), actual.getLastName());
-        assertEquals(expected.getLevel(), actual.getLevel());
-        assertEquals(expected.getLevelTime(), actual.getLevelTime());
+        assertEquals(expected.lastName(), actual.lastName());
+        assertEquals(expected.level(), actual.level());
+        assertEquals(expected.levelTime(), actual.levelTime());
     }
 
     @Test

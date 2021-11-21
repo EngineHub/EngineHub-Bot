@@ -57,12 +57,12 @@ dependencies {
     implementation("org.spongepowered:configurate-hocon:3.7.2")
     implementation("com.typesafe:config:1.4.1")
     implementation("com.sk89q:intake:3.1.2")
-    implementation(platform("com.fasterxml.jackson:jackson-bom:2.11.2"))
+    implementation(platform("com.fasterxml.jackson:jackson-bom:2.13.0"))
     implementation("com.fasterxml.jackson.core:jackson-core")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8")
     implementation("com.fasterxml.jackson.module:jackson-module-parameter-names")
-    testImplementation("junit:junit:4.11")
+    testImplementation("junit:junit:4.13.2")
 }
 
 publishing {
