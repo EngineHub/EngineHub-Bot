@@ -231,6 +231,10 @@ public class IdleRPG extends ListenerAdapter implements Module {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        // Purge players who only got to level 1 over a week ago.
+        players.values().removeIf(data -> data.level == 1
+            && data.levelTime.isBefore(Instant.now().minus(1, ChronoUnit.WEEKS)));
     }
 
     @Override
