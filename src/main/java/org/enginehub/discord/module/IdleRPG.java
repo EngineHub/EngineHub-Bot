@@ -231,6 +231,11 @@ public class IdleRPG extends ListenerAdapter implements Module {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        // Purge players who only got to level 1 over a week ago.
+        if (players.values().removeIf(PlayerData::isNotParticipating)) {
+            isDirty = true;
+        }
     }
 
     @Override
@@ -275,6 +280,10 @@ public class IdleRPG extends ListenerAdapter implements Module {
 
         public PlayerData applyLevelUp(Instant now, String name) {
             return new PlayerData(now, level + 1, name);
+        }
+
+        public boolean isNotParticipating() {
+            return level == 1 && levelTime.isBefore(Instant.now().minus(1, ChronoUnit.WEEKS));
         }
 
         @Override
