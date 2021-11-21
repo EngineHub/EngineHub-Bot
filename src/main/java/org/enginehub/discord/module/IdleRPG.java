@@ -232,10 +232,8 @@ public class IdleRPG extends ListenerAdapter implements Module {
             e.printStackTrace();
         }
 
-        var oldPlayerCount = players.size();
         // Purge players who only got to level 1 over a week ago.
-        players.values().removeIf(PlayerData::isNotParticipating);
-        if (oldPlayerCount != players.size()) {
+        if (players.values().removeIf(PlayerData::isNotParticipating)) {
             isDirty = true;
         }
     }
