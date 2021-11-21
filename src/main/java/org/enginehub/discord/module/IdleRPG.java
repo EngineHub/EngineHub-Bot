@@ -232,9 +232,12 @@ public class IdleRPG extends ListenerAdapter implements Module {
             e.printStackTrace();
         }
 
+        var oldPlayerCount = players.size();
         // Purge players who only got to level 1 over a week ago.
-        players.values().removeIf(data -> data.level == 1
-            && data.levelTime.isBefore(Instant.now().minus(1, ChronoUnit.WEEKS)));
+        players.values().removeIf(PlayerData::isNotParticipating);
+        if (oldPlayerCount != players.size()) {
+            isDirty = true;
+        }
     }
 
     @Override
@@ -279,6 +282,10 @@ public class IdleRPG extends ListenerAdapter implements Module {
 
         public PlayerData applyLevelUp(Instant now, String name) {
             return new PlayerData(now, level + 1, name);
+        }
+
+        public boolean isNotParticipating() {
+            return level == 1 && levelTime.isBefore(Instant.now().minus(1, ChronoUnit.WEEKS));
         }
 
         @Override
