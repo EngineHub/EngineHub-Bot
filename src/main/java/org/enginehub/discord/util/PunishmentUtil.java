@@ -48,4 +48,9 @@ public class PunishmentUtil {
             )
             .whenComplete((v, ex) -> guild.ban(user, eraseHistory ? 1 : 0, "[Bot Ban] " + reason).queue());
     }
+
+    public static void timeoutUser(Guild guild, Member member, long seconds, String reason) {
+        // TODO Add when JDA supports.
+        // guild.timeoutFor(member, seconds, TimeUnit.SECONDS).queue();
+    }
 }

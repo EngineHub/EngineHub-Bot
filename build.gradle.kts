@@ -53,7 +53,7 @@ tasks.named<Jar>("shadowJar") {
 }
 
 dependencies {
-    implementation("net.dv8tion:JDA:4.3.0_346")
+    implementation("net.dv8tion:JDA:4.4.0_352")
     implementation("org.spongepowered:configurate-hocon:3.7.2")
     implementation("com.typesafe:config:1.4.1")
     implementation("com.sk89q:intake:3.1.2")
