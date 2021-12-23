@@ -55,6 +55,9 @@ public class PingWarning extends ListenerAdapter implements Module {
             } else if (spamTime >= 3) {
                 // Kick
                 PunishmentUtil.kickUser(event.getGuild(), event.getMember(), "Repeatedly pinging developers.");
+            } else {
+                int time = spamTime == 1 ? 10 : 30;
+                PunishmentUtil.timeoutUser(event.getGuild(), event.getMember(), time, "Pinging developers.");
             }
         }
     }
