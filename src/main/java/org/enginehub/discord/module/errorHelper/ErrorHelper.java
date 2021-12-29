@@ -88,7 +88,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
                     continue;
                 }
 
-                try(InputStream is = attachment.retrieveInputStream().get()) {
+                try (InputStream is = attachment.retrieveInputStream().get()) {
                     BufferedImage image = ImageIO.read(is);
                     messageText.append(tesseract.doOCR(image));
                 } catch (Throwable t) {
