@@ -28,7 +28,7 @@ import org.enginehub.piston.inject.InjectedValueAccess;
 import org.enginehub.piston.inject.Key;
 
 public class PermissionCondition implements Command.Condition {
-    private static final Key<Member> ACTOR_KEY = Key.of(Member.class);
+    private static final Key<Member> MEMBER_KEY = Key.of(Member.class);
 
     private final String permission;
 
@@ -43,7 +43,7 @@ public class PermissionCondition implements Command.Condition {
     @Override
     public boolean satisfied(InjectedValueAccess context) {
         return permission == null || permission.isEmpty()
-            || context.injectedValue(ACTOR_KEY)
+            || context.injectedValue(MEMBER_KEY)
             .map(member -> EngineHubBot.isAuthorised(member, permission))
             .orElse(false);
     }
