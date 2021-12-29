@@ -33,7 +33,7 @@ configure<LicenseExtension> {
 }
 
 tasks.named<JavaCompile>("compileJava") {
-    options.compilerArgs = listOf("-parameters")
+    options.compilerArgs = listOf("-parameters", "-Werror")
 }
 
 tasks.named<Jar>("jar") {
@@ -44,7 +44,7 @@ tasks.named<Jar>("shadowJar") {
     archiveClassifier.set("")
 }
 
-val pistonVersion = "0.5.7";
+val pistonVersion = "0.5.7"
 
 dependencies {
     implementation("net.dv8tion:JDA:5.0.0-alpha.3")
@@ -60,7 +60,7 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8")
     implementation("com.fasterxml.jackson.module:jackson-module-parameter-names")
-    implementation("org.apache.commons:commons-lang3:3.12.0")
+    implementation("org.apache.commons:commons-text:1.9")
     testImplementation("junit:junit:4.13.2")
 }
 

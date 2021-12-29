@@ -25,7 +25,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import ninja.leaping.configurate.ConfigurationNode;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.enginehub.discord.Settings;
 import org.enginehub.discord.util.PermissionRoles;
 import org.enginehub.discord.util.command.CommandPermission;
@@ -69,8 +69,11 @@ public class LinkGrabber implements Module {
         String alias = aliasMap.get(key);
         if (alias == null) {
             message.getChannel().sendMessage("I don't know what that alias is, sorry!").queue();
-            aliasMap.keySet().stream().min(Comparator.comparingInt(o -> StringUtils.getLevenshteinDistance(key, o)))
-            .ifPresent(possibleKey -> message.getChannel().sendMessage("Did you mean `" + possibleKey + "`?").queue());
+            aliasMap.keySet().stream()
+                .min(Comparator.comparingInt(o ->
+                    LevenshteinDistance.getDefaultInstance().apply(key, o)
+                ))
+                .ifPresent(possibleKey -> message.getChannel().sendMessage("Did you mean `" + possibleKey + "`?").queue());
             return;
         }
 
