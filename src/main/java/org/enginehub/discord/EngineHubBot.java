@@ -47,7 +47,9 @@ import org.enginehub.discord.module.RoryFetch;
 import org.enginehub.discord.module.SetProfilePicture;
 import org.enginehub.discord.module.errorHelper.ErrorHelper;
 import org.enginehub.discord.util.PermissionRoles;
+import org.enginehub.discord.util.command.CommandArgParser;
 import org.enginehub.discord.util.command.CommandRegistrationHandler;
+import org.enginehub.discord.util.command.Substring;
 import org.enginehub.piston.CommandManager;
 import org.enginehub.piston.CommandManagerService;
 import org.enginehub.piston.exception.CommandException;
@@ -232,7 +234,9 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
                 return;
             }
 
-            String[] split = commandArgs.split(" ");
+            String[] split = CommandArgParser.forArgString(commandArgs).parseArgs()
+                .map(Substring::getSubstring)
+                .toArray(String[]::new);
 
             // No command found!
             if (!commandManager.containsCommand(split[0])) {

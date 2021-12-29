@@ -40,6 +40,8 @@ import org.enginehub.piston.annotation.CommandContainer;
 import org.enginehub.piston.annotation.param.Arg;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 import static org.enginehub.discord.util.StringUtil.createEmbed;
 
 @CommandContainer(superTypes = CommandPermissionConditionGenerator.Registration.class)
@@ -62,14 +64,14 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
 
     @Command(name = "replydm", desc = "Manually reply to a DM to the bot.")
     @CommandPermission(PermissionRoles.MODERATOR)
-    public void replyDM(Message message, @Arg(desc = "The user to reply to") String userId, @Arg(desc = "The response", variable = true) String response) {
+    public void replyDM(Message message, @Arg(desc = "The user to reply to") String userId, @Arg(desc = "The response", variable = true) List<String> response) {
         User user = EngineHubBot.bot.api.getUserByTag(userId);
         if (user == null) {
             message.getChannel().sendMessage("Unknown user!").queue();
             return;
         }
 
-        user.openPrivateChannel().queue(privateChannel -> privateChannel.sendMessage(response).queue());
+        user.openPrivateChannel().queue(privateChannel -> privateChannel.sendMessage(String.join(" ", response)).queue());
     }
 
     @Override

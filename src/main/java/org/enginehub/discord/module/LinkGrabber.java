@@ -93,8 +93,8 @@ public class LinkGrabber implements Module {
 
     @Command(name = "addalias", aliases = {"addlink"}, desc = "Adds an alias.")
     @CommandPermission(PermissionRoles.MODERATOR)
-    public void addLink(Message message, @Arg(desc = "The alias key") String key, @Arg(desc = "The alias value", variable = true) String link) {
-        aliasMap.put(key, link.replace("\\n", "\n"));
+    public void addLink(Message message, @Arg(desc = "The alias key") String key, @Arg(desc = "The alias value", variable = true) List<String> link) {
+        aliasMap.put(key, String.join(" ", link).replace("\\n", "\n"));
 
         message.getChannel().sendMessage("Added an alias to the list!").queue();
 
