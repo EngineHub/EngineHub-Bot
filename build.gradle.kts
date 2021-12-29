@@ -12,7 +12,6 @@ version = "1.0-SNAPSHOT"
 
 configure<JavaPluginExtension> {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
-    withJavadocJar()
     withSourcesJar()
 }
 
