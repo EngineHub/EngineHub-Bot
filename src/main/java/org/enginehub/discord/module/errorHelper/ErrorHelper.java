@@ -92,7 +92,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
                     BufferedImage image = ImageIO.read(is);
                     messageText.append(tesseract.doOCR(image));
                 } catch (Throwable t) {
-                    t.printStackTrace();
+                    LOGGER.warn("Tesseract failed to OCR image", t);
                 }
             }
             if (attachment.getFileName().endsWith(".txt") || attachment.getFileName().endsWith(".log")) {
@@ -175,6 +175,9 @@ public class ErrorHelper extends ListenerAdapter implements Module {
         if (Files.exists(tessDataPath) && Files.isDirectory(tessDataPath)) {
             tesseract = new Tesseract();
             tesseract.setDatapath(tessDataPath.toAbsolutePath().toString());
+            LOGGER.info("Tesseract loaded!");
+        } else {
+            LOGGER.warn("Tesseract not found!");
         }
     }
 
