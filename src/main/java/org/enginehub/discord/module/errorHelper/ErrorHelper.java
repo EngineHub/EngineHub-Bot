@@ -121,7 +121,16 @@ public class ErrorHelper extends ListenerAdapter implements Module {
     }
 
     private static String cleanString(String string) {
-        return string.toLowerCase().replace("\n", "").replace("\r", "").replace(" ", "").replace("\t", "");
+        return string.toLowerCase()
+            .replace("\n", "")
+            .replace("\r", "")
+            .replace(" ", "")
+            .replace("\t", "")
+            // These are different - not a repetition
+            .replace("’", "'")
+            .replace("‘", "'")
+            .replace("“", "\"")
+            .replace("”", "\"");
     }
 
     private List<String> messagesForError(String error) {
