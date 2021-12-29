@@ -34,13 +34,12 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.enginehub.discord.module.Alerts;
-import org.enginehub.discord.module.AutoErase;
 import org.enginehub.discord.module.ChatFilter;
 import org.enginehub.discord.module.EmojiRole;
 import org.enginehub.discord.module.IdleRPG;
@@ -65,7 +64,7 @@ import javax.security.auth.login.LoginException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class EngineHubBot implements Runnable, EventListener {
+public class EngineHubBot extends ListenerAdapter implements Runnable {
 
     public static final String COMMAND_PREFIX = "~";
 
@@ -155,8 +154,8 @@ public class EngineHubBot implements Runnable, EventListener {
                     CacheFlag.ONLINE_STATUS
                 )
                 .build();
+
         api.awaitReady();
-        System.out.println("Connected");
 
         Settings.loadModules();
 
@@ -183,6 +182,7 @@ public class EngineHubBot implements Runnable, EventListener {
         commandDispatcher = node.graph().getDispatcher();
 
         modules.forEach(Module::onInitialise);
+        System.out.println("Connected");
     }
 
     private void disconnect() {
@@ -192,7 +192,6 @@ public class EngineHubBot implements Runnable, EventListener {
     }
 
     private final Collection<Module> modules = Lists.newArrayList(
-            new AutoErase(),
             new Alerts(),
             new ChatFilter(),
             new SetProfilePicture(),
@@ -235,18 +234,18 @@ public class EngineHubBot implements Runnable, EventListener {
     private static final String[] PARENT_COMANDS = new String[0];
 
     @Override
-    public void onEvent(@Nonnull GenericEvent event) {
-        if (event instanceof MessageReceivedEvent && ((MessageReceivedEvent) event).getMessage().getContentRaw().startsWith(COMMAND_PREFIX)) {
-            String commandArgs = ((MessageReceivedEvent) event).getMessage().getContentRaw().substring(COMMAND_PREFIX.length());
+    public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
+        if (commandDispatcher != null && event.getMessage().getContentRaw().startsWith(COMMAND_PREFIX)) {
+            String commandArgs = event.getMessage().getContentRaw().substring(COMMAND_PREFIX.length());
 
-            if (commandArgs.equals("stop") && isAuthorised(((MessageReceivedEvent) event).getMember(), PermissionRoles.BOT_OWNER)) {
+            if (commandArgs.equals("stop") && isAuthorised(event.getMember(), PermissionRoles.BOT_OWNER)) {
                 running = false;
                 return;
             }
 
             CommandLocals locals = new CommandLocals();
-            locals.put(Member.class, ((MessageReceivedEvent) event).getMember());
-            locals.put(Message.class, ((MessageReceivedEvent) event).getMessage());
+            locals.put(Member.class, event.getMember());
+            locals.put(Message.class, event.getMessage());
 
             try {
                 commandDispatcher.call(commandArgs, locals, PARENT_COMANDS);
@@ -256,12 +255,12 @@ public class EngineHubBot implements Runnable, EventListener {
                     // Don't send a message.
                     return;
                 }
-                ((MessageReceivedEvent) event).getChannel().sendMessage(usage == null ? "No help text available." : usage).queue();
+                event.getChannel().sendMessage(usage == null ? "No help text available." : usage).queue();
             } catch (CommandException e) {
-                ((MessageReceivedEvent) event).getChannel().sendMessage("Failed to send command! " + e.getMessage()).queue();
+                event.getChannel().sendMessage("Failed to send command! " + e.getMessage()).queue();
                 e.printStackTrace();
             } catch (AuthorizationException e) {
-                ((MessageReceivedEvent) event).getChannel().sendMessage("You don't have permissions!").queue();
+                event.getChannel().sendMessage("You don't have permissions!").queue();
             }
         }
     }

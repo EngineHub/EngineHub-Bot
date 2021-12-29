@@ -21,11 +21,11 @@
  */
 package org.enginehub.discord.module;
 
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.enginehub.discord.EngineHubBot;
 import org.enginehub.discord.util.PermissionRoles;
 import org.enginehub.discord.util.PunishmentUtil;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.util.HashMap;
@@ -37,7 +37,7 @@ public class NoPingSpam extends ListenerAdapter implements Module {
     private final HashMap<String, Integer> spamTimes = new HashMap<>();
 
     @Override
-    public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event) {
+    public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
         // Don't check for people who are allowed to ping
         if (EngineHubBot.isAuthorised(event.getMember(), PermissionRoles.TRUSTED)) {
             return;
