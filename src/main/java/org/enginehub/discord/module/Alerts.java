@@ -32,7 +32,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.enginehub.discord.EngineHubBot;
 import org.enginehub.discord.Settings;
-import org.enginehub.discord.util.PermissionRoles;
+import org.enginehub.discord.util.PermissionRole;
 import org.enginehub.discord.util.PunishmentUtil;
 import org.enginehub.discord.util.command.CommandPermission;
 import org.enginehub.discord.util.command.CommandPermissionConditionGenerator;
@@ -114,7 +114,7 @@ public class Alerts extends ListenerAdapter implements Module {
     }
 
     @Command(name = "alert", desc = "Sets the channel to alert.")
-    @CommandPermission(PermissionRoles.ADMIN)
+    @CommandPermission(PermissionRole.ADMIN)
     public void alert(Message message) {
         alertChannels.put(message.getGuild().getId(), message.getChannel().getId());
         message.getChannel().sendMessage("Set alert channel!").queue();

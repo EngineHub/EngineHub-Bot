@@ -25,7 +25,7 @@ import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.enginehub.discord.EngineHubBot;
-import org.enginehub.discord.util.PermissionRoles;
+import org.enginehub.discord.util.PermissionRole;
 import org.enginehub.discord.util.PunishmentUtil;
 
 import java.util.HashMap;
@@ -38,7 +38,7 @@ public class PingWarning extends ListenerAdapter implements Module {
     @Override
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
         // Don't check for people who are allowed to ping
-        if (EngineHubBot.isAuthorised(event.getMember(), PermissionRoles.TRUSTED) || event.getMember() == null) {
+        if (EngineHubBot.isAuthorised(event.getMember(), PermissionRole.TRUSTED) || event.getMember() == null) {
             return;
         }
 
@@ -48,7 +48,7 @@ public class PingWarning extends ListenerAdapter implements Module {
 
         boolean mentionsDev = event.getMessage().getMentionedMembers()
                 .stream()
-                .anyMatch(user -> EngineHubBot.isAuthorised(user, PermissionRoles.MODERATOR) || EngineHubBot.isAuthorised(user, "Contributor"));
+                .anyMatch(user -> EngineHubBot.isAuthorised(user, PermissionRole.PING_EXEMPT));
 
         if (mentionsDev) {
             event.getChannel().sendMessage("Hey " + event.getAuthor().getAsMention() + "! It's against the rules to ping the developers (replies count too, unless you turn it off!), make sure to read the rules!").queue();
