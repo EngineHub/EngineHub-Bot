@@ -8,7 +8,7 @@ The bot can be downloaded from EngineHub's CI: [![TeamCity build status](https:/
 
 Compiling
 ---------
-The project is written for Java 8 and our build process makes use of [Gradle](http://gradle.org/).
+The project is written for Java 17 and our build process makes use of [Gradle](http://gradle.org/).
 simply run:
 
     gradlew build
@@ -26,8 +26,7 @@ The following is an example script, that will automatically update the bot durin
 
 while true
 do
-    rm EngineHub-Bot.jar
-    wget https://jitpack.io/com/github/EngineHub/EngineHub-Bot/-SNAPSHOT/EngineHub-Bot--SNAPSHOT.jar -O EngineHub-Bot.jar
+    wget --timestamping https://ci.enginehub.org/guestAuth/app/rest/builds/buildType:EngineHubBot_EngineHubBotBuild,count:1,branch:master,status:SUCCESS/artifacts/content/EngineHubBot-1.0-SNAPSHOT.jar -O Me4Bot.jar
     java -cp EngineHub-Bot.jar org.enginehub.discord.EngineHubBot
     sleep 10
 done
