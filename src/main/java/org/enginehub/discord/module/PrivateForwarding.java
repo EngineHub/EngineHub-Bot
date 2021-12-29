@@ -32,7 +32,7 @@ import ninja.leaping.configurate.ConfigurationNode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.enginehub.discord.EngineHubBot;
-import org.enginehub.discord.util.PermissionRoles;
+import org.enginehub.discord.util.PermissionRole;
 import org.enginehub.discord.util.command.CommandPermission;
 import org.enginehub.discord.util.command.CommandPermissionConditionGenerator;
 import org.enginehub.discord.util.command.CommandRegistrationHandler;
@@ -67,7 +67,7 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
     }
 
     @Command(name = "replydm", desc = "Manually reply to a DM to the bot.")
-    @CommandPermission(PermissionRoles.MODERATOR)
+    @CommandPermission(PermissionRole.MODERATOR)
     public void replyDM(Message message, @Arg(desc = "The user to reply to") String userId, @Arg(desc = "The response", variable = true) List<String> response) {
         User user = EngineHubBot.bot.api.getUserByTag(userId);
         if (user == null) {

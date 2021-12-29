@@ -33,7 +33,7 @@ import ninja.leaping.configurate.ConfigurationNode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.enginehub.discord.EngineHubBot;
-import org.enginehub.discord.util.PermissionRoles;
+import org.enginehub.discord.util.PermissionRole;
 import org.enginehub.discord.util.PunishmentUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -63,7 +63,7 @@ public class NoMessageSpam extends ListenerAdapter implements Module {
     @Override
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
         // Don't check for people who are trusted not to spam
-        if (EngineHubBot.isAuthorised(event.getMember(), PermissionRoles.TRUSTED)) {
+        if (EngineHubBot.isAuthorised(event.getMember(), PermissionRole.TRUSTED)) {
             return;
         }
 

@@ -27,7 +27,7 @@ import net.dv8tion.jda.api.entities.User;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.enginehub.discord.Settings;
-import org.enginehub.discord.util.PermissionRoles;
+import org.enginehub.discord.util.PermissionRole;
 import org.enginehub.discord.util.command.CommandPermission;
 import org.enginehub.discord.util.command.CommandPermissionConditionGenerator;
 import org.enginehub.discord.util.command.CommandRegistrationHandler;
@@ -95,7 +95,7 @@ public class LinkGrabber implements Module {
     }
 
     @Command(name = "addalias", aliases = {"addlink"}, desc = "Adds an alias.")
-    @CommandPermission(PermissionRoles.MODERATOR)
+    @CommandPermission(PermissionRole.MODERATOR)
     public void addLink(Message message, @Arg(desc = "The alias key") String key, @Arg(desc = "The alias value", variable = true) List<String> link) {
         aliasMap.put(key, String.join(" ", link).replace("\\n", "\n"));
 
