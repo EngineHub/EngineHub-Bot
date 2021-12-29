@@ -33,7 +33,7 @@ configure<LicenseExtension> {
 }
 
 tasks.named<JavaCompile>("compileJava") {
-    options.compilerArgs = listOf("-parameters", "-Werror")
+    options.compilerArgs = listOf("-parameters", "-Werror", "-Aarg.name.key.prefix=")
 }
 
 tasks.named<Jar>("jar") {
