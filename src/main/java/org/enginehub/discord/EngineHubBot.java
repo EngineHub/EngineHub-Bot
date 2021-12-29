@@ -32,6 +32,8 @@ import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.enginehub.discord.module.Alerts;
 import org.enginehub.discord.module.ChatFilter;
 import org.enginehub.discord.module.EmojiRole;
@@ -69,6 +71,8 @@ import javax.security.auth.login.LoginException;
 public class EngineHubBot extends ListenerAdapter implements Runnable {
 
     public static final String COMMAND_PREFIX = "~";
+
+    private static final Logger LOGGER = LogManager.getLogger();
 
     public static EngineHubBot bot;
     private static volatile boolean running = true;
@@ -149,7 +153,7 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
 
     private EngineHubBot() throws LoginException, InterruptedException {
         bot = this;
-        System.out.println("Connecting...");
+        LOGGER.info("Connecting...");
         api = JDABuilder.create(Settings.token, intents)
                 .setAutoReconnect(true)
                 .addEventListeners(this)
@@ -175,7 +179,7 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
         }
 
         modules.forEach(Module::onInitialise);
-        System.out.println("Connected");
+        LOGGER.info("Connected!");
     }
 
     private void disconnect() {
@@ -212,7 +216,7 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
 
             if (System.currentTimeMillis() - startTime > 1000 * 60 * 60 * 12) {
                 running = false;
-                System.out.println("Shutting down!");
+                LOGGER.info("Shutting down!");
                 break;
             }
 

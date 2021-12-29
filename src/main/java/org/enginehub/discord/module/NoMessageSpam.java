@@ -30,6 +30,8 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.enginehub.discord.EngineHubBot;
 import org.enginehub.discord.util.PermissionRoles;
 import org.enginehub.discord.util.PunishmentUtil;
@@ -46,6 +48,8 @@ import javax.annotation.Nonnull;
  * A simple anti-same-message spam filter.
  */
 public class NoMessageSpam extends ListenerAdapter implements Module {
+
+    private static final Logger LOGGER = LogManager.getLogger();
 
     private record CacheKey(long userId, int messageHash) { }
 
@@ -122,7 +126,7 @@ public class NoMessageSpam extends ListenerAdapter implements Module {
         for (long guildId : guildsForPunish) {
             Guild guild = event.getJDA().getGuildById(guildId);
             if (guild == null) {
-                System.err.println("Warning, guild " + guildId + " does not appear to be known to this bot.");
+                LOGGER.warn("Warning, guild " + guildId + " does not appear to be known to this bot.");
                 continue;
             }
             Member member = guild.getMember(event.getAuthor());

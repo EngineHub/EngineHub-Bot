@@ -40,27 +40,52 @@ tasks.named<Jar>("jar") {
     archiveClassifier.set("dev")
 }
 
-tasks.named<Jar>("shadowJar") {
+tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
     archiveClassifier.set("")
-}
 
-val pistonVersion = "0.5.7"
+    exclude("GradleStart**")
+    exclude(".cache")
+    exclude("LICENSE*")
+    exclude("META-INF/maven/**")
+
+    manifest.attributes(mapOf("Multi-Release" to "true"))
+}
 
 dependencies {
     implementation("net.dv8tion:JDA:5.0.0-alpha.3")
+
     implementation("org.spongepowered:configurate-hocon:3.7.2")
+
     implementation("com.typesafe:config:1.4.1")
+
+    val pistonVersion = "0.5.7"
     implementation("org.enginehub.piston:core:${pistonVersion}")
-    runtimeOnly("org.enginehub.piston.core-ap:runtime:${pistonVersion}")
     implementation("org.enginehub.piston:default-impl:${pistonVersion}")
     implementation("org.enginehub.piston.core-ap:annotations:${pistonVersion}")
     annotationProcessor("org.enginehub.piston.core-ap:processor:${pistonVersion}")
+    runtimeOnly("org.enginehub.piston.core-ap:runtime:${pistonVersion}")
+
     implementation(platform("com.fasterxml.jackson:jackson-bom:2.13.0"))
     implementation("com.fasterxml.jackson.core:jackson-core")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8")
     implementation("com.fasterxml.jackson.module:jackson-module-parameter-names")
+
+    val slf4jVersion = "1.7.32"
+    val log4jVersion = "2.17.0"
+    // Primarily prefer Log4J for logging.
+    implementation("org.apache.logging.log4j:log4j-api:$log4jVersion")
+    // Bind SLF4J over STDOUT [JDA]
+    runtimeOnly("org.slf4j:slf4j-simple:$slf4jVersion")
+    // Bind Log4J over SLF4J [Piston, etc.]
+    runtimeOnly("org.apache.logging.log4j:log4j-to-slf4j:$log4jVersion")
+
+    constraints {
+        implementation("org.slf4j:slf4j-api:$slf4jVersion")
+    }
+
     implementation("org.apache.commons:commons-text:1.9")
+
     testImplementation("junit:junit:4.13.2")
 }
 
