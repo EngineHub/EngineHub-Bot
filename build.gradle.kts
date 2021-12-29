@@ -45,14 +45,14 @@ tasks.named<Jar>("shadowJar") {
     archiveClassifier.set("")
 }
 
-var pistonVersion = "0.5.7";
+val pistonVersion = "0.5.7";
 
 dependencies {
     implementation("net.dv8tion:JDA:5.0.0-alpha.3")
     implementation("org.spongepowered:configurate-hocon:3.7.2")
     implementation("com.typesafe:config:1.4.1")
     implementation("org.enginehub.piston:core:${pistonVersion}")
-    implementation("org.enginehub.piston.core-ap:runtime:${pistonVersion}")
+    runtimeOnly("org.enginehub.piston.core-ap:runtime:${pistonVersion}")
     implementation("org.enginehub.piston:default-impl:${pistonVersion}")
     implementation("org.enginehub.piston.core-ap:annotations:${pistonVersion}")
     annotationProcessor("org.enginehub.piston.core-ap:processor:${pistonVersion}")

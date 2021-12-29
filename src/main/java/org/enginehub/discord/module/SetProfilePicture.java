@@ -45,7 +45,7 @@ public class SetProfilePicture implements Module {
     }
 
 
-    @Command(name = "setprofilepicture", desc = "Set's the profile picture of this bot.")
+    @Command(name = "setprofilepicture", desc = "Sets the profile picture of this bot.")
     @CommandPermission(PermissionRoles.BOT_OWNER)
     public void setProfilePicture(Message message) {
         Optional<Message.Attachment> attachmentOptional = message.getAttachments().stream().filter(Message.Attachment::isImage).findFirst();
