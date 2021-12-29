@@ -21,7 +21,8 @@
  */
 package org.enginehub.discord.module;
 
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.entities.GuildChannel;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.enginehub.discord.EngineHubBot;
 import org.enginehub.discord.util.PermissionRoles;
@@ -35,9 +36,13 @@ public class PingWarning extends ListenerAdapter implements Module {
     private final HashMap<String, Integer> spamTimes = new HashMap<>();
 
     @Override
-    public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event) {
+    public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
         // Don't check for people who are allowed to ping
         if (EngineHubBot.isAuthorised(event.getMember(), PermissionRoles.TRUSTED) || event.getMember() == null) {
+            return;
+        }
+
+        if (!(event.getChannel() instanceof GuildChannel)) {
             return;
         }
 

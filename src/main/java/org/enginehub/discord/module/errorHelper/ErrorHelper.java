@@ -25,8 +25,7 @@ import com.google.common.reflect.TypeToken;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
@@ -65,11 +64,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
     private List<ErrorEntry> errorMessages = new ArrayList<>();
 
     @Override
-    public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event) {
-        scanMessage(event.getMessage(), event.getAuthor(), event.getChannel());
-    }
-
-    public void onPrivateMessageReceived(@Nonnull PrivateMessageReceivedEvent event) {
+    public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
         scanMessage(event.getMessage(), event.getAuthor(), event.getChannel());
     }
 

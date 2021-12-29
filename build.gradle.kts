@@ -1,3 +1,5 @@
+import org.cadixdev.gradle.licenser.LicenseExtension
+
 plugins {
     id("java")
     id("maven-publish")
@@ -8,7 +10,7 @@ plugins {
 group = "org.enginehub"
 version = "1.0-SNAPSHOT"
 
-java {
+configure<JavaPluginExtension> {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
     withJavadocJar()
     withSourcesJar()
@@ -16,9 +18,6 @@ java {
 
 repositories {
     mavenCentral()
-    maven {
-        url = uri("https://m2.dv8tion.net/releases")
-    }
     maven {
         name = "sponge"
         url = uri("https://repo.spongepowered.org/maven")
@@ -34,7 +33,7 @@ configurations.all {
     }
 }
 
-license {
+configure<LicenseExtension> {
     newLine(false)
     header(project.file("HEADER.txt"))
     include("**/*.java")
@@ -53,7 +52,7 @@ tasks.named<Jar>("shadowJar") {
 }
 
 dependencies {
-    implementation("net.dv8tion:JDA:4.4.0_352")
+    implementation("net.dv8tion:JDA:5.0.0-alpha.3")
     implementation("org.spongepowered:configurate-hocon:3.7.2")
     implementation("com.typesafe:config:1.4.1")
     implementation("com.sk89q:intake:3.1.2")
@@ -65,7 +64,7 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
 }
 
-publishing {
+configure<PublishingExtension> {
     publications {
         register<MavenPublication>("java") {
             from(components["java"])
