@@ -40,7 +40,6 @@ import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.enginehub.discord.module.Alerts;
-import org.enginehub.discord.module.AutoErase;
 import org.enginehub.discord.module.ChatFilter;
 import org.enginehub.discord.module.EmojiRole;
 import org.enginehub.discord.module.IdleRPG;
@@ -192,7 +191,6 @@ public class EngineHubBot implements Runnable, EventListener {
     }
 
     private final Collection<Module> modules = Lists.newArrayList(
-            new AutoErase(),
             new Alerts(),
             new ChatFilter(),
             new SetProfilePicture(),

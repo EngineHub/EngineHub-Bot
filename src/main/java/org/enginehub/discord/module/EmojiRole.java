@@ -24,13 +24,14 @@ package org.enginehub.discord.module;
 import com.google.common.reflect.TypeToken;
 import net.dv8tion.jda.api.entities.Emote;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
@@ -66,7 +67,12 @@ public class EmojiRole extends ListenerAdapter implements Module {
     }
 
     @Override
-    public void onGuildMessageReactionAdd(@Nonnull GuildMessageReactionAddEvent event) {
+    public void onMessageReactionAdd(@Nonnull MessageReactionAddEvent event) {
+        if (!(event.getChannel() instanceof GuildChannel)) {
+            // Only supported within a guild.
+            return;
+        }
+
         if (event.getMessageId().equals(messageId) && !event.getMember().getUser().isBot()) {
             getRoleByEmoji(event.getGuild(), event.getReactionEmote().getId()).ifPresentOrElse(
                     role -> toggleRole(event.getGuild(), role, event.getMember(), event.getReaction()),

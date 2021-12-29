@@ -56,7 +56,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static org.enginehub.discord.util.StringUtil.createEmbed;
 
@@ -176,7 +175,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
             .sorted(Comparator.<PlayerData>naturalOrder().reversed())
             .skip((page - 1) * 10L)
             .limit(10)
-            .collect(Collectors.toList());
+            .toList();
         var now = Instant.now();
         StringBuilder leaderboardMessage = new StringBuilder("IdleRPG Leaderboard (Page " + page + ")\n\n");
         for (int i = 0; i < topPlayers.size(); i++) {
