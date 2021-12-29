@@ -4,7 +4,7 @@ EngineHub Bot is the Discord bot to assist in moderating and providing support i
 
 Downloading
 -----------
-The bot can be downloaded from [Jitpack](https://jitpack.io/com/github/EngineHub/EngineHub-Bot/-SNAPSHOT/EngineHub-Bot--SNAPSHOT.jar).
+The bot can be downloaded from EngineHub's CI: [![TeamCity build status](https://ci.enginehub.org/app/rest/builds/buildType:id:EngineHubBot_EngineHubBotBuild/statusIcon.svg)](https://ci.enginehub.org/buildConfiguration/EngineHubBot_EngineHubBotBuild)
 
 Compiling
 ---------
