@@ -21,12 +21,30 @@
  */
 package org.enginehub.discord.util;
 
-public class PermissionRoles {
+import org.jetbrains.annotations.Nullable;
 
-    public static final String BOT_OWNER = "Owner";
-    public static final String ADMIN = "Admins";
-    public static final String MODERATOR = "Developers";
-    public static final String TRUSTED = "Verified";
-    public static final String ANY = "Everyone";
+public enum PermissionRole {
+    // Larger ordinal -> more permissions
+    ANY(null),
+    TRUSTED("Verified"),
+    PING_EXEMPT("Contributors"),
+    MODERATOR("Developers"),
+    ADMIN("Admins"),
+    BOT_OWNER(null),
+    ;
 
+    public static @Nullable PermissionRole fromDiscordRoleName(String name) {
+        for (PermissionRole role : values()) {
+            if (name.equalsIgnoreCase(role.discordRoleName)) {
+                return role;
+            }
+        }
+        return null;
+    }
+
+    private final String discordRoleName;
+
+    PermissionRole(String discordRoleName) {
+        this.discordRoleName = discordRoleName;
+    }
 }

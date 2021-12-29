@@ -27,6 +27,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -48,7 +49,7 @@ import org.enginehub.discord.module.PrivateForwarding;
 import org.enginehub.discord.module.RoryFetch;
 import org.enginehub.discord.module.SetProfilePicture;
 import org.enginehub.discord.module.errorHelper.ErrorHelper;
-import org.enginehub.discord.util.PermissionRoles;
+import org.enginehub.discord.util.PermissionRole;
 import org.enginehub.discord.util.command.CommandArgParser;
 import org.enginehub.discord.util.command.CommandRegistrationHandler;
 import org.enginehub.discord.util.command.Substring;
@@ -65,6 +66,9 @@ import org.enginehub.piston.util.ValueProvider;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.security.auth.login.LoginException;
 
@@ -77,8 +81,8 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
     public static EngineHubBot bot;
     private static volatile boolean running = true;
 
-    public static boolean isAuthorised(Member member, String permission) {
-        if (permission.equalsIgnoreCase(PermissionRoles.ANY)) {
+    public static boolean isAuthorised(Member member, PermissionRole permission) {
+        if (permission == PermissionRole.ANY) {
             return true;
         }
 
@@ -86,30 +90,21 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
             return false;
         }
 
-        if (permission.equalsIgnoreCase(PermissionRoles.BOT_OWNER)) {
-            return member.getUser().getName().equals(Settings.hostUsername)
-                    && member.getUser().getDiscriminator().equals(Settings.hostIdentifier);
+        // Collect all roles into a set
+        var roles = member.getRoles().stream()
+            .map(Role::getName)
+            .map(PermissionRole::fromDiscordRoleName)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toCollection(TreeSet::new));
+
+        // Add BOT_OWNER to the set if applicable
+        if (member.getUser().getName().equals(Settings.hostUsername)
+            && member.getUser().getDiscriminator().equals(Settings.hostIdentifier)) {
+            roles.add(PermissionRole.BOT_OWNER);
         }
 
-        boolean hasRank;
-
-        while (true) {
-            String finalPermission = permission;
-            hasRank = member.getRoles().stream().anyMatch(role -> role.getName().equalsIgnoreCase(finalPermission));
-            if (!hasRank) {
-                if (PermissionRoles.TRUSTED.equals(permission)) {
-                    permission = PermissionRoles.MODERATOR;
-                } else if (PermissionRoles.MODERATOR.equals(permission)) {
-                    permission = PermissionRoles.ADMIN;
-                } else {
-                    break;
-                }
-            } else {
-                break;
-            }
-        }
-
-        return hasRank;
+        // Take any permission role that is equal to or higher than the requested permission
+        return roles.ceiling(permission) != null;
     }
 
     public static void main(String[] args) {
@@ -233,7 +228,7 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
         if (commandManager != null && event.getMessage().getContentRaw().startsWith(COMMAND_PREFIX)) {
             String commandArgs = event.getMessage().getContentRaw().substring(COMMAND_PREFIX.length());
 
-            if (commandArgs.equals("stop") && isAuthorised(event.getMember(), PermissionRoles.BOT_OWNER)) {
+            if (commandArgs.equals("stop") && isAuthorised(event.getMember(), PermissionRole.BOT_OWNER)) {
                 running = false;
                 return;
             }

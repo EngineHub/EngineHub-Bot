@@ -23,6 +23,7 @@ package org.enginehub.discord.util.command;
 
 import net.dv8tion.jda.api.entities.Member;
 import org.enginehub.discord.EngineHubBot;
+import org.enginehub.discord.util.PermissionRole;
 import org.enginehub.piston.Command;
 import org.enginehub.piston.inject.InjectedValueAccess;
 import org.enginehub.piston.inject.Key;
@@ -30,20 +31,15 @@ import org.enginehub.piston.inject.Key;
 public class PermissionCondition implements Command.Condition {
     private static final Key<Member> MEMBER_KEY = Key.of(Member.class);
 
-    private final String permission;
+    private final PermissionRole permission;
 
-    public PermissionCondition(String permission) {
+    public PermissionCondition(PermissionRole permission) {
         this.permission = permission;
-    }
-
-    public String getPermission() {
-        return permission;
     }
 
     @Override
     public boolean satisfied(InjectedValueAccess context) {
-        return permission == null || permission.isEmpty()
-            || context.injectedValue(MEMBER_KEY)
+        return permission == null || context.injectedValue(MEMBER_KEY)
             .map(member -> EngineHubBot.isAuthorised(member, permission))
             .orElse(false);
     }
