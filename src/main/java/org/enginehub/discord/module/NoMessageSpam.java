@@ -27,7 +27,6 @@ import com.google.common.cache.LoadingCache;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -59,45 +58,59 @@ public class NoMessageSpam extends ListenerAdapter implements Module {
 
     @Override
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
+        // Don't check for people who are trusted not to spam
+        if (EngineHubBot.isAuthorised(event.getMember(), PermissionRoles.TRUSTED)) {
+            return;
+        }
+
         if (event.getChannel() instanceof GuildChannel) {
-            // Don't check for people who are trusted not to spam
-            if (EngineHubBot.isAuthorised(event.getMember(), PermissionRoles.TRUSTED)) {
+            if (checkForGeneralSpam(event)) {
+                // Skip further checks if they were already banned
                 return;
-            }
-
-            var contentRaw = event.getMessage().getContentRaw();
-            var cacheKey = new CacheKey(
-                event.getAuthor().getIdLong(),
-                contentRaw.hashCode()
-            );
-            var hashCount = messageCounts.getUnchecked(cacheKey).incrementAndGet();
-
-            if (contentRaw.length() < 10) {
-                // This is unlikely to be a "true" spam message. Only kick people if they repeat it
-                // an unrealistic amount (given our 1 minute counter, more than 10/12 is likely spam)
-                hashCount /= 2;
-            }
-
-            // We only want one thread to run this, so use an exact equality to ensure this
-            if (hashCount == 5) {
-                PunishmentUtil.banUser(event.getGuild(), event.getAuthor(), "Message spam", true);
-            }
-        } else if (event.getChannel() instanceof PrivateChannel) {
-            if (!(event.getMessage().mentionsEveryone() || event.getMessage().getContentRaw().contains("@everyone"))) {
-                return;
-            }
-
-            if (hasPingedBefore.add(event.getAuthor().getIdLong())) {
-                // They haven't pinged before, kick.
-                punishForAtEveryone(event, PunishmentUtil::kickUser);
-            } else {
-                // It's ban time.
-                punishForAtEveryone(
-                    event,
-                    (guild, member, reason) -> PunishmentUtil.banUser(guild, member.getUser(), reason, false)
-                );
             }
         }
+
+        checkForAtEveryone(event);
+    }
+
+    private void checkForAtEveryone(@NotNull MessageReceivedEvent event) {
+        if (!(event.getMessage().mentionsEveryone() || event.getMessage().getContentRaw().contains("@everyone"))) {
+            return;
+        }
+
+        if (hasPingedBefore.add(event.getAuthor().getIdLong())) {
+            // They haven't pinged before, kick.
+            punishForAtEveryone(event, PunishmentUtil::kickUser);
+        } else {
+            // It's ban time.
+            punishForAtEveryone(
+                event,
+                (guild, member, reason) -> PunishmentUtil.banUser(guild, member.getUser(), reason, false)
+            );
+        }
+    }
+
+    private boolean checkForGeneralSpam(@NotNull MessageReceivedEvent event) {
+        var contentRaw = event.getMessage().getContentRaw();
+        var cacheKey = new CacheKey(
+            event.getAuthor().getIdLong(),
+            contentRaw.hashCode()
+        );
+        var hashCount = messageCounts.getUnchecked(cacheKey).incrementAndGet();
+
+        if (contentRaw.length() < 10) {
+            // This is unlikely to be a "true" spam message. Only kick people if they repeat it
+            // an unrealistic amount (given our 1 minute counter, more than 10/12 is likely spam)
+            hashCount /= 2;
+        }
+
+        // We only want one thread to run this, so use an exact equality to ensure this
+        if (hashCount == 5) {
+            PunishmentUtil.banUser(event.getGuild(), event.getAuthor(), "Message spam", true);
+            return true;
+        }
+
+        return false;
     }
 
     // TODO: Consider extracting out?
@@ -114,7 +127,7 @@ public class NoMessageSpam extends ListenerAdapter implements Module {
             }
             Member member = guild.getMember(event.getAuthor());
             if (member != null) {
-                punishment.enact(guild, member, "Attempting to ping everyone in DMs");
+                punishment.enact(guild, member, "Attempting to ping everyone");
             }
         }
     }
