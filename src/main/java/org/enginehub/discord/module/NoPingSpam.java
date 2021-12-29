@@ -23,7 +23,7 @@ package org.enginehub.discord.module;
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.enginehub.discord.EngineHubBot;
-import org.enginehub.discord.util.PermissionRoles;
+import org.enginehub.discord.util.PermissionRole;
 import org.enginehub.discord.util.PunishmentUtil;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -39,7 +39,7 @@ public class NoPingSpam extends ListenerAdapter implements Module {
     @Override
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
         // Don't check for people who are allowed to ping
-        if (EngineHubBot.isAuthorised(event.getMember(), PermissionRoles.TRUSTED)) {
+        if (EngineHubBot.isAuthorised(event.getMember(), PermissionRole.TRUSTED)) {
             return;
         }
 

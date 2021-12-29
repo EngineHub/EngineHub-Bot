@@ -22,7 +22,7 @@
 package org.enginehub.discord.module;
 
 import org.enginehub.discord.EngineHubBot;
-import org.enginehub.discord.util.PermissionRoles;
+import org.enginehub.discord.util.PermissionRole;
 import net.dv8tion.jda.api.entities.Icon;
 import net.dv8tion.jda.api.entities.Message;
 import org.enginehub.discord.util.command.CommandPermission;
@@ -46,7 +46,7 @@ public class SetProfilePicture implements Module {
 
 
     @Command(name = "setprofilepicture", desc = "Sets the profile picture of this bot.")
-    @CommandPermission(PermissionRoles.BOT_OWNER)
+    @CommandPermission(PermissionRole.BOT_OWNER)
     public void setProfilePicture(Message message) {
         Optional<Message.Attachment> attachmentOptional = message.getAttachments().stream().filter(Message.Attachment::isImage).findFirst();
 
