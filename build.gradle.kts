@@ -40,11 +40,16 @@ tasks.named<Jar>("jar") {
     archiveClassifier.set("dev")
 }
 
-tasks.named<Jar>("shadowJar") {
+tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
     archiveClassifier.set("")
+
+    exclude("GradleStart**")
+    exclude(".cache")
+    exclude("LICENSE*")
+    exclude("META-INF/maven/**")
+
+    manifest.attributes(mapOf("Multi-Release" to "true"))
 }
-
-
 
 dependencies {
     implementation("net.dv8tion:JDA:5.0.0-alpha.3")
@@ -68,14 +73,15 @@ dependencies {
 
     val slf4jVersion = "1.7.32"
     val log4jVersion = "2.17.0"
-    // Bind SLF4J over STDOUT
+    // Primarily prefer Log4J for logging.
+    implementation("org.apache.logging.log4j:log4j-api:$log4jVersion")
+    // Bind SLF4J over STDOUT [JDA]
     runtimeOnly("org.slf4j:slf4j-simple:$slf4jVersion")
-    // Bind Log4J over SLF4J
+    // Bind Log4J over SLF4J [Piston, etc.]
     runtimeOnly("org.apache.logging.log4j:log4j-to-slf4j:$log4jVersion")
 
     constraints {
         implementation("org.slf4j:slf4j-api:$slf4jVersion")
-        implementation("org.apache.logging.log4j:log4j-api:$log4jVersion")
     }
 
     implementation("org.apache.commons:commons-text:1.9")
