@@ -37,6 +37,7 @@ import org.enginehub.discord.util.command.CommandRegistrationHandler;
 import org.enginehub.piston.CommandManager;
 import org.enginehub.piston.annotation.Command;
 import org.enginehub.piston.annotation.CommandContainer;
+import org.enginehub.piston.annotation.param.Arg;
 import org.jetbrains.annotations.NotNull;
 
 import static org.enginehub.discord.util.StringUtil.createEmbed;
@@ -61,7 +62,7 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
 
     @Command(name = "replydm", desc = "Manually reply to a DM to the bot.")
     @CommandPermission(PermissionRoles.MODERATOR)
-    public void replyDM(Message message, String userId, String response) {
+    public void replyDM(Message message, @Arg(desc = "The user to reply to") String userId, @Arg(desc = "The response", variable = true) String response) {
         User user = EngineHubBot.bot.api.getUserByTag(userId);
         if (user == null) {
             message.getChannel().sendMessage("Unknown user!").queue();

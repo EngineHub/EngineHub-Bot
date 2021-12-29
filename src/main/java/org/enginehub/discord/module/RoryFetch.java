@@ -25,7 +25,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
-import com.typesafe.config.Optional;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -33,6 +32,7 @@ import org.enginehub.discord.util.command.CommandRegistrationHandler;
 import org.enginehub.piston.CommandManager;
 import org.enginehub.piston.annotation.Command;
 import org.enginehub.piston.annotation.CommandContainer;
+import org.enginehub.piston.annotation.param.Arg;
 
 import java.awt.Color;
 import java.io.IOException;
@@ -79,12 +79,12 @@ public class RoryFetch implements Module {
     }
 
     @Command(name = "rory", desc = "Grabs a rory pic.")
-    public void rory(Message message, @Optional String roryId) {
-        if (roryId != null && roryOverrides.containsKey(roryId)) {
+    public void rory(Message message, @Arg(desc = "The ID of the rory image", def = "") String roryId) {
+        if (roryId != null && !roryId.isEmpty() && roryOverrides.containsKey(roryId)) {
             message.getChannel().sendMessageEmbeds(createRoryEmbed(roryId, roryOverrides.get(roryId))).queue();
         } else {
             String url = "https://rory.cat/purr";
-            if (roryId != null) {
+            if (roryId != null && !roryId.isEmpty()) {
                 url = url + '/' + roryId;
             }
             try {

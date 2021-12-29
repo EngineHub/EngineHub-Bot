@@ -21,7 +21,6 @@
  */
 package org.enginehub.discord.module;
 
-import com.typesafe.config.Optional;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
@@ -35,6 +34,7 @@ import org.enginehub.discord.util.command.CommandRegistrationHandler;
 import org.enginehub.piston.CommandManager;
 import org.enginehub.piston.annotation.Command;
 import org.enginehub.piston.annotation.CommandContainer;
+import org.enginehub.piston.annotation.param.Arg;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -55,9 +55,9 @@ public class LinkGrabber implements Module {
     }
 
     @Command(name = "get", aliases = {"g", "~"}, desc = "Grabs an alias.")
-    public void aliasGrabber(Message message, String key, @Optional String userName) {
+    public void aliasGrabber(Message message, @Arg(desc = "The alias key to grab") String key, @Arg(desc = "The user name to grab it for", def = "") String userName) {
         User user = null;
-        if (userName != null) {
+        if (userName != null && !userName.isEmpty()) {
             List<User> users = message.getMentionedUsers();
             if (users.size() != 1) {
                 message.getChannel().sendMessage("I don't know who you want me to send that to, sorry!").queue();
@@ -93,7 +93,7 @@ public class LinkGrabber implements Module {
 
     @Command(name = "addalias", aliases = {"addlink"}, desc = "Adds an alias.")
     @CommandPermission(PermissionRoles.MODERATOR)
-    public void addLink(Message message, String key, String link) {
+    public void addLink(Message message, @Arg(desc = "The alias key") String key, @Arg(desc = "The alias value", variable = true) String link) {
         aliasMap.put(key, link.replace("\\n", "\n"));
 
         message.getChannel().sendMessage("Added an alias to the list!").queue();
