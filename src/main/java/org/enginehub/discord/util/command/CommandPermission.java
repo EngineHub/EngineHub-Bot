@@ -21,9 +21,12 @@
  */
 package org.enginehub.discord.util.command;
 
+import org.enginehub.piston.annotation.CommandCondition;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+@CommandCondition(CommandPermissionConditionGenerator.class)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CommandPermission {
     String value();
