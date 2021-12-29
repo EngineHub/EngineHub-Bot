@@ -19,23 +19,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.enginehub.discord.module;
+package org.enginehub.discord.util.command;
 
-import ninja.leaping.configurate.ConfigurationNode;
-import org.enginehub.discord.util.command.CommandRegistrationHandler;
 import org.enginehub.piston.CommandManager;
+import org.enginehub.piston.gen.CommandRegistration;
 
-public interface Module {
+public class CommandRegistrationHandler {
 
-    default void onInitialise() {}
+    private static final CommandPermissionConditionGenerator PERM_GEN = new CommandPermissionConditionGenerator();
 
-    default void onTick() {}
+    public CommandRegistrationHandler() {
+    }
 
-    default void load(ConfigurationNode loadedNode) {}
-
-    default void setupCommands(CommandRegistrationHandler handler, CommandManager dispatcherNode) {}
-
-    default void save(ConfigurationNode loadedNode) {}
-
-    default void onShutdown() {}
+    public <CI> void register(CommandManager manager, CommandRegistration<CI> registration, CI instance) {
+        registration.containerInstance(instance)
+            .commandManager(manager);
+        if (registration instanceof CommandPermissionConditionGenerator.Registration) {
+            ((CommandPermissionConditionGenerator.Registration) registration).commandPermissionConditionGenerator(
+                PERM_GEN
+            );
+        }
+        registration.build();
+    }
 }

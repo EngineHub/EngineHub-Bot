@@ -27,12 +27,6 @@ repositories {
     }
 }
 
-configurations.all {
-    resolutionStrategy {
-        force("com.google.guava:guava:18.0")
-    }
-}
-
 configure<LicenseExtension> {
     newLine(false)
     header(project.file("HEADER.txt"))
@@ -51,16 +45,23 @@ tasks.named<Jar>("shadowJar") {
     archiveClassifier.set("")
 }
 
+val pistonVersion = "0.5.7";
+
 dependencies {
     implementation("net.dv8tion:JDA:5.0.0-alpha.3")
     implementation("org.spongepowered:configurate-hocon:3.7.2")
     implementation("com.typesafe:config:1.4.1")
-    implementation("com.sk89q:intake:3.1.2")
+    implementation("org.enginehub.piston:core:${pistonVersion}")
+    runtimeOnly("org.enginehub.piston.core-ap:runtime:${pistonVersion}")
+    implementation("org.enginehub.piston:default-impl:${pistonVersion}")
+    implementation("org.enginehub.piston.core-ap:annotations:${pistonVersion}")
+    annotationProcessor("org.enginehub.piston.core-ap:processor:${pistonVersion}")
     implementation(platform("com.fasterxml.jackson:jackson-bom:2.13.0"))
     implementation("com.fasterxml.jackson.core:jackson-core")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8")
     implementation("com.fasterxml.jackson.module:jackson-module-parameter-names")
+    implementation("org.apache.commons:commons-lang3:3.12.0")
     testImplementation("junit:junit:4.13.2")
 }
 

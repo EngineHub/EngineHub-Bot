@@ -25,12 +25,14 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
-import com.sk89q.intake.Command;
-import com.sk89q.intake.fluent.DispatcherNode;
-import com.sk89q.intake.parametric.annotation.Optional;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import org.enginehub.discord.util.command.CommandRegistrationHandler;
+import org.enginehub.piston.CommandManager;
+import org.enginehub.piston.annotation.Command;
+import org.enginehub.piston.annotation.CommandContainer;
+import org.enginehub.piston.annotation.param.Arg;
 
 import java.awt.Color;
 import java.io.IOException;
@@ -44,6 +46,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
+@CommandContainer
 public class RoryFetch implements Module {
 
     private static final Map<String, String> roryOverrides = new HashMap<>();
@@ -61,9 +64,8 @@ public class RoryFetch implements Module {
     }
 
     @Override
-    public DispatcherNode setupCommands(DispatcherNode dispatcherNode) {
-        return dispatcherNode
-            .registerMethods(this);
+    public void setupCommands(CommandRegistrationHandler handler, CommandManager commandManager) {
+        handler.register(commandManager, RoryFetchRegistration.builder(), this);
     }
 
     private static MessageEmbed createRoryEmbed(String roryId, String imageUrl) {
@@ -76,13 +78,13 @@ public class RoryFetch implements Module {
         return builder.build();
     }
 
-    @Command(aliases = {"rory"}, desc = "Grabs a rory pic.")
-    public void rory(Message message, @Optional String roryId) {
-        if (roryId != null && roryOverrides.containsKey(roryId)) {
+    @Command(name = "rory", desc = "Grabs a rory pic.")
+    public void rory(Message message, @Arg(desc = "The ID of the rory image", def = "") String roryId) {
+        if (roryId != null && !roryId.isEmpty() && roryOverrides.containsKey(roryId)) {
             message.getChannel().sendMessageEmbeds(createRoryEmbed(roryId, roryOverrides.get(roryId))).queue();
         } else {
             String url = "https://rory.cat/purr";
-            if (roryId != null) {
+            if (roryId != null && !roryId.isEmpty()) {
                 url = url + '/' + roryId;
             }
             try {

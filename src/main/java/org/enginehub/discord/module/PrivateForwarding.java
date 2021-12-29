@@ -21,8 +21,6 @@
  */
 package org.enginehub.discord.module;
 
-import com.sk89q.intake.Command;
-import com.sk89q.intake.fluent.DispatcherNode;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.PrivateChannel;
@@ -32,10 +30,21 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.enginehub.discord.EngineHubBot;
+import org.enginehub.discord.util.PermissionRoles;
+import org.enginehub.discord.util.command.CommandPermission;
+import org.enginehub.discord.util.command.CommandPermissionConditionGenerator;
+import org.enginehub.discord.util.command.CommandRegistrationHandler;
+import org.enginehub.piston.CommandManager;
+import org.enginehub.piston.annotation.Command;
+import org.enginehub.piston.annotation.CommandContainer;
+import org.enginehub.piston.annotation.param.Arg;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 import static org.enginehub.discord.util.StringUtil.createEmbed;
 
+@CommandContainer(superTypes = CommandPermissionConditionGenerator.Registration.class)
 public class PrivateForwarding extends ListenerAdapter implements Module {
 
     private String forwardChannel;
@@ -49,20 +58,20 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
     }
 
     @Override
-    public DispatcherNode setupCommands(DispatcherNode dispatcherNode) {
-        return dispatcherNode
-            .registerMethods(this);
+    public void setupCommands(CommandRegistrationHandler handler, CommandManager commandManager) {
+        handler.register(commandManager, PrivateForwardingRegistration.builder(), this);
     }
 
-    @Command(aliases = {"replydm"}, desc = "Manually reply to a DM to the bot.")
-    public void replyDM(Message message, String userId, String response) {
+    @Command(name = "replydm", desc = "Manually reply to a DM to the bot.")
+    @CommandPermission(PermissionRoles.MODERATOR)
+    public void replyDM(Message message, @Arg(desc = "The user to reply to") String userId, @Arg(desc = "The response", variable = true) List<String> response) {
         User user = EngineHubBot.bot.api.getUserByTag(userId);
         if (user == null) {
             message.getChannel().sendMessage("Unknown user!").queue();
             return;
         }
 
-        user.openPrivateChannel().queue(privateChannel -> privateChannel.sendMessage(response).queue());
+        user.openPrivateChannel().queue(privateChannel -> privateChannel.sendMessage(String.join(" ", response)).queue());
     }
 
     @Override

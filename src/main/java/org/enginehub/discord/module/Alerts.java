@@ -22,9 +22,6 @@
 package org.enginehub.discord.module;
 
 import com.google.common.collect.Maps;
-import com.sk89q.intake.Command;
-import com.sk89q.intake.Require;
-import com.sk89q.intake.fluent.DispatcherNode;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
@@ -37,6 +34,10 @@ import org.enginehub.discord.EngineHubBot;
 import org.enginehub.discord.Settings;
 import org.enginehub.discord.util.PermissionRoles;
 import org.enginehub.discord.util.PunishmentUtil;
+import org.enginehub.discord.util.command.CommandPermission;
+import org.enginehub.discord.util.command.CommandPermissionConditionGenerator;
+import org.enginehub.discord.util.command.CommandRegistrationHandler;
+import org.enginehub.piston.CommandManager;
 
 import java.util.List;
 import java.util.Map;
@@ -44,7 +45,10 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import org.enginehub.piston.annotation.Command;
+import org.enginehub.piston.annotation.CommandContainer;
 
+@CommandContainer(superTypes = CommandPermissionConditionGenerator.Registration.class)
 public class Alerts extends ListenerAdapter implements Module {
 
     public static Map<String, String> alertChannels = Maps.newHashMap();
@@ -58,9 +62,8 @@ public class Alerts extends ListenerAdapter implements Module {
     );
 
     @Override
-    public DispatcherNode setupCommands(DispatcherNode dispatcherNode) {
-        return dispatcherNode
-                .registerMethods(this);
+    public void setupCommands(CommandRegistrationHandler handler, CommandManager commandManager) {
+        handler.register(commandManager, AlertsRegistration.builder(), this);
     }
 
     @Override
@@ -110,8 +113,8 @@ public class Alerts extends ListenerAdapter implements Module {
         }
     }
 
-    @Command(aliases = "alert", desc = "Sets the channel to alert.")
-    @Require(PermissionRoles.ADMIN)
+    @Command(name = "alert", desc = "Sets the channel to alert.")
+    @CommandPermission(PermissionRoles.ADMIN)
     public void alert(Message message) {
         alertChannels.put(message.getGuild().getId(), message.getChannel().getId());
         message.getChannel().sendMessage("Set alert channel!").queue();
