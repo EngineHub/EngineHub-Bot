@@ -86,6 +86,8 @@ dependencies {
 
     implementation("org.apache.commons:commons-text:1.9")
 
+    implementation("net.sourceforge.tess4j:tess4j:5.0.0")
+
     testImplementation("junit:junit:4.13.2")
 }
 
