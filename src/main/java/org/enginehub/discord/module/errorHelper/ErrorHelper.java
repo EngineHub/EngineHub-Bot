@@ -29,6 +29,8 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.enginehub.discord.module.Module;
 import org.enginehub.discord.module.errorHelper.resolver.ErrorResolver;
 import org.enginehub.discord.module.errorHelper.resolver.GhostbinResolver;
@@ -49,6 +51,8 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
 public class ErrorHelper extends ListenerAdapter implements Module {
+
+    private static final Logger LOGGER = LogManager.getLogger();
 
     private final List<ErrorResolver> resolvers = List.of(
             List::of,
@@ -121,8 +125,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
                 main.append(line);
             }
         } catch (Throwable e) {
-            System.out.println("Failed to load URL " + url + " (Tries " + tries + ')');
-            e.printStackTrace();
+            LOGGER.warn("Failed to load URL " + url + " (Tries " + tries + ')', e);
             if (tries < 5) {
                 return getStringFromUrl0(url, tries + 1);
             }

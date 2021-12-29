@@ -29,6 +29,8 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.enginehub.discord.EngineHubBot;
 import org.enginehub.discord.util.PermissionRoles;
 import org.enginehub.discord.util.command.CommandPermission;
@@ -46,6 +48,8 @@ import static org.enginehub.discord.util.StringUtil.createEmbed;
 
 @CommandContainer(superTypes = CommandPermissionConditionGenerator.Registration.class)
 public class PrivateForwarding extends ListenerAdapter implements Module {
+
+    private static final Logger LOGGER = LogManager.getLogger();
 
     private String forwardChannel;
 
@@ -88,8 +92,7 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
 
                 if (event.getMessage().getContentRaw().isBlank() && event.getMessage().getAttachments().isEmpty()) {
                     // Ignore this blank message
-                    // TODO figure out what causes these
-                    System.err.println("Ignoring message from " + user.getIdLong() + " (" + user.getAsTag() + ")"
+                    LOGGER.warn("Ignoring message from " + user.getIdLong() + " (" + user.getAsTag() + ")"
                         + " because it is empty, the type of the message was " + event.getMessage().getType());
                     return;
                 }
