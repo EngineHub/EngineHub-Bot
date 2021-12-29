@@ -21,17 +21,20 @@
  */
 package org.enginehub.discord.module;
 
-import com.sk89q.intake.Command;
-import com.sk89q.intake.Require;
-import com.sk89q.intake.fluent.DispatcherNode;
-import com.sk89q.intake.parametric.annotation.Optional;
-import com.sk89q.intake.util.StringUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import ninja.leaping.configurate.ConfigurationNode;
+import org.apache.commons.lang3.StringUtils;
 import org.enginehub.discord.Settings;
 import org.enginehub.discord.util.PermissionRoles;
+import org.enginehub.discord.util.command.CommandPermission;
+import org.enginehub.discord.util.command.CommandPermissionConditionGenerator;
+import org.enginehub.discord.util.command.CommandRegistrationHandler;
+import org.enginehub.piston.CommandManager;
+import org.enginehub.piston.annotation.Command;
+import org.enginehub.piston.annotation.CommandContainer;
+import org.enginehub.piston.annotation.param.Arg;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -41,20 +44,20 @@ import java.util.stream.Collectors;
 
 import static org.enginehub.discord.util.StringUtil.createEmbed;
 
+@CommandContainer(superTypes = CommandPermissionConditionGenerator.Registration.class)
 public class LinkGrabber implements Module {
 
     private Map<String, String> aliasMap = new HashMap<>();
 
     @Override
-    public DispatcherNode setupCommands(DispatcherNode dispatcherNode) {
-        return dispatcherNode
-                .registerMethods(this);
+    public void setupCommands(CommandRegistrationHandler handler, CommandManager commandManager) {
+        handler.register(commandManager, LinkGrabberRegistration.builder(), this);
     }
 
-    @Command(aliases = {"get", "g", "~"}, desc = "Grabs an alias.")
-    public void aliasGrabber(Message message, String key, @Optional String userName) {
+    @Command(name = "get", aliases = {"g", "~"}, desc = "Grabs an alias.")
+    public void aliasGrabber(Message message, @Arg(desc = "The alias key to grab") String key, @Arg(desc = "The user name to grab it for", def = "") String userName) {
         User user = null;
-        if (userName != null) {
+        if (userName != null && !userName.isEmpty()) {
             List<User> users = message.getMentionedUsers();
             if (users.size() != 1) {
                 message.getChannel().sendMessage("I don't know who you want me to send that to, sorry!").queue();
@@ -88,17 +91,17 @@ public class LinkGrabber implements Module {
         }
     }
 
-    @Command(aliases = {"addalias", "addlink"}, desc = "Adds an alias.")
-    @Require(PermissionRoles.MODERATOR)
-    public void addLink(Message message, String key, String link) {
-        aliasMap.put(key, link.replace("\\n", "\n"));
+    @Command(name = "addalias", aliases = {"addlink"}, desc = "Adds an alias.")
+    @CommandPermission(PermissionRoles.MODERATOR)
+    public void addLink(Message message, @Arg(desc = "The alias key") String key, @Arg(desc = "The alias value", variable = true) List<String> link) {
+        aliasMap.put(key, String.join(" ", link).replace("\\n", "\n"));
 
         message.getChannel().sendMessage("Added an alias to the list!").queue();
 
         Settings.saveModule(this);
     }
 
-    @Command(aliases = {"listaliases", "aliases", "listlinks"}, desc = "Lists all available aliases.")
+    @Command(name = "listaliases", aliases = {"aliases", "listlinks"}, desc = "Lists all available aliases.")
     public void aliasLister(Message message) {
         message.getChannel().sendMessage("Here you go, " + message.getAuthor().getAsMention() + "! " + String.join(", ", aliasMap.keySet())).queue();
     }

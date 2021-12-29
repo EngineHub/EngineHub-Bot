@@ -19,23 +19,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.enginehub.discord.module;
+package org.enginehub.discord.util.command;
 
-import ninja.leaping.configurate.ConfigurationNode;
-import org.enginehub.discord.util.command.CommandRegistrationHandler;
-import org.enginehub.piston.CommandManager;
+import org.enginehub.piston.Command;
+import org.enginehub.piston.gen.CommandConditionGenerator;
 
-public interface Module {
+import java.lang.reflect.Method;
 
-    default void onInitialise() {}
+import static com.google.common.base.Preconditions.checkNotNull;
 
-    default void onTick() {}
+public final class CommandPermissionConditionGenerator implements CommandConditionGenerator {
 
-    default void load(ConfigurationNode loadedNode) {}
+    public interface Registration {
+        Registration commandPermissionConditionGenerator(CommandPermissionConditionGenerator generator);
+    }
 
-    default void setupCommands(CommandRegistrationHandler handler, CommandManager dispatcherNode) {}
-
-    default void save(ConfigurationNode loadedNode) {}
-
-    default void onShutdown() {}
+    @Override
+    public Command.Condition generateCondition(Method commandMethod) {
+        CommandPermission annotation = commandMethod.getAnnotation(CommandPermission.class);
+        checkNotNull(annotation, "Annotation is missing from commandMethod");
+        return new PermissionCondition(annotation.value());
+    }
 }
