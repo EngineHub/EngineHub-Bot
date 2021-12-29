@@ -23,26 +23,30 @@ package org.enginehub.discord.module;
 
 import org.enginehub.discord.EngineHubBot;
 import org.enginehub.discord.util.PermissionRoles;
-import com.sk89q.intake.Command;
-import com.sk89q.intake.Require;
-import com.sk89q.intake.fluent.DispatcherNode;
 import net.dv8tion.jda.api.entities.Icon;
 import net.dv8tion.jda.api.entities.Message;
+import org.enginehub.discord.util.command.CommandPermission;
+import org.enginehub.discord.util.command.CommandPermissionConditionGenerator;
+import org.enginehub.discord.util.command.CommandRegistrationHandler;
+import org.enginehub.piston.CommandManager;
+import org.enginehub.piston.annotation.Command;
+import org.enginehub.piston.annotation.CommandContainer;
 
 import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
+@CommandContainer(superTypes = CommandPermissionConditionGenerator.Registration.class)
 public class SetProfilePicture implements Module {
 
     @Override
-    public DispatcherNode setupCommands(DispatcherNode dispatcherNode) {
-        return dispatcherNode
-                .registerMethods(this);
+    public void setupCommands(CommandRegistrationHandler handler, CommandManager commandManager) {
+        handler.register(commandManager, SetProfilePictureRegistration.builder(), this);
     }
 
-    @Command(aliases = "setprofilepicture", desc = "Set's the profile picture of this bot.")
-    @Require(PermissionRoles.BOT_OWNER)
+
+    @Command(name = "setprofilepicture", desc = "Set's the profile picture of this bot.")
+    @CommandPermission(PermissionRoles.BOT_OWNER)
     public void setProfilePicture(Message message) {
         Optional<Message.Attachment> attachmentOptional = message.getAttachments().stream().filter(Message.Attachment::isImage).findFirst();
 

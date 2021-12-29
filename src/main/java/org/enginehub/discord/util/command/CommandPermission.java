@@ -19,27 +19,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.enginehub.discord.util.binding;
+package org.enginehub.discord.util.command;
 
-import com.sk89q.intake.parametric.ParameterException;
-import com.sk89q.intake.parametric.argument.ArgumentStack;
-import com.sk89q.intake.parametric.binding.BindingBehavior;
-import com.sk89q.intake.parametric.binding.BindingHelper;
-import com.sk89q.intake.parametric.binding.BindingMatch;
-import net.dv8tion.jda.api.entities.Member;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-public class MemberBinding extends BindingHelper {
-
-    @BindingMatch(type = Member.class,
-            behavior = BindingBehavior.PROVIDES
-    ) // No arguments consumed
-    public Member getMember(ArgumentStack context) throws ParameterException {
-        Member member = context.getContext().getLocals().get(Member.class);
-        if (member == null) {
-            throw new ParameterException("Failed to get member.");
-        } else {
-            return member;
-        }
-    }
-
+@Retention(RetentionPolicy.RUNTIME)
+public @interface CommandPermission {
+    String value();
 }

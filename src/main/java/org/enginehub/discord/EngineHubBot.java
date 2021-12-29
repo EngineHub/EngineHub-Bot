@@ -21,15 +21,8 @@
  */
 package org.enginehub.discord;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.sk89q.intake.CommandException;
-import com.sk89q.intake.InvalidUsageException;
-import com.sk89q.intake.context.CommandLocals;
-import com.sk89q.intake.dispatcher.Dispatcher;
-import com.sk89q.intake.fluent.CommandGraph;
-import com.sk89q.intake.fluent.DispatcherNode;
-import com.sk89q.intake.parametric.ParametricBuilder;
-import com.sk89q.intake.util.auth.AuthorizationException;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Member;
@@ -54,15 +47,22 @@ import org.enginehub.discord.module.RoryFetch;
 import org.enginehub.discord.module.SetProfilePicture;
 import org.enginehub.discord.module.errorHelper.ErrorHelper;
 import org.enginehub.discord.util.PermissionRoles;
-import org.enginehub.discord.util.binding.MemberBinding;
-import org.enginehub.discord.util.binding.MessageBinding;
+import org.enginehub.discord.util.command.CommandRegistrationHandler;
+import org.enginehub.piston.CommandManager;
+import org.enginehub.piston.CommandManagerService;
+import org.enginehub.piston.exception.CommandException;
+import org.enginehub.piston.exception.ConditionFailedException;
+import org.enginehub.piston.exception.UsageException;
+import org.enginehub.piston.impl.CommandManagerServiceImpl;
+import org.enginehub.piston.inject.InjectedValueStore;
+import org.enginehub.piston.inject.Key;
+import org.enginehub.piston.inject.MapBackedValueStore;
+import org.enginehub.piston.util.ValueProvider;
 
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.security.auth.login.LoginException;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 public class EngineHubBot extends ListenerAdapter implements Runnable {
 
@@ -131,7 +131,9 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
     }
 
     public JDA api;
-    private final Dispatcher commandDispatcher;
+    private final CommandManager commandManager;
+    private final CommandManagerService commandManagerService;
+    private final CommandRegistrationHandler registrationHandler;
 
     private final static List<GatewayIntent> intents = Lists.newArrayList(
         GatewayIntent.GUILD_MESSAGES,
@@ -159,27 +161,16 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
 
         Settings.loadModules();
 
-        ParametricBuilder builder = new ParametricBuilder();
-        builder.addBinding(new MemberBinding());
-        builder.addBinding(new MessageBinding());
-        builder.setAuthorizer((namespace, permission) -> {
-            Member member = checkNotNull(namespace.get(Member.class), "Unknown member.");
-
-            return isAuthorised(member, permission);
-        });
-
-        DispatcherNode node = new CommandGraph()
-                .builder(builder)
-                .commands();
+        this.commandManagerService = new CommandManagerServiceImpl();
+        this.commandManager = this.commandManagerService.newCommandManager();
+        this.registrationHandler = new CommandRegistrationHandler();
 
         for (Module module : modules) {
-            node = module.setupCommands(node);
+            module.setupCommands(registrationHandler, commandManager);
             if (module instanceof EventListener) {
                 api.addEventListener(module);
             }
         }
-
-        commandDispatcher = node.graph().getDispatcher();
 
         modules.forEach(Module::onInitialise);
         System.out.println("Connected");
@@ -231,11 +222,9 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
         }
     }
 
-    private static final String[] PARENT_COMANDS = new String[0];
-
     @Override
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
-        if (commandDispatcher != null && event.getMessage().getContentRaw().startsWith(COMMAND_PREFIX)) {
+        if (commandManager != null && event.getMessage().getContentRaw().startsWith(COMMAND_PREFIX)) {
             String commandArgs = event.getMessage().getContentRaw().substring(COMMAND_PREFIX.length());
 
             if (commandArgs.equals("stop") && isAuthorised(event.getMember(), PermissionRoles.BOT_OWNER)) {
@@ -243,24 +232,31 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
                 return;
             }
 
-            CommandLocals locals = new CommandLocals();
-            locals.put(Member.class, event.getMember());
-            locals.put(Message.class, event.getMessage());
+            String[] split = commandArgs.split(" ");
+
+            // No command found!
+            if (!commandManager.containsCommand(split[0])) {
+                return;
+            }
+
+            InjectedValueStore store = MapBackedValueStore.create();
+            store.injectValue(Key.of(Member.class), ValueProvider.constant(event.getMember()));
+            store.injectValue(Key.of(Message.class), ValueProvider.constant(event.getMessage()));
 
             try {
-                commandDispatcher.call(commandArgs, locals, PARENT_COMANDS);
-            } catch (InvalidUsageException e) {
+                commandManager.execute(store, ImmutableList.copyOf(split));
+            } catch (UsageException e) {
                 String usage = e.getMessage();
                 if ("Please choose a sub-command.".equals(usage)) {
                     // Don't send a message.
                     return;
                 }
                 event.getChannel().sendMessage(usage == null ? "No help text available." : usage).queue();
+            } catch (ConditionFailedException e) {
+                event.getChannel().sendMessage("You don't have permissions!").queue();
             } catch (CommandException e) {
                 event.getChannel().sendMessage("Failed to send command! " + e.getMessage()).queue();
                 e.printStackTrace();
-            } catch (AuthorizationException e) {
-                event.getChannel().sendMessage("You don't have permissions!").queue();
             }
         }
     }

@@ -19,27 +19,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.enginehub.discord.util.binding;
+package org.enginehub.discord.util.command;
 
-import com.sk89q.intake.parametric.ParameterException;
-import com.sk89q.intake.parametric.argument.ArgumentStack;
-import com.sk89q.intake.parametric.binding.BindingBehavior;
-import com.sk89q.intake.parametric.binding.BindingHelper;
-import com.sk89q.intake.parametric.binding.BindingMatch;
-import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Member;
+import org.enginehub.discord.EngineHubBot;
+import org.enginehub.piston.Command;
+import org.enginehub.piston.inject.InjectedValueAccess;
+import org.enginehub.piston.inject.Key;
 
-public class MessageBinding extends BindingHelper {
+public class PermissionCondition implements Command.Condition {
+    private static final Key<Member> ACTOR_KEY = Key.of(Member.class);
 
-    @BindingMatch(type = Message.class,
-            behavior = BindingBehavior.PROVIDES
-    ) // No arguments consumed
-    public Message getMessage(ArgumentStack context) throws ParameterException {
-        Message message = context.getContext().getLocals().get(Message.class);
-        if (message == null) {
-            throw new ParameterException("Failed to get message.");
-        } else {
-            return message;
-        }
+    private final String permission;
+
+    public PermissionCondition(String permission) {
+        this.permission = permission;
     }
 
+    public String getPermission() {
+        return permission;
+    }
+
+    @Override
+    public boolean satisfied(InjectedValueAccess context) {
+        return permission == null || permission.isEmpty()
+            || context.injectedValue(ACTOR_KEY)
+            .map(member -> EngineHubBot.isAuthorised(member, permission))
+            .orElse(false);
+    }
 }
