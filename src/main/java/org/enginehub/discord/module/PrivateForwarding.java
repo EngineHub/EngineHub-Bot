@@ -25,9 +25,10 @@ import com.sk89q.intake.Command;
 import com.sk89q.intake.fluent.DispatcherNode;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.enginehub.discord.EngineHubBot;
@@ -65,8 +66,8 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
     }
 
     @Override
-    public void onPrivateMessageReceived(@NotNull PrivateMessageReceivedEvent event) {
-        if (forwardChannel != null) {
+    public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+        if (forwardChannel != null && event.getChannel() instanceof PrivateChannel privateChannel) {
             var channel = EngineHubBot.bot.api.getGuildChannelById(forwardChannel);
             if (channel instanceof TextChannel textChannel) {
                 if (event.getMessage().getType().isSystem()) {
@@ -97,8 +98,8 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
                     )
                     .setDescription(event.getMessage().getContentRaw())
                     .setTimestamp(event.getMessage().getTimeCreated())
-                    .setFooter("In DM " + event.getChannel().getUser().getAsTag()
-                        + " (" + event.getChannel().getUser().getId() + ")");
+                    .setFooter("In DM " + privateChannel.getUser().getAsTag()
+                        + " (" + privateChannel.getUser().getId() + ")");
 
                 event.getMessage().getAttachments().forEach(att -> builder.addField(att.getFileName(), att.getUrl(), false));
 

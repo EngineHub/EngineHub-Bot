@@ -41,8 +41,7 @@ public class JoinMessage extends ListenerAdapter implements Module {
     @Override
     public void onGuildMemberJoin(@Nonnull GuildMemberJoinEvent event) {
         event.getUser().openPrivateChannel()
-                .queue(privateChannel -> privateChannel.sendMessage(JOIN_TEXT)
-                        .queue(message -> privateChannel.close().queue()));
+                .queue(privateChannel -> privateChannel.sendMessage(JOIN_TEXT).queue());
     }
 
 }

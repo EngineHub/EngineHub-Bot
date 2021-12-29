@@ -25,9 +25,9 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.enginehub.discord.EngineHubBot;
@@ -57,33 +57,23 @@ public class NoMessageSpam extends ListenerAdapter implements Module {
     private volatile Set<Long> guildsForPunish;
 
     @Override
-    public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event) {
+    public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
         // Don't check for people who are trusted not to spam
         if (EngineHubBot.isAuthorised(event.getMember(), PermissionRoles.TRUSTED)) {
             return;
         }
 
-        var contentRaw = event.getMessage().getContentRaw();
-        var cacheKey = new CacheKey(
-            event.getAuthor().getIdLong(),
-            contentRaw.hashCode()
-        );
-        var hashCount = messageCounts.getUnchecked(cacheKey).incrementAndGet();
-
-        if (contentRaw.length() < 10) {
-            // This is unlikely to be a "true" spam message. Only kick people if they repeat it
-            // an unrealistic amount (given our 1 minute counter, more than 10/12 is likely spam)
-            hashCount /= 2;
+        if (event.getChannel() instanceof GuildChannel) {
+            if (checkForGeneralSpam(event)) {
+                // Skip further checks if they were already banned
+                return;
+            }
         }
 
-        // We only want one thread to run this, so use an exact equality to ensure this
-        if (hashCount == 5) {
-            PunishmentUtil.banUser(event.getGuild(), event.getAuthor(), "Message spam", true);
-        }
+        checkForAtEveryone(event);
     }
 
-    @Override
-    public void onPrivateMessageReceived(@NotNull PrivateMessageReceivedEvent event) {
+    private void checkForAtEveryone(@NotNull MessageReceivedEvent event) {
         if (!(event.getMessage().mentionsEveryone() || event.getMessage().getContentRaw().contains("@everyone"))) {
             return;
         }
@@ -100,12 +90,35 @@ public class NoMessageSpam extends ListenerAdapter implements Module {
         }
     }
 
+    private boolean checkForGeneralSpam(@NotNull MessageReceivedEvent event) {
+        var contentRaw = event.getMessage().getContentRaw();
+        var cacheKey = new CacheKey(
+            event.getAuthor().getIdLong(),
+            contentRaw.hashCode()
+        );
+        var hashCount = messageCounts.getUnchecked(cacheKey).incrementAndGet();
+
+        if (contentRaw.length() < 10) {
+            // This is unlikely to be a "true" spam message. Only kick people if they repeat it
+            // an unrealistic amount (given our 1 minute counter, more than 10/12 is likely spam)
+            hashCount /= 2;
+        }
+
+        // We only want one thread to run this, so use an exact equality to ensure this
+        if (hashCount == 5) {
+            PunishmentUtil.banUser(event.getGuild(), event.getAuthor(), "Message spam", true);
+            return true;
+        }
+
+        return false;
+    }
+
     // TODO: Consider extracting out?
     private interface Punishment {
         void enact(Guild guild, Member member, String reason);
     }
 
-    private void punishForAtEveryone(@NotNull PrivateMessageReceivedEvent event, Punishment punishment) {
+    private void punishForAtEveryone(@NotNull MessageReceivedEvent event, Punishment punishment) {
         for (long guildId : guildsForPunish) {
             Guild guild = event.getJDA().getGuildById(guildId);
             if (guild == null) {
@@ -114,7 +127,7 @@ public class NoMessageSpam extends ListenerAdapter implements Module {
             }
             Member member = guild.getMember(event.getAuthor());
             if (member != null) {
-                punishment.enact(guild, member, "Attempting to ping everyone in DMs");
+                punishment.enact(guild, member, "Attempting to ping everyone");
             }
         }
     }
