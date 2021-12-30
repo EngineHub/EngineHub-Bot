@@ -34,6 +34,7 @@ configure<LicenseExtension> {
 
 tasks.named<JavaCompile>("compileJava") {
     options.compilerArgs = listOf("-parameters", "-Werror", "-Aarg.name.key.prefix=")
+    options.encoding = "UTF-8"
 }
 
 tasks.named<Jar>("jar") {
@@ -85,6 +86,11 @@ dependencies {
     }
 
     implementation("org.apache.commons:commons-text:1.9")
+
+    implementation("net.sourceforge.tess4j:tess4j:5.0.0") {
+        exclude(group = "log4j", module = "log4j")
+        exclude(group = "commons-logging", module = "commons-logging")
+    }
 
     testImplementation("junit:junit:4.13.2")
 }
