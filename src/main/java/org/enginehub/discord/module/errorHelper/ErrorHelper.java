@@ -32,12 +32,14 @@ import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.enginehub.discord.EngineHubBot;
 import org.enginehub.discord.module.Module;
 import org.enginehub.discord.module.errorHelper.resolver.ErrorResolver;
 import org.enginehub.discord.module.errorHelper.resolver.GhostbinResolver;
 import org.enginehub.discord.module.errorHelper.resolver.GistResolver;
 import org.enginehub.discord.module.errorHelper.resolver.MCLogsResolver;
 import org.enginehub.discord.module.errorHelper.resolver.RawSubdirectoryUrlResolver;
+import org.enginehub.discord.util.PermissionRole;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
@@ -91,6 +93,10 @@ public class ErrorHelper extends ListenerAdapter implements Module {
                 try (InputStream is = attachment.retrieveInputStream().get()) {
                     BufferedImage image = ImageIO.read(is);
                     messageText.append(tesseract.doOCR(image));
+                    if (EngineHubBot.isAuthorised(message.getMember(), PermissionRole.BOT_OWNER)) {
+                        // If it's a bot developer, send OCR debug text.
+                        channel.sendMessage("[OCR Debug] " + messageText).queue();
+                    }
                 } catch (Throwable t) {
                     LOGGER.warn("Tesseract failed to OCR image", t);
                 }
