@@ -24,6 +24,7 @@ package org.enginehub.discord.module.errorHelper;
 import com.google.common.reflect.TypeToken;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -39,7 +40,6 @@ import org.enginehub.discord.module.errorHelper.resolver.GhostbinResolver;
 import org.enginehub.discord.module.errorHelper.resolver.GistResolver;
 import org.enginehub.discord.module.errorHelper.resolver.MCLogsResolver;
 import org.enginehub.discord.module.errorHelper.resolver.RawSubdirectoryUrlResolver;
-import org.enginehub.discord.util.PermissionRole;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
@@ -93,7 +93,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
                 try (InputStream is = attachment.retrieveInputStream().get()) {
                     BufferedImage image = ImageIO.read(is);
                     messageText.append(tesseract.doOCR(image));
-                    if (EngineHubBot.isAuthorised(message.getMember(), PermissionRole.BOT_OWNER)) {
+                    if (EngineHubBot.isBotOwner(author) && message.getChannel() instanceof PrivateChannel) {
                         // If it's a bot developer, send OCR debug text.
                         channel.sendMessage("[OCR Debug] " + messageText).queue();
                     }

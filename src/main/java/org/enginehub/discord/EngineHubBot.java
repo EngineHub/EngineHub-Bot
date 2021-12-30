@@ -28,6 +28,7 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -81,6 +82,11 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
     public static EngineHubBot bot;
     private static volatile boolean running = true;
 
+    public static boolean isBotOwner(User user) {
+        return user.getName().equals(Settings.hostUsername)
+            && user.getDiscriminator().equals(Settings.hostIdentifier);
+    }
+
     public static boolean isAuthorised(Member member, PermissionRole permission) {
         if (permission == PermissionRole.ANY) {
             return true;
@@ -98,8 +104,7 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
             .collect(Collectors.toCollection(TreeSet::new));
 
         // Add BOT_OWNER to the set if applicable
-        if (member.getUser().getName().equals(Settings.hostUsername)
-            && member.getUser().getDiscriminator().equals(Settings.hostIdentifier)) {
+        if (isBotOwner(member.getUser())) {
             roles.add(PermissionRole.BOT_OWNER);
         }
 
