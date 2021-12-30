@@ -34,6 +34,7 @@ configure<LicenseExtension> {
 
 tasks.named<JavaCompile>("compileJava") {
     options.compilerArgs = listOf("-parameters", "-Werror", "-Aarg.name.key.prefix=")
+    options.encoding = "UTF-8"
 }
 
 tasks.named<Jar>("jar") {
