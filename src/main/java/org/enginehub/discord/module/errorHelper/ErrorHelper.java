@@ -27,6 +27,7 @@ import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.sourceforge.tess4j.Tesseract;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import org.apache.logging.log4j.LogManager;
@@ -38,10 +39,15 @@ import org.enginehub.discord.module.errorHelper.resolver.GistResolver;
 import org.enginehub.discord.module.errorHelper.resolver.MCLogsResolver;
 import org.enginehub.discord.module.errorHelper.resolver.RawSubdirectoryUrlResolver;
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +55,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import javax.imageio.ImageIO;
 
 public class ErrorHelper extends ListenerAdapter implements Module {
 
@@ -66,6 +73,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
     );
 
     private List<ErrorEntry> errorMessages = new ArrayList<>();
+    private Tesseract tesseract;
 
     @Override
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
@@ -75,7 +83,18 @@ public class ErrorHelper extends ListenerAdapter implements Module {
     public void scanMessage(Message message, User author, MessageChannel channel) {
         StringBuilder messageText = new StringBuilder(message.getContentRaw());
         for (Message.Attachment attachment : message.getAttachments()) {
-            if (attachment.isImage()) continue; // TODO Maybe text processing in images?
+            if (attachment.isImage()) {
+                if (tesseract == null) {
+                    continue;
+                }
+
+                try (InputStream is = attachment.retrieveInputStream().get()) {
+                    BufferedImage image = ImageIO.read(is);
+                    messageText.append(tesseract.doOCR(image));
+                } catch (Throwable t) {
+                    LOGGER.warn("Tesseract failed to OCR image", t);
+                }
+            }
             if (attachment.getFileName().endsWith(".txt") || attachment.getFileName().endsWith(".log")) {
                 if (attachment.getSize() > 1024*1024*10) {
                     channel.sendMessage("[AutoReply] " + author.getAsMention() + " Log too large "
@@ -102,7 +121,16 @@ public class ErrorHelper extends ListenerAdapter implements Module {
     }
 
     private static String cleanString(String string) {
-        return string.toLowerCase().replace("\n", "").replace("\r", "").replace(" ", "").replace("\t", "");
+        return string.toLowerCase()
+            .replace("\n", "")
+            .replace("\r", "")
+            .replace(" ", "")
+            .replace("\t", "")
+            // These are different - not a repetition
+            .replace("’", "'")
+            .replace("‘", "'")
+            .replace("“", "\"")
+            .replace("”", "\"");
     }
 
     private List<String> messagesForError(String error) {
@@ -150,6 +178,16 @@ public class ErrorHelper extends ListenerAdapter implements Module {
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+
+        Path tessDataPath = Paths.get("tessdata");
+
+        if (Files.exists(tessDataPath) && Files.isDirectory(tessDataPath)) {
+            tesseract = new Tesseract();
+            tesseract.setDatapath(tessDataPath.toAbsolutePath().toString());
+            LOGGER.info("Tesseract loaded!");
+        } else {
+            LOGGER.warn("Tesseract not found!");
+        }
     }
 
     @Override
