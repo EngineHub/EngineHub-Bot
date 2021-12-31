@@ -68,6 +68,7 @@ import org.enginehub.piston.util.ValueProvider;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -206,6 +207,10 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
 
     public Collection<Module> getModules() {
         return this.modules;
+    }
+
+    public <T extends Module> Optional<T> getModuleByType(Class<T> clazz) {
+        return modules.stream().filter(module -> module.getClass().equals(clazz)).map(clazz::cast).findFirst();
     }
 
     @Override

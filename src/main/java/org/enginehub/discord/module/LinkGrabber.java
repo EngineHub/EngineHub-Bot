@@ -28,6 +28,7 @@ import ninja.leaping.configurate.ConfigurationNode;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.enginehub.discord.Settings;
 import org.enginehub.discord.util.PermissionRole;
+import org.enginehub.discord.util.StringUtil;
 import org.enginehub.discord.util.command.CommandPermission;
 import org.enginehub.discord.util.command.CommandPermissionConditionGenerator;
 import org.enginehub.discord.util.command.CommandRegistrationHandler;
@@ -54,6 +55,10 @@ public class LinkGrabber implements Module {
         handler.register(commandManager, LinkGrabberRegistration.builder(), this);
     }
 
+    public String mapAlias(String alias) {
+        return aliasMap.get(alias);
+    }
+
     @Command(name = "get", aliases = {"g", "~"}, desc = "Grabs an alias.")
     public void aliasGrabber(Message message, @Arg(desc = "The alias key to grab") String key, @Arg(desc = "The user name to grab it for", def = "") String userName) {
         User user = null;
@@ -65,6 +70,8 @@ public class LinkGrabber implements Module {
             }
             user = users.get(0);
         }
+
+        Message reference = message.getReferencedMessage();
 
         String alias = aliasMap.get(key);
         if (alias == null) {
@@ -84,13 +91,13 @@ public class LinkGrabber implements Module {
             }
             builder.appendDescription(alias);
             builder.setFooter("Requested by " + message.getAuthor().getName());
-            message.getChannel().sendMessageEmbeds(builder.build()).queue();
+            StringUtil.attachMessageReference(message.getChannel().sendMessageEmbeds(builder.build()), reference).queue();
         } else {
             String prefix = "";
             if (user != null) {
                 prefix = "Hey, " + user.getAsMention() + "! ";
             }
-            message.getChannel().sendMessage(prefix + alias).queue();
+            StringUtil.attachMessageReference(message.getChannel().sendMessage(prefix + alias), reference).queue();
         }
     }
 
