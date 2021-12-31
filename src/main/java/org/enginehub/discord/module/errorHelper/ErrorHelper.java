@@ -34,6 +34,7 @@ import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.enginehub.discord.EngineHubBot;
+import org.enginehub.discord.module.LinkGrabber;
 import org.enginehub.discord.module.Module;
 import org.enginehub.discord.module.errorHelper.resolver.ErrorResolver;
 import org.enginehub.discord.module.errorHelper.resolver.GhostbinResolver;
@@ -122,8 +123,16 @@ public class ErrorHelper extends ListenerAdapter implements Module {
             .map(ErrorHelper::cleanString)
             .flatMap(error -> messagesForError(error).stream())
             .distinct()
-            .forEach(mes ->
-                channel.sendMessage("[AutoReply] " + author.getAsMention() + ' ' + mes).queue());
+            .map(mes -> {
+                if (mes.startsWith("~~ ")) {
+                    return EngineHubBot.bot.getModuleByType(LinkGrabber.class).map(linkGrabber -> linkGrabber.mapAlias(mes.substring("~~ ".length()))).orElse(mes);
+                } else {
+                    return mes;
+                }
+            })
+            .forEach(mes -> {
+                channel.sendMessage("[AutoReply] " + author.getAsMention() + ' ' + mes).queue();
+            });
     }
 
     private static String cleanString(String string) {
