@@ -24,6 +24,7 @@ package org.enginehub.discord.module;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Member;
@@ -85,11 +86,14 @@ public class NoMessageSpam extends ListenerAdapter implements Module {
         if (hasPingedBefore.add(event.getAuthor().getIdLong())) {
             // They haven't pinged before, kick.
             punishForAtEveryone(event, PunishmentUtil::kickUser);
+            if (event.getMessage().getChannelType() == ChannelType.TEXT) {
+                event.getMessage().delete().complete();
+            }
         } else {
             // It's ban time.
             punishForAtEveryone(
                 event,
-                (guild, member, reason) -> PunishmentUtil.banUser(guild, member.getUser(), reason, false)
+                (guild, member, reason) -> PunishmentUtil.banUser(guild, member.getUser(), reason, true)
             );
         }
     }
