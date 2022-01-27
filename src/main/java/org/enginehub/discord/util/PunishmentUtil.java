@@ -25,6 +25,8 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 
+import java.util.concurrent.TimeUnit;
+
 public class PunishmentUtil {
 
     private static String getContactString() {
@@ -50,7 +52,6 @@ public class PunishmentUtil {
     }
 
     public static void timeoutUser(Guild guild, Member member, long seconds, String reason) {
-        // TODO Add when JDA supports.
-        // guild.timeoutFor(member, seconds, TimeUnit.SECONDS).queue();
+         guild.timeoutFor(member, seconds, TimeUnit.SECONDS).queue();
     }
 }
