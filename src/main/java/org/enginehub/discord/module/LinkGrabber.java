@@ -23,6 +23,7 @@ package org.enginehub.discord.module;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.apache.commons.text.similarity.LevenshteinDistance;
@@ -36,6 +37,7 @@ import org.enginehub.piston.CommandManager;
 import org.enginehub.piston.annotation.Command;
 import org.enginehub.piston.annotation.CommandContainer;
 import org.enginehub.piston.annotation.param.Arg;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -59,6 +61,37 @@ public class LinkGrabber implements Module {
         return aliasMap.get(alias);
     }
 
+    private void printAlias(String key, User user, MessageChannel channel, @Nullable User requester, @Nullable Message reference) {
+        String alias = aliasMap.get(key);
+        if (alias == null) {
+            channel.sendMessage("I don't know what the alias \"" + key + "\" is, sorry!").queue();
+            aliasMap.keySet().stream()
+                .min(Comparator.comparingInt(o ->
+                    LevenshteinDistance.getDefaultInstance().apply(key, o)
+                ))
+                .ifPresent(possibleKey -> channel.sendMessage("Did you mean `" + possibleKey + "`?").queue());
+            return;
+        }
+
+        if (alias.contains("\n") || alias.contains(" ")) {
+            EmbedBuilder builder = createEmbed();
+            if (user != null) {
+                builder.appendDescription("Hey, " + user.getAsMention() + "! \n\n");
+            }
+            builder.appendDescription(alias);
+            if (requester != null) {
+                builder.setFooter("Requested by " + requester.getName());
+            }
+            StringUtil.attachMessageReference(channel.sendMessageEmbeds(builder.build()), reference).queue();
+        } else {
+            String prefix = "";
+            if (user != null) {
+                prefix = "Hey, " + user.getAsMention() + "! ";
+            }
+            StringUtil.attachMessageReference(channel.sendMessage(prefix + alias), reference).queue();
+        }
+    }
+
     @Command(name = "get", aliases = {"g", "~"}, desc = "Grabs an alias.")
     public void aliasGrabber(Message message, @Arg(desc = "The alias key to grab") String key, @Arg(desc = "The user name to grab it for", def = "") String userName) {
         User user = null;
@@ -73,31 +106,8 @@ public class LinkGrabber implements Module {
 
         Message reference = message.getReferencedMessage();
 
-        String alias = aliasMap.get(key);
-        if (alias == null) {
-            message.getChannel().sendMessage("I don't know what that alias is, sorry!").queue();
-            aliasMap.keySet().stream()
-                .min(Comparator.comparingInt(o ->
-                    LevenshteinDistance.getDefaultInstance().apply(key, o)
-                ))
-                .ifPresent(possibleKey -> message.getChannel().sendMessage("Did you mean `" + possibleKey + "`?").queue());
-            return;
-        }
-
-        if (alias.contains("\n") || alias.contains(" ")) {
-            EmbedBuilder builder = createEmbed();
-            if (user != null) {
-                builder.appendDescription("Hey, " + user.getAsMention() + "! \n\n");
-            }
-            builder.appendDescription(alias);
-            builder.setFooter("Requested by " + message.getAuthor().getName());
-            StringUtil.attachMessageReference(message.getChannel().sendMessageEmbeds(builder.build()), reference).queue();
-        } else {
-            String prefix = "";
-            if (user != null) {
-                prefix = "Hey, " + user.getAsMention() + "! ";
-            }
-            StringUtil.attachMessageReference(message.getChannel().sendMessage(prefix + alias), reference).queue();
+        for (String splitKey : key.split(",")) {
+            printAlias(splitKey, user, message.getChannel(), message.getAuthor(), reference);
         }
     }
 
