@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 public class PunishmentUtil {
 
     private static String getContactString() {
-        return "Submit an appeal via https://forms.gle/h2DVBUP9srCH4vHV9 if you wish to appeal.";
+        return "Submit an appeal via https://ehub.to/ban-appeal if you wish to appeal.";
     }
 
     public static void kickUser(Guild guild, Member member, String reason) {
