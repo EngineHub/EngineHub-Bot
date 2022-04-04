@@ -89,6 +89,10 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
                 }
 
                 var user = event.getAuthor();
+                if (!textChannel.getGuild().isMember(user)) {
+                    // Skip if they're not in the guild we're forwarding the message to.
+                    return;
+                }
 
                 if (event.getMessage().getContentRaw().isBlank() && event.getMessage().getAttachments().isEmpty()) {
                     // Ignore this blank message
