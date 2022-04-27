@@ -49,13 +49,7 @@ public class NoPingSpam extends ListenerAdapter implements Module {
             event.getMessage().delete().queue();
             int spamTime = spamTimes.getOrDefault(event.getAuthor().getId(), 0) + 1;
             spamTimes.put(event.getAuthor().getId(), spamTime);
-            if (spamTime >= 3) {
-                // Do the ban.
-                PunishmentUtil.banUser(event.getGuild(), event.getAuthor(), "Ping spam", true);
-            } else {
-                event.getAuthor().openPrivateChannel().queue(privateChannel ->
-                        privateChannel.sendMessage("Hey! Spamming messages is not allowed here. If you continue, you will be banned.").queue());
-            }
+            PunishmentUtil.banUser(event.getGuild(), event.getAuthor(), "Ping spam", true);
         }
     }
 }
