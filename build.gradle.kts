@@ -3,7 +3,7 @@ import org.cadixdev.gradle.licenser.LicenseExtension
 plugins {
     id("java")
     id("maven-publish")
-    id("com.github.johnrengelman.shadow") version "7.0.0"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
     id("org.cadixdev.licenser") version "0.6.1"
 }
 
@@ -53,11 +53,11 @@ tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJ
 }
 
 dependencies {
-    implementation("net.dv8tion:JDA:5.0.0-alpha.9")
+    implementation("net.dv8tion:JDA:5.0.0-alpha.11")
 
     implementation("org.spongepowered:configurate-hocon:3.7.2")
 
-    implementation("com.typesafe:config:1.4.1")
+    implementation("com.typesafe:config:1.4.2")
 
     val pistonVersion = "0.5.7"
     implementation("org.enginehub.piston:core:${pistonVersion}")
@@ -66,14 +66,14 @@ dependencies {
     annotationProcessor("org.enginehub.piston.core-ap:processor:${pistonVersion}")
     runtimeOnly("org.enginehub.piston.core-ap:runtime:${pistonVersion}")
 
-    implementation(platform("com.fasterxml.jackson:jackson-bom:2.13.0"))
+    implementation(platform("com.fasterxml.jackson:jackson-bom:2.13.2.20220328"))
     implementation("com.fasterxml.jackson.core:jackson-core")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8")
     implementation("com.fasterxml.jackson.module:jackson-module-parameter-names")
 
-    val slf4jVersion = "1.7.32"
-    val log4jVersion = "2.17.0"
+    val slf4jVersion = "1.7.36"
+    val log4jVersion = "2.17.2"
     // Primarily prefer Log4J for logging.
     implementation("org.apache.logging.log4j:log4j-api:$log4jVersion")
     // Bind SLF4J over STDOUT [JDA]
@@ -87,7 +87,7 @@ dependencies {
 
     implementation("org.apache.commons:commons-text:1.9")
 
-    implementation("net.sourceforge.tess4j:tess4j:5.0.0") {
+    implementation("net.sourceforge.tess4j:tess4j:5.2.1") {
         exclude(group = "log4j", module = "log4j")
         exclude(group = "commons-logging", module = "commons-logging")
     }
