@@ -73,7 +73,12 @@ public class EmojiRole extends ListenerAdapter implements Module {
             return;
         }
 
-        if (event.getMessageId().equals(messageId) && !event.getMember().getUser().isBot()) {
+        if (event.getUser().isBot()) {
+            // Ignore bots.
+            return;
+        }
+
+        if (event.getMessageId().equals(messageId)) {
             getRoleByEmoji(event.getGuild(), event.getReactionEmote().getId()).ifPresentOrElse(
                     role -> toggleRole(event.getGuild(), role, event.getMember(), event.getReaction()),
                     () -> event.getReaction().removeReaction(event.getUser()).queue());
@@ -102,6 +107,10 @@ public class EmojiRole extends ListenerAdapter implements Module {
                             .ifPresent(role -> reaction.retrieveUsers()
                                     .queue(users -> {
                                         for (User user : users) {
+                                            if (user.isBot()) {
+                                                // Skip bots.
+                                                continue;
+                                            }
                                             guild.retrieveMember(user).queue(mem -> {
                                                 if (mem != null) {
                                                     toggleRole(guild, role, mem, reaction);
