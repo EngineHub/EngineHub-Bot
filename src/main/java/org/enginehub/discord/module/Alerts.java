@@ -24,8 +24,8 @@ package org.enginehub.discord.module;
 import com.google.common.collect.Maps;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -38,6 +38,8 @@ import org.enginehub.discord.util.command.CommandPermission;
 import org.enginehub.discord.util.command.CommandPermissionConditionGenerator;
 import org.enginehub.discord.util.command.CommandRegistrationHandler;
 import org.enginehub.piston.CommandManager;
+import org.enginehub.piston.annotation.Command;
+import org.enginehub.piston.annotation.CommandContainer;
 
 import java.util.List;
 import java.util.Map;
@@ -45,8 +47,6 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
-import org.enginehub.piston.annotation.Command;
-import org.enginehub.piston.annotation.CommandContainer;
 
 @CommandContainer(superTypes = CommandPermissionConditionGenerator.Registration.class)
 public class Alerts extends ListenerAdapter implements Module {
@@ -80,7 +80,7 @@ public class Alerts extends ListenerAdapter implements Module {
     public void onGuildMemberRemove(@Nonnull GuildMemberRemoveEvent event) {
         String channelId = alertChannels.get(event.getGuild().getId());
         if (channelId != null) {
-            MessageChannel channel = EngineHubBot.bot.api.getTextChannelById(channelId);
+            TextChannel channel = EngineHubBot.bot.api.getTextChannelById(channelId);
             if (channel != null) {
                 sendMessage(event.getGuild(), channel, event.getUser());
             }
@@ -92,7 +92,7 @@ public class Alerts extends ListenerAdapter implements Module {
      *
      * @param user The user
      */
-    private static void sendMessage(Guild guild, MessageChannel channel, User user) {
+    private static void sendMessage(Guild guild, TextChannel channel, User user) {
         String annotatedName = "**" + user.getAsMention() + "** (" + user.getName() + ") ";
         if (user.isBot()) {
             annotatedName += "[Bot] ";

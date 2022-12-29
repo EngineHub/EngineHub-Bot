@@ -21,15 +21,14 @@
  */
 package org.enginehub.discord.module;
 
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.enginehub.discord.EngineHubBot;
 import org.enginehub.discord.util.PermissionRole;
 import org.enginehub.discord.util.PunishmentUtil;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.util.HashMap;
-
 import javax.annotation.Nonnull;
 
 public class NoPingSpam extends ListenerAdapter implements Module {
@@ -43,7 +42,7 @@ public class NoPingSpam extends ListenerAdapter implements Module {
             return;
         }
 
-        int mentionCount = event.getMessage().getMentions(Message.MentionType.ROLE, Message.MentionType.USER).size();
+        int mentionCount = event.getMessage().getMentions().getMentions(Message.MentionType.ROLE, Message.MentionType.USER, Message.MentionType.EVERYONE, Message.MentionType.HERE).size();
 
         if (mentionCount >= 6) {
             event.getMessage().delete().queue();
