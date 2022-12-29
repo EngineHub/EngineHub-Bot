@@ -21,14 +21,14 @@
  */
 package org.enginehub.discord.module;
 
-import org.enginehub.discord.EngineHubBot;
-import org.enginehub.discord.util.PermissionRole;
+import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.enginehub.discord.EngineHubBot;
+import org.enginehub.discord.util.PermissionRole;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.annotation.Nonnull;
 
 public class ChatFilter extends ListenerAdapter implements Module {
@@ -39,6 +39,11 @@ public class ChatFilter extends ListenerAdapter implements Module {
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
         // Don't check for people who are allowed to send invites
         if (EngineHubBot.isAuthorised(event.getMember(), PermissionRole.TRUSTED)) {
+            return;
+        }
+
+        // Don't check private channels
+        if (event.getChannel() instanceof PrivateChannel) {
             return;
         }
 

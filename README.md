@@ -8,7 +8,7 @@ The bot can be downloaded from EngineHub's CI: [![TeamCity build status](https:/
 
 Compiling
 ---------
-The project is written for Java 17 and our build process makes use of [Gradle](http://gradle.org/).
+The project is written for Java 19 and our build process makes use of [Gradle](http://gradle.org/).
 simply run:
 
     gradlew build

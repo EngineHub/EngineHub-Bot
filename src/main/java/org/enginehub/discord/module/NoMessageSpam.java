@@ -24,10 +24,10 @@ package org.enginehub.discord.module;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -79,7 +79,7 @@ public class NoMessageSpam extends ListenerAdapter implements Module {
     }
 
     private void checkForAtEveryone(@NotNull MessageReceivedEvent event) {
-        if (!(event.getMessage().mentionsEveryone() || event.getMessage().getContentRaw().contains("@everyone"))) {
+        if (!(event.getMessage().getMentions().mentionsEveryone() || event.getMessage().getContentRaw().contains("@everyone"))) {
             return;
         }
 

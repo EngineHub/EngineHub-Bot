@@ -39,7 +39,7 @@ public class PunishmentUtil {
                 privateChannel.sendMessage("You have been kicked for `" + reason + "`. Make sure to read the rules if you join again!")
                     .submit()
             )
-            .whenComplete((v, ex) -> guild.kick(member, reason).queue());
+            .whenComplete((v, ex) -> guild.kick(member).reason(reason).queue());
     }
 
     public static void banUser(Guild guild, User user, String reason, boolean eraseHistory) {
@@ -48,7 +48,7 @@ public class PunishmentUtil {
                 privateChannel.sendMessage("You have been banned for `" + reason + "`. " + getContactString())
                     .submit()
             )
-            .whenComplete((v, ex) -> guild.ban(user, eraseHistory ? 1 : 0, "[Bot Ban] " + reason).queue());
+            .whenComplete((v, ex) -> guild.ban(user, eraseHistory ? 1 : 0, TimeUnit.HOURS).reason("[Bot Ban] " + reason).queue());
     }
 
     public static void timeoutUser(Guild guild, Member member, long seconds, String reason) {

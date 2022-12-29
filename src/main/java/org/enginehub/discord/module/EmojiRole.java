@@ -22,15 +22,15 @@
 package org.enginehub.discord.module;
 
 import com.google.common.reflect.TypeToken;
-import net.dv8tion.jda.api.entities.Emote;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
+import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -68,7 +68,7 @@ public class EmojiRole extends ListenerAdapter implements Module {
 
     @Override
     public void onMessageReactionAdd(@Nonnull MessageReactionAddEvent event) {
-        if (!(event.getChannel() instanceof GuildChannel)) {
+        if (!(event.getChannel() instanceof GuildMessageChannel)) {
             // Only supported within a guild.
             return;
         }
@@ -79,7 +79,7 @@ public class EmojiRole extends ListenerAdapter implements Module {
         }
 
         if (event.getMessageId().equals(messageId)) {
-            getRoleByEmoji(event.getGuild(), event.getReactionEmote().getId()).ifPresentOrElse(
+            getRoleByEmoji(event.getGuild(), event.getEmoji().asCustom().getId()).ifPresentOrElse(
                     role -> toggleRole(event.getGuild(), role, event.getMember(), event.getReaction()),
                     () -> event.getReaction().removeReaction(event.getUser()).queue());
         }
@@ -103,7 +103,7 @@ public class EmojiRole extends ListenerAdapter implements Module {
             Message message = channel.retrieveMessageById(messageId).complete();
             Guild guild = message.getGuild();
             message.getReactions()
-                    .forEach(reaction -> getRoleByEmoji(guild, reaction.getReactionEmote().getId())
+                    .forEach(reaction -> getRoleByEmoji(guild, reaction.getEmoji().asCustom().getId())
                             .ifPresent(role -> reaction.retrieveUsers()
                                     .queue(users -> {
                                         for (User user : users) {
@@ -121,7 +121,7 @@ public class EmojiRole extends ListenerAdapter implements Module {
 
             message.clearReactions().complete();
             for (String emoteKey : emojiToRole.keySet()) {
-                Emote emote = guild.getEmoteById(emoteKey);
+                RichCustomEmoji emote = guild.getEmojiById(emoteKey);
                 if (emote != null) {
                     message.addReaction(emote).complete();
                 }

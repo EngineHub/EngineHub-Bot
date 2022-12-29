@@ -23,7 +23,7 @@ package org.enginehub.discord.util;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.requests.restaction.MessageAction;
+import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
 import java.awt.Color;
 import java.time.Duration;
@@ -78,9 +78,9 @@ public class StringUtil {
         builder.append(" ");
     }
 
-    public static MessageAction attachMessageReference(MessageAction action, Message reference) {
+    public static MessageCreateAction attachMessageReference(MessageCreateAction action, Message reference) {
         if (reference != null) {
-            return action.reference(reference);
+            return action.setMessageReference(reference);
         }
         return action;
     }

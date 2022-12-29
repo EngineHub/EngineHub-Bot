@@ -23,8 +23,8 @@ package org.enginehub.discord.module;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.enginehub.discord.Settings;
@@ -96,7 +96,7 @@ public class LinkGrabber implements Module {
     public void aliasGrabber(Message message, @Arg(desc = "The alias key to grab") String key, @Arg(desc = "The user name to grab it for", def = "") String userName) {
         User user = null;
         if (userName != null && !userName.isEmpty()) {
-            List<User> users = message.getMentionedUsers();
+            List<User> users = message.getMentions().getUsers();
             if (users.size() != 1) {
                 message.getChannel().sendMessage("I don't know who you want me to send that to, sorry!").queue();
                 return;
