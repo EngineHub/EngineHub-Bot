@@ -21,10 +21,10 @@
  */
 package org.enginehub.discord.module;
 
-import org.enginehub.discord.EngineHubBot;
-import org.enginehub.discord.util.PermissionRole;
 import net.dv8tion.jda.api.entities.Icon;
 import net.dv8tion.jda.api.entities.Message;
+import org.enginehub.discord.EngineHubBot;
+import org.enginehub.discord.util.PermissionRole;
 import org.enginehub.discord.util.command.CommandPermission;
 import org.enginehub.discord.util.command.CommandPermissionConditionGenerator;
 import org.enginehub.discord.util.command.CommandRegistrationHandler;
@@ -57,7 +57,7 @@ public class SetProfilePicture implements Module {
                 e.printStackTrace();
             }
         } else {
-            message.getTextChannel().sendMessage("You need to attach an image!").queue();
+            message.getChannel().sendMessage("You need to attach an image!").queue();
         }
     }
 }
