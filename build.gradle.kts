@@ -53,7 +53,7 @@ tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJ
 }
 
 dependencies {
-    implementation("net.dv8tion:JDA:5.0.0-beta.2") {
+    implementation("net.dv8tion:JDA:5.0.0-beta.4") {
         exclude(module="opus-java")
     }
 
@@ -89,7 +89,7 @@ dependencies {
 
     implementation("org.apache.commons:commons-text:1.9")
 
-    implementation("net.sourceforge.tess4j:tess4j:5.2.1") {
+    implementation("net.sourceforge.tess4j:tess4j:5.6.0") {
         exclude(group = "log4j", module = "log4j")
         exclude(group = "commons-logging", module = "commons-logging")
     }
