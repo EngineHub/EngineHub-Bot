@@ -3,7 +3,7 @@ import org.cadixdev.gradle.licenser.LicenseExtension
 plugins {
     id("java")
     id("maven-publish")
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
     id("org.cadixdev.licenser") version "0.6.1"
 }
 
@@ -53,7 +53,7 @@ tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJ
 }
 
 dependencies {
-    implementation("net.dv8tion:JDA:5.0.0-beta.4") {
+    implementation("net.dv8tion:JDA:5.0.0-beta.8") {
         exclude(module="opus-java")
     }
 
@@ -89,7 +89,7 @@ dependencies {
 
     implementation("org.apache.commons:commons-text:1.9")
 
-    implementation("net.sourceforge.tess4j:tess4j:5.6.0") {
+    implementation("net.sourceforge.tess4j:tess4j:5.7.0") {
         exclude(group = "log4j", module = "log4j")
         exclude(group = "commons-logging", module = "commons-logging")
     }
