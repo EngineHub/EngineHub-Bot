@@ -39,7 +39,6 @@ public class Settings {
     private static CommentedConfigurationNode loadedNode;
 
     public static String token;
-    public static String hostUsername;
     public static String hostIdentifier;
     public static List<String> autoEraseChannels = Lists.newArrayList();
 
@@ -56,8 +55,7 @@ public class Settings {
             }
 
             token = loadedNode.getNode("token").getString("token");
-            hostUsername = loadedNode.getNode("host-username").getString("Me4502");
-            hostIdentifier = loadedNode.getNode("host-identifier").getString("4502");
+            hostIdentifier = loadedNode.getNode("host-id").getString("80853648891977728");
             autoEraseChannels = loadedNode.getNode("auto-erase-channels").getList(TypeToken.of(String.class), autoEraseChannels);
         } catch (IOException | ObjectMappingException e) {
             e.printStackTrace();

@@ -84,8 +84,7 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
     private static volatile boolean running = true;
 
     public static boolean isBotOwner(User user) {
-        return user.getName().equals(Settings.hostUsername)
-            && user.getDiscriminator().equals(Settings.hostIdentifier);
+        return user.getId().equals(Settings.hostIdentifier);
     }
 
     public static boolean isAuthorised(Member member, PermissionRole permission) {
