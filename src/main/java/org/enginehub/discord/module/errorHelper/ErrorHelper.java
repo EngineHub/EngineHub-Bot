@@ -91,7 +91,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
                     continue;
                 }
 
-                try (InputStream is = attachment.retrieveInputStream().get()) {
+                try (InputStream is = attachment.getProxy().download().get()) {
                     BufferedImage image = ImageIO.read(is);
                     messageText.append(tesseract.doOCR(image));
                     if (EngineHubBot.isBotOwner(author) && message.getChannel() instanceof PrivateChannel) {
@@ -108,7 +108,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
                         + "to scan.").queue();
                     continue; //Ignore >10MB for now.
                 }
-                try(BufferedReader reader = new BufferedReader(new InputStreamReader(attachment.retrieveInputStream().get()))) {
+                try(BufferedReader reader = new BufferedReader(new InputStreamReader(attachment.getProxy().download().get()))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
                         messageText.append(line);

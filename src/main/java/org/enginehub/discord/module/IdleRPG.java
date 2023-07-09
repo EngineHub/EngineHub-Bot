@@ -40,7 +40,6 @@ import org.enginehub.discord.util.BigMath;
 import org.enginehub.discord.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -56,6 +55,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import javax.annotation.Nonnull;
 
 import static org.enginehub.discord.util.StringUtil.createEmbed;
 
@@ -101,7 +101,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
     private PlayerData getPlayerData(User author) {
         return players.computeIfAbsent(
                 author.getIdLong(),
-            _l -> new PlayerData(Instant.EPOCH, 0, author.getName())
+            _l -> new PlayerData(Instant.EPOCH, 0, author.getEffectiveName())
         );
     }
 
@@ -121,7 +121,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
         var now = Instant.now();
         var levelUpTime = getLevelUpInstant(data);
         if (now.isAfter(levelUpTime)) {
-            var postLevelUp = data.applyLevelUp(now, event.getAuthor().getName());
+            var postLevelUp = data.applyLevelUp(now, event.getAuthor().getEffectiveName());
             EmbedBuilder builder = createEmbed();
             builder.setAuthor("IdleRPG");
             builder.appendDescription(event.getAuthor().getAsMention()
