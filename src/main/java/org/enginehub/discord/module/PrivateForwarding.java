@@ -96,7 +96,7 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
 
                 if (event.getMessage().getContentRaw().isBlank() && event.getMessage().getAttachments().isEmpty()) {
                     // Ignore this blank message
-                    LOGGER.warn("Ignoring message from " + user.getIdLong() + " (" + user.getAsTag() + ")"
+                    LOGGER.warn("Ignoring message from " + user.getIdLong() + " (" + user.getName() + ')'
                         + " because it is empty, the type of the message was " + event.getMessage().getType());
                     return;
                 }
@@ -108,14 +108,14 @@ public class PrivateForwarding extends ListenerAdapter implements Module {
 
                 EmbedBuilder builder = createEmbed()
                     .setAuthor(
-                        user.getAsTag(),
+                        user.getName(),
                         "https://discord.com/channels/@me/" + user.getId(),
                         user.getEffectiveAvatarUrl()
                     )
                     .setDescription(event.getMessage().getContentRaw())
                     .setTimestamp(event.getMessage().getTimeCreated())
-                    .setFooter("In DM " + privateChannel.getUser().getAsTag()
-                        + " (" + privateChannel.getUser().getId() + ")");
+                    .setFooter("In DM " + privateChannel.getUser().getName()
+                        + " (" + privateChannel.getUser().getId() + ')');
 
                 event.getMessage().getAttachments().forEach(att -> builder.addField(att.getFileName(), att.getUrl(), false));
 

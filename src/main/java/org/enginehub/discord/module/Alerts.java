@@ -93,7 +93,7 @@ public class Alerts extends ListenerAdapter implements Module {
      * @param user The user
      */
     private static void sendMessage(Guild guild, TextChannel channel, User user) {
-        String annotatedName = "**" + user.getAsMention() + "** (" + user.getName() + ") ";
+        String annotatedName = "**" + user.getAsMention() + "** (" + user.getEffectiveName() + ") ";
         if (user.isBot()) {
             annotatedName += "[Bot] ";
         }
