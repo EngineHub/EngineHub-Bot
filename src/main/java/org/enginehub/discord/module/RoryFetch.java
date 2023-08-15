@@ -94,16 +94,16 @@ public class RoryFetch implements Module {
                 );
 
                 if (response.statusCode() == 404) {
-                    message.getChannel().sendMessage(message.getAuthor().getAsTag() + ", that's not a valid rory pic").queue();
+                    message.getChannel().sendMessage(message.getAuthor().getEffectiveName() + ", that's not a valid rory pic").queue();
                     return;
                 }
 
                 Map<String, String> parsedResponse = OBJECT_MAPPER.readValue(response.body(), RORY_RESPONSE);
                 message.getChannel().sendMessageEmbeds(createRoryEmbed(parsedResponse.get("id"), parsedResponse.get("url"))).queue();
             } catch (MalformedURLException | URISyntaxException e) {
-                message.getChannel().sendMessage(message.getAuthor().getAsTag() + ", that's an invalid URL!").queue();
+                message.getChannel().sendMessage(message.getAuthor().getEffectiveName() + ", that's an invalid URL!").queue();
             } catch (InterruptedException | IOException e) {
-                message.getChannel().sendMessage(message.getAuthor().getAsTag() + ", failed to lookup rory pic!").queue();
+                message.getChannel().sendMessage(message.getAuthor().getEffectiveName() + ", failed to lookup rory pic!").queue();
             }
         }
     }
