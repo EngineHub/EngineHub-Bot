@@ -22,11 +22,14 @@
 package org.enginehub.discord.module;
 
 import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.enginehub.discord.EngineHubBot;
 import org.enginehub.discord.util.PermissionRole;
+import org.enginehub.discord.util.PunishmentUtil;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
@@ -50,6 +53,25 @@ public class ChatFilter extends ListenerAdapter implements Module {
         Matcher matcher = INVITE_PATTERN.matcher(event.getMessage().getContentRaw());
         if (matcher.find()) {
             event.getMessage().delete().queue();
+        }
+    }
+
+    private final List<Pattern> badNamePatterns = List.of(
+        Pattern.compile("discord.me/"),
+        Pattern.compile("discord.gg/"),
+        Pattern.compile("twitter.com/"),
+        Pattern.compile("twitter/"),
+        Pattern.compile("twitch.tv/"),
+        Pattern.compile("bit.ly/")
+    );
+
+    @Override
+    public void onGuildMemberJoin(@Nonnull GuildMemberJoinEvent event) {
+        for (Pattern pattern : badNamePatterns) {
+            if (pattern.matcher(event.getUser().getName()).find()) {
+                PunishmentUtil.banUser(event.getGuild(), event.getUser(), "Banned URL in username", true);
+                return;
+            }
         }
     }
 }
