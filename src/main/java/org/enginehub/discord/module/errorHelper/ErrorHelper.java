@@ -57,6 +57,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 
@@ -121,7 +122,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
         resolvers.parallelStream()
             .flatMap(resolver -> resolver.foundText(messageText.toString()).stream())
             .map(ErrorHelper::cleanString)
-            .flatMap(error -> messagesForError(error).stream())
+            .flatMap(this::messagesForError)
             .distinct()
             .map(mes -> {
                 if (mes.startsWith("~~ ")) {
@@ -148,11 +149,10 @@ public class ErrorHelper extends ListenerAdapter implements Module {
             .replace("”", "\"");
     }
 
-    private List<String> messagesForError(String error) {
+    private Stream<String> messagesForError(String error) {
         return errorMessages.stream()
                 .filter(entry -> entry.doesTrigger(error))
-                .map(ErrorEntry::getResponse)
-                .collect(Collectors.toList());
+                .map(ErrorEntry::getResponse);
     }
 
     public static String getStringFromUrl(String url) {
@@ -192,7 +192,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
                     }
                 })
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .toList();
 
         Path tessDataPath = Paths.get("tessdata");
 
@@ -222,7 +222,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
         ErrorEntry(String name, List<String> triggers, String response) {
             this.name = name;
             this.triggers = triggers;
-            this.cleanedTriggers = triggers.stream().map(ErrorHelper::cleanString).collect(Collectors.toList());
+            this.cleanedTriggers = triggers.stream().map(ErrorHelper::cleanString).toList();
             this.response = response;
         }
 

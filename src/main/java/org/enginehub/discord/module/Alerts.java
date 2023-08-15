@@ -26,14 +26,12 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.enginehub.discord.EngineHubBot;
 import org.enginehub.discord.Settings;
 import org.enginehub.discord.util.PermissionRole;
-import org.enginehub.discord.util.PunishmentUtil;
 import org.enginehub.discord.util.command.CommandPermission;
 import org.enginehub.discord.util.command.CommandPermissionConditionGenerator;
 import org.enginehub.discord.util.command.CommandRegistrationHandler;
@@ -41,10 +39,8 @@ import org.enginehub.piston.CommandManager;
 import org.enginehub.piston.annotation.Command;
 import org.enginehub.piston.annotation.CommandContainer;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
@@ -53,27 +49,9 @@ public class Alerts extends ListenerAdapter implements Module {
 
     public static Map<String, String> alertChannels = Maps.newHashMap();
 
-    private final List<Pattern> badNamePatterns = List.of(
-            Pattern.compile("discord.me/"),
-            Pattern.compile("twitter.com/"),
-            Pattern.compile("twitter/"),
-            Pattern.compile("twitch.tv/"),
-            Pattern.compile("bit.ly/")
-    );
-
     @Override
     public void setupCommands(CommandRegistrationHandler handler, CommandManager commandManager) {
         handler.register(commandManager, AlertsRegistration.builder(), this);
-    }
-
-    @Override
-    public void onGuildMemberJoin(@Nonnull GuildMemberJoinEvent event) {
-        for (Pattern pattern : badNamePatterns) {
-            if (pattern.matcher(event.getUser().getName()).find()) {
-                PunishmentUtil.banUser(event.getGuild(), event.getUser(), "Banned URL in username", true);
-                return;
-            }
-        }
     }
 
     @Override
