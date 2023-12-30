@@ -41,12 +41,14 @@ import org.enginehub.discord.module.errorHelper.resolver.GhostbinResolver;
 import org.enginehub.discord.module.errorHelper.resolver.GistResolver;
 import org.enginehub.discord.module.errorHelper.resolver.MCLogsResolver;
 import org.enginehub.discord.module.errorHelper.resolver.RawSubdirectoryUrlResolver;
+import org.enginehub.discord.util.PasteUtil;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -81,6 +83,10 @@ public class ErrorHelper extends ListenerAdapter implements Module {
 
     @Override
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
+        if (event.getAuthor().isSystem() || event.getAuthor().isBot()) {
+            // Don't bother scanning bot or system messages.
+            return;
+        }
         scanMessage(event.getMessage(), event.getAuthor(), event.getChannel());
     }
 
@@ -115,7 +121,19 @@ public class ErrorHelper extends ListenerAdapter implements Module {
                         messageText.append(line);
                     }
                 } catch (IOException | InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
+                    LOGGER.error("Failed to read attachment", e);
+                }
+
+                try {
+                    PasteUtil.sendToPastebin(messageText.toString()).thenAccept(url -> {
+                        String responseUrl = url.toString();
+                        if (attachment.getFileName().equals("report.txt")) {
+                            responseUrl = responseUrl + ".report";
+                        }
+                        channel.sendMessage("[AutoReply] Here's a pasted version, " + responseUrl).queue();
+                    });
+                } catch (IOException | URISyntaxException | InterruptedException e) {
+                    LOGGER.error("Failed to send to EH Paste Service", e);
                 }
             }
         }
@@ -187,7 +205,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
                                 entry.getValue().getNode("error-message").getString()
                         );
                     } catch (ObjectMappingException e) {
-                        e.printStackTrace();
+                        LOGGER.error("Failed to read ErrorHelper config mapping for " + entry.getKey().toString(), e);
                         return null;
                     }
                 })
