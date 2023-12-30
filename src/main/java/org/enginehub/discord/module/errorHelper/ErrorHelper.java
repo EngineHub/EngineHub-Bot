@@ -118,7 +118,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
                 try(BufferedReader reader = new BufferedReader(new InputStreamReader(attachment.getProxy().download().get()))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
-                        messageText.append(line);
+                        messageText.append(line).append('\n');
                     }
                 } catch (IOException | InterruptedException | ExecutionException e) {
                     LOGGER.error("Failed to read attachment", e);
