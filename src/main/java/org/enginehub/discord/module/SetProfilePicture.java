@@ -21,7 +21,6 @@
  */
 package org.enginehub.discord.module;
 
-import net.dv8tion.jda.api.entities.Icon;
 import net.dv8tion.jda.api.entities.Message;
 import org.enginehub.discord.EngineHubBot;
 import org.enginehub.discord.util.PermissionRole;
@@ -32,9 +31,7 @@ import org.enginehub.piston.CommandManager;
 import org.enginehub.piston.annotation.Command;
 import org.enginehub.piston.annotation.CommandContainer;
 
-import java.io.IOException;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 @CommandContainer(superTypes = CommandPermissionConditionGenerator.Registration.class)
 public class SetProfilePicture implements Module {
@@ -51,11 +48,7 @@ public class SetProfilePicture implements Module {
         Optional<Message.Attachment> attachmentOptional = message.getAttachments().stream().filter(Message.Attachment::isImage).findFirst();
 
         if (attachmentOptional.isPresent()) {
-            try {
-                EngineHubBot.bot.api.getSelfUser().getManager().setAvatar(Icon.from(attachmentOptional.get().retrieveInputStream().get())).queue();
-            } catch (IOException | InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
+            attachmentOptional.get().getProxy().downloadAsIcon().thenAccept(image -> EngineHubBot.bot.api.getSelfUser().getManager().setAvatar(image).queue());
         } else {
             message.getChannel().sendMessage("You need to attach an image!").queue();
         }

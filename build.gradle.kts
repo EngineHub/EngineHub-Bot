@@ -11,7 +11,7 @@ group = "org.enginehub"
 version = "1.0-SNAPSHOT"
 
 configure<JavaPluginExtension> {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(19))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
     withSourcesJar()
 }
 
@@ -53,7 +53,7 @@ tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJ
 }
 
 dependencies {
-    implementation("net.dv8tion:JDA:5.0.0-beta.18") {
+    implementation("net.dv8tion:JDA:5.0.0") {
         exclude(module="opus-java")
     }
 
