@@ -58,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -154,17 +155,10 @@ public class ErrorHelper extends ListenerAdapter implements Module {
             });
     }
 
+    private static final Pattern REMOVE_CHARS = Pattern.compile("[\n\r \t’‘“”`\"']");
+
     private static String cleanString(String string) {
-        return string.toLowerCase()
-            .replace("\n", "")
-            .replace("\r", "")
-            .replace(" ", "")
-            .replace("\t", "")
-            // These are different - not a repetition
-            .replace("’", "'")
-            .replace("‘", "'")
-            .replace("“", "\"")
-            .replace("”", "\"");
+        return REMOVE_CHARS.matcher(string.toLowerCase()).replaceAll("");
     }
 
     private Stream<String> messagesForError(String error) {
