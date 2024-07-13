@@ -229,7 +229,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
     public void save(ConfigurationNode loadedNode) {
         loadedNode.getNode("error-messages").setValue(errorMessages.stream().collect(Collectors.toMap(
                 ErrorEntry::getName,
-                e -> Map.of("match-text", e.getTriggers(), "error-message", e.getResponse())
+                e -> Map.of("match-text", e.getTriggers(), "error-message", e.getResponse(), "silenced-by", e.getSilencedBy())
         )));
     }
 
