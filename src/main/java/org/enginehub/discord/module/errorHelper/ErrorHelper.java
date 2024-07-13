@@ -57,6 +57,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -162,9 +163,14 @@ public class ErrorHelper extends ListenerAdapter implements Module {
     }
 
     private Stream<String> messagesForError(String error) {
-        return errorMessages.stream()
-                .filter(entry -> entry.doesTrigger(error))
-                .map(ErrorEntry::getResponse);
+        List<ErrorEntry> applicableErrors = errorMessages.stream().filter(entry -> entry.doesTrigger(error)).toList();
+        Set<String> applicableEntryNames = applicableErrors.stream().map(ErrorEntry::getName).collect(Collectors.toSet());
+        return applicableErrors.stream().filter(entry -> {
+            if (entry.getSilencedBy().isEmpty()) {
+                return true;
+            }
+            return entry.getSilencedBy().stream().noneMatch(applicableEntryNames::contains);
+        }).map(ErrorEntry::getResponse);
     }
 
     public static String getStringFromUrl(String url) {
@@ -193,10 +199,12 @@ public class ErrorHelper extends ListenerAdapter implements Module {
     public void load(ConfigurationNode loadedNode) {
         errorMessages = loadedNode.getNode("error-messages").getChildrenMap().entrySet().stream()
                 .map(entry -> {
+                    ConfigurationNode node = entry.getValue();
                     try {
                         return new ErrorEntry(entry.getKey().toString(),
-                                entry.getValue().getNode("match-text").getList(TypeToken.of(String.class)),
-                                entry.getValue().getNode("error-message").getString()
+                            node.getNode("match-text").getList(TypeToken.of(String.class)),
+                            node.getNode("silenced-by").getList(TypeToken.of(String.class), List.of()),
+                            node.getNode("error-message").getString()
                         );
                     } catch (ObjectMappingException e) {
                         LOGGER.error("Failed to read ErrorHelper config mapping for " + entry.getKey().toString(), e);
@@ -229,12 +237,14 @@ public class ErrorHelper extends ListenerAdapter implements Module {
         private final String name;
         private final List<String> triggers;
         private final List<String> cleanedTriggers;
+        private final List<String> silencedBy;
         private final String response;
 
-        ErrorEntry(String name, List<String> triggers, String response) {
+        ErrorEntry(String name, List<String> triggers, List<String> silencedBy, String response) {
             this.name = name;
             this.triggers = triggers;
             this.cleanedTriggers = triggers.stream().map(ErrorHelper::cleanString).toList();
+            this.silencedBy = silencedBy;
             this.response = response;
         }
 
@@ -247,7 +257,11 @@ public class ErrorHelper extends ListenerAdapter implements Module {
         }
 
         boolean doesTrigger(String error) {
-            return cleanedTriggers.stream().allMatch(error::contains);
+            return this.cleanedTriggers.stream().allMatch(error::contains);
+        }
+
+        public List<String> getSilencedBy() {
+            return this.silencedBy;
         }
 
         String getResponse() {
