@@ -39,6 +39,7 @@ import org.enginehub.discord.module.Module;
 import org.enginehub.discord.module.errorHelper.resolver.ErrorResolver;
 import org.enginehub.discord.module.errorHelper.resolver.GhostbinResolver;
 import org.enginehub.discord.module.errorHelper.resolver.GistResolver;
+import org.enginehub.discord.module.errorHelper.resolver.IncompatibleResolver;
 import org.enginehub.discord.module.errorHelper.resolver.MCLogsResolver;
 import org.enginehub.discord.module.errorHelper.resolver.RawSubdirectoryUrlResolver;
 import org.enginehub.discord.util.PasteUtil;
@@ -74,10 +75,12 @@ public class ErrorHelper extends ListenerAdapter implements Module {
             new RawSubdirectoryUrlResolver("pastebin.com", "raw"), // PastebinResolver
             new RawSubdirectoryUrlResolver("hastebin.com", "raw"), // HastebinResolver
             new RawSubdirectoryUrlResolver("paste.helpch.at", "raw"), // PasteHelpchatResolver
+            new RawSubdirectoryUrlResolver("paste.md-5.net", "raw"), // md-5.net
             new GhostbinResolver(),
             new GistResolver(),
             new MCLogsResolver(),
-            new RawSubdirectoryUrlResolver("paste.enginehub.org", "documents", true) // EngineHubResolver
+            new RawSubdirectoryUrlResolver("paste.enginehub.org", "documents", true), // EngineHubResolver
+            new IncompatibleResolver("mcpaste.io")
     );
 
     private List<ErrorEntry> errorMessages = new ArrayList<>();
