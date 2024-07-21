@@ -26,6 +26,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.events.guild.GuildBanEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -60,9 +61,40 @@ public class Alerts extends ListenerAdapter implements Module {
         if (channelId != null) {
             TextChannel channel = EngineHubBot.bot.api.getTextChannelById(channelId);
             if (channel != null) {
-                sendMessage(event.getGuild(), channel, event.getUser());
+                sendLeaveMessage(channel, event.getUser());
             }
         }
+    }
+
+    @Override
+    public void onGuildBan(@Nonnull GuildBanEvent event) {
+        String channelId = alertChannels.get(event.getGuild().getId());
+        if (channelId != null) {
+            TextChannel channel = EngineHubBot.bot.api.getTextChannelById(channelId);
+            if (channel != null) {
+                Optional<Guild.Ban> banEntry = event.getGuild().retrieveBanList().complete()
+                    .stream()
+                    .filter(ban -> ban.getUser().getIdLong() == event.getUser().getIdLong())
+                    .findAny();
+
+                String banReason = "unknown";
+
+                if (banEntry.isPresent()) {
+                    banReason = banEntry.get().getReason();
+                }
+
+                channel.sendMessage(annotateUser(event.getUser()) + "has been banned! `" + banReason + '`').queue();
+            }
+        }
+    }
+
+    private static String annotateUser(User user) {
+        String annotatedName = "**" + user.getAsMention() + "** (" + user.getEffectiveName() + ") ";
+        if (user.isBot()) {
+            annotatedName += "[Bot] ";
+        }
+
+        return annotatedName;
     }
 
     /**
@@ -70,19 +102,8 @@ public class Alerts extends ListenerAdapter implements Module {
      *
      * @param user The user
      */
-    private static void sendMessage(Guild guild, TextChannel channel, User user) {
-        String annotatedName = "**" + user.getAsMention() + "** (" + user.getEffectiveName() + ") ";
-        if (user.isBot()) {
-            annotatedName += "[Bot] ";
-        }
-        Optional<Guild.Ban> banEntry = guild.retrieveBanList().complete()
-                        .stream()
-                        .filter(ban -> ban.getUser().getIdLong() == user.getIdLong())
-                        .findAny();
-        if (banEntry.isPresent()) {
-            channel.sendMessage(annotatedName + "has been banned! `" + banEntry.get().getReason() + '`').queue();
-            return;
-        }
+    private static void sendLeaveMessage(TextChannel channel, User user) {
+        String annotatedName = annotateUser(user);
 
         if (user.isBot()) {
             channel.sendMessage(annotatedName + "has been removed from the server!").queue();
