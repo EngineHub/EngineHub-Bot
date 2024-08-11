@@ -69,6 +69,7 @@ import javax.imageio.ImageIO;
 public class ErrorHelper extends ListenerAdapter implements Module {
 
     private static final Logger LOGGER = LogManager.getLogger();
+    private static final int LOG_SCAN_LIMIT = 1024 * 1024 * 50; // 50MB
 
     private final List<ErrorResolver> resolvers = List.of(
             List::of,
@@ -115,7 +116,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
                 }
             }
             if (attachment.getFileName().endsWith(".txt") || attachment.getFileName().endsWith(".log")) {
-                if (attachment.getSize() > 1024*1024*10) {
+                if (attachment.getSize() > LOG_SCAN_LIMIT) {
                     channel.sendMessage("[AutoReply] " + author.getAsMention() + " Log too large "
                         + "to scan.").queue();
                     continue; //Ignore >10MB for now.
