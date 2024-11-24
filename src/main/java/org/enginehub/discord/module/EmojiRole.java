@@ -30,6 +30,7 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
+import net.dv8tion.jda.api.entities.emoji.CustomEmoji;
 import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -38,8 +39,10 @@ import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import org.enginehub.discord.EngineHubBot;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
@@ -79,9 +82,13 @@ public class EmojiRole extends ListenerAdapter implements Module {
         }
 
         if (event.getMessageId().equals(messageId)) {
-            getRoleByEmoji(event.getGuild(), event.getEmoji().asCustom().getId()).ifPresentOrElse(
+            if (event.getEmoji() instanceof CustomEmoji) {
+                getRoleByEmoji(event.getGuild(), event.getEmoji().asCustom().getId()).ifPresentOrElse(
                     role -> toggleRole(event.getGuild(), role, event.getMember(), event.getReaction()),
-                    () -> event.getReaction().removeReaction(event.getUser()).queue());
+                    () -> event.getReaction().removeReaction().queue());
+            } else {
+                event.getReaction().removeReaction().queue();
+            }
         }
     }
 
@@ -102,27 +109,42 @@ public class EmojiRole extends ListenerAdapter implements Module {
             }
             Message message = channel.retrieveMessageById(messageId).complete();
             Guild guild = message.getGuild();
-            message.getReactions()
-                    .forEach(reaction -> getRoleByEmoji(guild, reaction.getEmoji().asCustom().getId())
-                            .ifPresent(role -> reaction.retrieveUsers()
-                                    .queue(users -> {
-                                        for (User user : users) {
-                                            if (user.isBot()) {
-                                                // Skip bots.
-                                                continue;
-                                            }
-                                            guild.retrieveMember(user).queue(mem -> {
-                                                if (mem != null) {
-                                                    toggleRole(guild, role, mem, reaction);
-                                                }
-                                            });
-                                        }
-                                    })));
 
-            message.clearReactions().complete();
+            Set<String> botEmotes = new HashSet<>();
+
+            message.getReactions()
+                .forEach(reaction -> {
+                    if (!(reaction.getEmoji() instanceof CustomEmoji)) {
+                        // Skip & remove non-custom emojis.
+                        reaction.removeReaction().queue();
+                        return;
+                    }
+                    String emojiId = reaction.getEmoji().asCustom().getId();
+                    var emojiOptional = getRoleByEmoji(guild, emojiId);
+                    if (emojiOptional.isPresent()) {
+                        var users = reaction.retrieveUsers().complete();
+                        for (User user : users) {
+                            if (user.isBot()) {
+                                if (EngineHubBot.bot.api.getSelfUser().getIdLong() == user.getIdLong()) {
+                                    botEmotes.add(emojiId);
+                                }
+                                // Skip bots.
+                                continue;
+                            }
+                            guild.retrieveMember(user).queue(mem -> {
+                                if (mem != null) {
+                                    toggleRole(guild, emojiOptional.get(), mem, reaction);
+                                }
+                            });
+                        }
+                    } else {
+                        reaction.removeReaction().queue();
+                    }
+                });
+
             for (String emoteKey : emojiToRole.keySet()) {
                 RichCustomEmoji emote = guild.getEmojiById(emoteKey);
-                if (emote != null) {
+                if (emote != null && !botEmotes.contains(emoteKey)) {
                     message.addReaction(emote).complete();
                 }
             }
