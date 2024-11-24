@@ -158,6 +158,7 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
         api = JDABuilder.create(Settings.token, intents)
                 .setAutoReconnect(true)
                 .addEventListeners(this)
+                .enableCache(CacheFlag.EMOJI)
                 .disableCache(
                     CacheFlag.ACTIVITY, CacheFlag.VOICE_STATE, CacheFlag.CLIENT_STATUS,
                     CacheFlag.ONLINE_STATUS
