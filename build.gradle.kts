@@ -53,7 +53,7 @@ tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJ
 }
 
 dependencies {
-    implementation("net.dv8tion:JDA:5.2.1") {
+    implementation("net.dv8tion:JDA:5.5.1") {
         exclude(module="opus-java")
     }
 
