@@ -36,19 +36,8 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.enginehub.discord.module.Alerts;
-import org.enginehub.discord.module.ChatFilter;
-import org.enginehub.discord.module.EmojiRole;
-import org.enginehub.discord.module.IdleRPG;
-import org.enginehub.discord.module.JoinMessage;
-import org.enginehub.discord.module.LinkGrabber;
+import org.enginehub.discord.module.*;
 import org.enginehub.discord.module.Module;
-import org.enginehub.discord.module.NoMessageSpam;
-import org.enginehub.discord.module.NoPingSpam;
-import org.enginehub.discord.module.PingWarning;
-import org.enginehub.discord.module.PrivateForwarding;
-import org.enginehub.discord.module.RoryFetch;
-import org.enginehub.discord.module.SetProfilePicture;
 import org.enginehub.discord.module.errorHelper.ErrorHelper;
 import org.enginehub.discord.util.PermissionRole;
 import org.enginehub.discord.util.command.CommandArgParser;
@@ -203,7 +192,8 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
             new EmojiRole(),
             new PrivateForwarding(),
             new IdleRPG(),
-            new RoryFetch()
+            new RoryFetch(),
+            new NoHello()
     );
 
     public Collection<Module> getModules() {
