@@ -56,7 +56,7 @@ public class NoHello extends ListenerAdapter implements Module {
             var message = event.getMessage().getContentRaw();
             var cleaned = NON_ALPHANUMERIC.matcher(message).replaceAll("").toLowerCase();
 
-            if (bannedPhrases.contains(cleaned) && !event.getMessage().getAttachments().isEmpty()) {
+            if (bannedPhrases.contains(cleaned) && event.getMessage().getAttachments().isEmpty()) {
                 var reply = EngineHubBot.bot.getModuleByType(LinkGrabber.class).map(linkGrabber -> linkGrabber.mapAlias("hello")).get();
                 event.getMessage().reply(reply).queue();
             }
