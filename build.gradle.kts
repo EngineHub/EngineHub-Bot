@@ -1,10 +1,8 @@
-import org.cadixdev.gradle.licenser.LicenseExtension
-
 plugins {
     id("java")
     id("maven-publish")
-    id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("org.cadixdev.licenser") version "0.6.1"
+    id("com.gradleup.shadow") version "8.3.9"
+    id("net.octyl.level-headered") version "0.1.1"
 }
 
 group = "org.enginehub"
@@ -26,10 +24,8 @@ repositories {
     }
 }
 
-configure<LicenseExtension> {
-    newLine(false)
-    header(project.file("HEADER.txt"))
-    include("**/*.java")
+levelHeadered {
+    headerTemplate(rootProject.file("HEADER.txt"))
 }
 
 tasks.named<JavaCompile>("compileJava") {
@@ -53,7 +49,7 @@ tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJ
 }
 
 dependencies {
-    implementation("net.dv8tion:JDA:5.5.1") {
+    implementation("net.dv8tion:JDA:6.1.2") {
         exclude(module="opus-java")
     }
 

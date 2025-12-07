@@ -135,7 +135,7 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
         GatewayIntent.DIRECT_MESSAGES,
         GatewayIntent.GUILD_MEMBERS,
         GatewayIntent.GUILD_MODERATION,
-        GatewayIntent.GUILD_EMOJIS_AND_STICKERS,
+        GatewayIntent.GUILD_EXPRESSIONS,
         GatewayIntent.GUILD_INVITES,
         GatewayIntent.GUILD_MESSAGE_REACTIONS,
         GatewayIntent.MESSAGE_CONTENT
