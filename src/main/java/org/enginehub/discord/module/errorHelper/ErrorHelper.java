@@ -42,6 +42,7 @@ import org.enginehub.discord.module.errorHelper.resolver.GistResolver;
 import org.enginehub.discord.module.errorHelper.resolver.IncompatibleResolver;
 import org.enginehub.discord.module.errorHelper.resolver.MCLogsResolver;
 import org.enginehub.discord.module.errorHelper.resolver.RawSubdirectoryUrlResolver;
+import org.enginehub.discord.module.errorHelper.resolver.RawSubdomainUrlResolver;
 import org.enginehub.discord.util.PasteUtil;
 
 import java.awt.image.BufferedImage;
@@ -77,6 +78,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
             new RawSubdirectoryUrlResolver("hastebin.com", "raw"), // HastebinResolver
             new RawSubdirectoryUrlResolver("paste.helpch.at", "raw"), // PasteHelpchatResolver
             new RawSubdirectoryUrlResolver("paste.md-5.net", "raw"), // md-5.net
+            new RawSubdomainUrlResolver("pastes.dev", "api"), // Pastes.dev
             new GhostbinResolver(),
             new GistResolver(),
             new MCLogsResolver(),
