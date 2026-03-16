@@ -38,11 +38,13 @@ import org.enginehub.discord.util.PermissionRole;
 import org.enginehub.discord.util.PunishmentUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 import javax.annotation.Nonnull;
 
 /**
@@ -52,7 +54,7 @@ public class NoMessageSpam extends ListenerAdapter implements Module {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private record CacheKey(long userId, int messageHash) { }
+    private record CacheKey(long userId, int messageHash, int attachmentsHash) { }
 
     // Track messages from a user for the last 1 minute.
     private final LoadingCache<CacheKey, AtomicInteger> messageCounts = CacheBuilder.newBuilder()
@@ -102,11 +104,12 @@ public class NoMessageSpam extends ListenerAdapter implements Module {
         var contentRaw = event.getMessage().getContentRaw();
         var cacheKey = new CacheKey(
             event.getAuthor().getIdLong(),
-            contentRaw.hashCode()
+            contentRaw.hashCode(),
+            Arrays.hashCode(event.getMessage().getAttachments().stream().flatMapToLong(att -> LongStream.of(att.getSize(), att.getWidth(), att.getHeight())).toArray())
         );
         var hashCount = messageCounts.getUnchecked(cacheKey).incrementAndGet();
 
-        if (contentRaw.length() < 10) {
+        if (contentRaw.length() < 10 && event.getMessage().getAttachments().isEmpty()) {
             // This is unlikely to be a "true" spam message. Only kick people if they repeat it
             // an unrealistic amount (given our 1 minute counter, more than 10/12 is likely spam)
             hashCount /= 2;
