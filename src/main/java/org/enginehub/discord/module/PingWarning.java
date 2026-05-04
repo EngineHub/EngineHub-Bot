@@ -57,7 +57,9 @@ public class PingWarning extends ListenerAdapter implements Module {
             if (spamTime >= 4) {
                 // Do the ban.
                 PunishmentUtil.banUser(event.getGuild(), event.getAuthor(), "Repeatedly pinging developers.", false);
-            } else if (spamTime >= 3) {
+                // Remove them once banned
+                spamTimes.remove(event.getAuthor().getId());
+            } else if (spamTime == 3) {
                 // Kick
                 PunishmentUtil.kickUser(event.getGuild(), event.getMember(), "Repeatedly pinging developers.");
             } else {
