@@ -33,9 +33,9 @@ public class StringUtil {
 
     public static EmbedBuilder createEmbed() {
         EmbedBuilder builder = new EmbedBuilder();
-        builder.setAuthor("EngineHub Bot", "https://github.com/EngineHub/EngineHub-Bot", "https://enginehub.org/icons/icon-256x256.png");
+        builder.setAuthor("EngineHub Bot", "https://github.com/EngineHub/EngineHub-Bot", "https://enginehub.org/static/icons/icon-256x256.png");
         builder.setColor(new Color(87, 61, 129));
-        builder.setThumbnail("https://enginehub.org/icons/icon-256x256.png");
+        builder.setThumbnail("https://enginehub.org/static/icons/icon-256x256.png");
         builder.setTimestamp(Instant.now());
 
         return builder;
