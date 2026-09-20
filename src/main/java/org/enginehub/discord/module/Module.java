@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package org.enginehub.discord.module;
 
 import ninja.leaping.configurate.ConfigurationNode;
@@ -27,15 +28,21 @@ import org.enginehub.piston.CommandManager;
 
 public interface Module {
 
-    default void onInitialise() {}
+    default void onInitialise() {
+    }
 
-    default void onTick() {}
+    default void onTick() {
+    }
 
-    default void load(ConfigurationNode loadedNode) {}
+    default void load(ConfigurationNode loadedNode) {
+    }
 
-    default void setupCommands(CommandRegistrationHandler handler, CommandManager dispatcherNode) {}
+    default void setupCommands(CommandRegistrationHandler handler, CommandManager dispatcherNode) {
+    }
 
-    default void save(ConfigurationNode loadedNode) {}
+    default void save(ConfigurationNode loadedNode) {
+    }
 
-    default void onShutdown() {}
+    default void onShutdown() {
+    }
 }

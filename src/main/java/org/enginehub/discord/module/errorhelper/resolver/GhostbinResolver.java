@@ -19,31 +19,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.enginehub.discord.module.errorHelper.resolver;
+
+package org.enginehub.discord.module.errorhelper.resolver;
+
+import org.enginehub.discord.module.errorhelper.ErrorHelper;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class IncompatibleResolver implements ErrorResolver {
+public class GhostbinResolver implements ErrorResolver {
 
-    private static final String INCOMPATIBLE_TEXT = "This paste provider does not allow automated reading, preventing the bot from assisting you. We recommend using our paste site instead, https://paste.enginehub.org/";
-
-    private final Pattern URL_PATTERN;
-
-    public IncompatibleResolver(String baseUrl) {
-        this.URL_PATTERN = Pattern.compile(baseUrl + "/([A-Za-z0-9._-]*)");
-    }
+    private static final Pattern GHOSTBIN_PATTERN = Pattern.compile("ghostbin.com/paste/([A-Za-z0-9]*)");
 
     @Override
     public List<String> foundText(String message) {
         List<String> foundText = new ArrayList<>();
-        Matcher matcher = URL_PATTERN.matcher(message);
+        Matcher matcher = GHOSTBIN_PATTERN.matcher(message);
         while (matcher.find()) {
-            foundText.add(INCOMPATIBLE_TEXT);
+            foundText.add(ErrorHelper.getStringFromUrl("https://ghostbin.com/paste/" + matcher.group(1) + "/raw"));
         }
 
         return foundText;
     }
+
 }

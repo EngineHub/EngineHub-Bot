@@ -1,6 +1,7 @@
 import net.ltgt.gradle.errorprone.errorprone
 
 plugins {
+    id("org.enginehub.crankcase.checkstyle") version "0.1.2"
     id("org.enginehub.crankcase.java") version "0.1.2"
     id("org.enginehub.crankcase.licensing") version "0.1.2"
     id("com.gradleup.shadow") version "9.6.1"

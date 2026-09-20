@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package org.enginehub.discord.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -35,7 +36,7 @@ import java.net.http.HttpResponse;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-public class PasteUtil {
+public final class PasteUtil {
 
     public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
         .registerModules(new Jdk8Module(), new ParameterNamesModule());
@@ -86,5 +87,8 @@ public class PasteUtil {
     }
 
     private record SignedPasteV2Response(String viewUrl, String uploadUrl, Map<String, String> headers) {
+    }
+
+    private PasteUtil() {
     }
 }

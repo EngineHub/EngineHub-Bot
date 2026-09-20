@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package org.enginehub.discord.module;
 
 import com.fasterxml.jackson.core.JsonProcessingException;

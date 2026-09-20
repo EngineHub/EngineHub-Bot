@@ -19,27 +19,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.enginehub.discord.module.errorHelper.resolver;
 
-import org.enginehub.discord.module.errorHelper.ErrorHelper;
+package org.enginehub.discord.module.errorhelper.resolver;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-public class MCLogsResolver implements ErrorResolver {
+@FunctionalInterface
+public interface ErrorResolver {
 
-    private final Pattern MCLOGS_PATTERN = Pattern.compile("mclo.gs/([A-Za-z0-9]*)");
-
-    @Override
-    public List<String> foundText(String message) {
-        List<String> foundText = new ArrayList<>();
-        Matcher matcher = MCLOGS_PATTERN.matcher(message);
-        while (matcher.find()) {
-            foundText.add(ErrorHelper.getStringFromUrl("https://api.mclo.gs/1/raw/" + matcher.group(1)));
-        }
-
-        return foundText;
-    }
+    /**
+     * Get a list of messages that can be parsed for errors from this message.
+     *
+     * <p>
+     *     This method should exit early if it's not worth checking.
+     * </p>
+     *
+     * @param message The message
+     * @return The parseable messages
+     */
+    List<String> foundText(String message);
 }

@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package org.enginehub.discord;
 
 import com.google.common.collect.Lists;
@@ -34,7 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public class Settings {
+public final class Settings {
 
     private static CommentedConfigurationNode loadedNode;
 
@@ -112,5 +113,8 @@ public class Settings {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private Settings() {
     }
 }

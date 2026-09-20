@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package org.enginehub.discord.module;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -101,7 +102,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
     private PlayerData getPlayerData(User author) {
         return players.computeIfAbsent(
                 author.getIdLong(),
-            _l -> new PlayerData(Instant.EPOCH, 0, author.getEffectiveName())
+            _ -> new PlayerData(Instant.EPOCH, 0, author.getEffectiveName())
         );
     }
 
@@ -160,7 +161,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
                 if (page == 0 || page > Math.ceil(players.size() / 10.0)) {
                     throw new NumberFormatException();
                 }
-            } catch (NumberFormatException e) {
+            } catch (NumberFormatException _) {
                 EmbedBuilder builder = createEmbed();
                 builder.setAuthor("IdleRPG");
                 builder.appendDescription(
@@ -219,7 +220,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
         nextSave = Instant.EPOCH;
         players.clear();
 
-        try{
+        try {
             Map<Long, PlayerData> map = OBJECT_MAPPER.readValue(
                 new File(IDLE_RPG_FILE), PLAYER_DATA_MAP_TYPE
             );

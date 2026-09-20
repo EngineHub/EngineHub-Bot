@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package org.enginehub.discord.util;
 
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -29,7 +30,7 @@ import java.awt.Color;
 import java.time.Duration;
 import java.time.Instant;
 
-public class StringUtil {
+public final class StringUtil {
 
     public static EmbedBuilder createEmbed() {
         EmbedBuilder builder = new EmbedBuilder();
@@ -83,5 +84,8 @@ public class StringUtil {
             return action.setMessageReference(reference);
         }
         return action;
+    }
+
+    private StringUtil() {
     }
 }

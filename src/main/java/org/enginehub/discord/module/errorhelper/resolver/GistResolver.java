@@ -19,9 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.enginehub.discord.module.errorHelper.resolver;
 
-import org.enginehub.discord.module.errorHelper.ErrorHelper;
+package org.enginehub.discord.module.errorhelper.resolver;
+
+import org.enginehub.discord.module.errorhelper.ErrorHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,7 @@ import java.util.regex.Pattern;
 
 public class GistResolver implements ErrorResolver {
 
-    private final Pattern GIST_PATTERN = Pattern.compile("gist.github.com/([A-Za-z0-9]*)/([a-z0-9]*)");
+    private static final Pattern GIST_PATTERN = Pattern.compile("gist.github.com/([A-Za-z0-9]*)/([a-z0-9]*)");
 
     @Override
     public List<String> foundText(String message) {

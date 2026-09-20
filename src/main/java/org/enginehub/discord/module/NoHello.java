@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package org.enginehub.discord.module;
 
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
@@ -27,10 +28,10 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.enginehub.discord.EngineHubBot;
 import org.enginehub.discord.util.PermissionRole;
 
-import javax.annotation.Nonnull;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
 
 /**
  * A simple anti-same-message spam filter.

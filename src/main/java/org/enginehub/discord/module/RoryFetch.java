@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package org.enginehub.discord.module;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -100,9 +101,9 @@ public class RoryFetch implements Module {
 
                 Map<String, String> parsedResponse = OBJECT_MAPPER.readValue(response.body(), RORY_RESPONSE);
                 message.getChannel().sendMessageEmbeds(createRoryEmbed(parsedResponse.get("id"), parsedResponse.get("url"))).queue();
-            } catch (MalformedURLException | URISyntaxException e) {
+            } catch (MalformedURLException | URISyntaxException _) {
                 message.getChannel().sendMessage(message.getAuthor().getEffectiveName() + ", that's an invalid URL!").queue();
-            } catch (InterruptedException | IOException e) {
+            } catch (InterruptedException | IOException _) {
                 message.getChannel().sendMessage(message.getAuthor().getEffectiveName() + ", failed to lookup rory pic!").queue();
             }
         }

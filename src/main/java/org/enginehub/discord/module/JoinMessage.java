@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package org.enginehub.discord.module;
 
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
@@ -28,7 +29,8 @@ import javax.annotation.Nonnull;
 
 public class JoinMessage extends ListenerAdapter implements Module {
 
-    private final static String JOIN_TEXT = """
+    private static final String JOIN_TEXT =
+        """
         Hey! Welcome to the EngineHub Discord!
 
         Before you get started, make sure you read the rules at <#139272202431234048>.

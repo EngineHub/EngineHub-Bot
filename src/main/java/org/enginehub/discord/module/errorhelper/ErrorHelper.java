@@ -19,7 +19,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.enginehub.discord.module.errorHelper;
+
+package org.enginehub.discord.module.errorhelper;
 
 import com.google.common.reflect.TypeToken;
 import net.dv8tion.jda.api.entities.Message;
@@ -36,13 +37,13 @@ import org.apache.logging.log4j.Logger;
 import org.enginehub.discord.EngineHubBot;
 import org.enginehub.discord.module.LinkGrabber;
 import org.enginehub.discord.module.Module;
-import org.enginehub.discord.module.errorHelper.resolver.ErrorResolver;
-import org.enginehub.discord.module.errorHelper.resolver.GhostbinResolver;
-import org.enginehub.discord.module.errorHelper.resolver.GistResolver;
-import org.enginehub.discord.module.errorHelper.resolver.IncompatibleResolver;
-import org.enginehub.discord.module.errorHelper.resolver.MCLogsResolver;
-import org.enginehub.discord.module.errorHelper.resolver.RawSubdirectoryUrlResolver;
-import org.enginehub.discord.module.errorHelper.resolver.RawSubdomainUrlResolver;
+import org.enginehub.discord.module.errorhelper.resolver.ErrorResolver;
+import org.enginehub.discord.module.errorhelper.resolver.GhostbinResolver;
+import org.enginehub.discord.module.errorhelper.resolver.GistResolver;
+import org.enginehub.discord.module.errorhelper.resolver.IncompatibleResolver;
+import org.enginehub.discord.module.errorhelper.resolver.MCLogsResolver;
+import org.enginehub.discord.module.errorhelper.resolver.RawSubdirectoryUrlResolver;
+import org.enginehub.discord.module.errorhelper.resolver.RawSubdomainUrlResolver;
 import org.enginehub.discord.util.PasteUtil;
 
 import java.awt.image.BufferedImage;
@@ -131,7 +132,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
                         + "to scan.").queue();
                     continue; //Ignore >10MB for now.
                 }
-                try(BufferedReader reader = new BufferedReader(new InputStreamReader(attachment.getProxy().download().get(), StandardCharsets.UTF_8))) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(attachment.getProxy().download().get(), StandardCharsets.UTF_8))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
                         messageText.append(line).append('\n');
