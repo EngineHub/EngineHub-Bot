@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package org.enginehub.discord.util.command;
 
 import org.enginehub.piston.CommandManager;
@@ -34,10 +35,8 @@ public class CommandRegistrationHandler {
     public <CI> void register(CommandManager manager, CommandRegistration<CI> registration, CI instance) {
         registration.containerInstance(instance)
             .commandManager(manager);
-        if (registration instanceof CommandPermissionConditionGenerator.Registration) {
-            ((CommandPermissionConditionGenerator.Registration) registration).commandPermissionConditionGenerator(
-                PERM_GEN
-            );
+        if (registration instanceof CommandPermissionConditionGenerator.Registration permRegistration) {
+            permRegistration.commandPermissionConditionGenerator(PERM_GEN);
         }
         registration.build();
     }

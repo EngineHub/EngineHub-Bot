@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package org.enginehub.discord.module;
 
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
@@ -27,9 +28,10 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.enginehub.discord.EngineHubBot;
 import org.enginehub.discord.util.PermissionRole;
 
-import javax.annotation.Nonnull;
+import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
 
 /**
  * A simple anti-same-message spam filter.
@@ -54,7 +56,7 @@ public class NoHello extends ListenerAdapter implements Module {
         if (event.getChannel() instanceof GuildChannel) {
             // replace non-alphanumeric characters with nothing, and make it lowercase
             var message = event.getMessage().getContentRaw();
-            var cleaned = NON_ALPHANUMERIC.matcher(message).replaceAll("").toLowerCase();
+            var cleaned = NON_ALPHANUMERIC.matcher(message).replaceAll("").toLowerCase(Locale.ROOT);
 
             if (bannedPhrases.contains(cleaned) && event.getMessage().getAttachments().isEmpty()) {
                 var reply = EngineHubBot.bot.getModuleByType(LinkGrabber.class).map(linkGrabber -> linkGrabber.mapAlias("hello")).get();

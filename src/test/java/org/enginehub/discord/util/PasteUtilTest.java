@@ -19,10 +19,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package org.enginehub.discord.util;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -31,7 +32,7 @@ import java.util.concurrent.ExecutionException;
 public class PasteUtilTest {
 
     // This test is ignored as it actually creates a paste on paste.enginehub.org
-    @Ignore
+    @Disabled
     @Test
     public void testCreatesPaste() {
         try {

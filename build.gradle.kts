@@ -1,44 +1,31 @@
+import net.ltgt.gradle.errorprone.errorprone
+
 plugins {
-    id("java")
-    id("maven-publish")
-    id("com.gradleup.shadow") version "8.3.9"
-    id("net.octyl.level-headered") version "0.1.1"
+    id("org.enginehub.crankcase.checkstyle") version "0.1.2"
+    id("org.enginehub.crankcase.java") version "0.1.2"
+    id("org.enginehub.crankcase.licensing") version "0.1.2"
+    id("com.gradleup.shadow") version "9.6.1"
 }
 
 group = "org.enginehub"
 version = "1.0-SNAPSHOT"
 
-configure<JavaPluginExtension> {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
-    withSourcesJar()
+crankcaseJava {
+    javaRelease = 25
+    disabledLints = listOf("processing")
 }
 
-repositories {
-    mavenCentral()
-    maven {
-        name = "sponge"
-        url = uri("https://repo.spongepowered.org/maven")
-    }
-    maven {
-        url = uri("https://maven.enginehub.org/repo/")
-    }
+tasks.compileJava {
+    options.compilerArgs.add("-Aarg.name.key.prefix=")
+    options.errorprone.excludedPaths = ".*/build/generated/.*"
 }
 
-levelHeadered {
-    headerTemplate(rootProject.file("HEADER.txt"))
+tasks.jar {
+    archiveClassifier = "dev"
 }
 
-tasks.named<JavaCompile>("compileJava") {
-    options.compilerArgs = listOf("-parameters", "-Werror", "-Aarg.name.key.prefix=")
-    options.encoding = "UTF-8"
-}
-
-tasks.named<Jar>("jar") {
-    archiveClassifier.set("dev")
-}
-
-tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
-    archiveClassifier.set("")
+tasks.shadowJar {
+    archiveClassifier = ""
 
     exclude("GradleStart**")
     exclude(".cache")
@@ -89,18 +76,4 @@ dependencies {
         exclude(group = "log4j", module = "log4j")
         exclude(group = "commons-logging", module = "commons-logging")
     }
-
-    testImplementation("junit:junit:4.13.2")
-}
-
-configure<PublishingExtension> {
-    publications {
-        register<MavenPublication>("java") {
-            from(components["java"])
-        }
-    }
-}
-
-tasks.named("assemble") {
-    dependsOn("shadowJar")
 }

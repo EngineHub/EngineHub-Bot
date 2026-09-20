@@ -19,28 +19,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.enginehub.discord.module.errorHelper.resolver;
 
-import org.enginehub.discord.module.errorHelper.ErrorHelper;
+package org.enginehub.discord.module.errorhelper.resolver;
+
+import org.enginehub.discord.module.errorhelper.ErrorHelper;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class GhostbinResolver implements ErrorResolver {
+public class RawSubdirectoryUrlResolver implements ErrorResolver {
 
-    private final Pattern GHOSTBIN_PATTERN = Pattern.compile("ghostbin.com/paste/([A-Za-z0-9]*)");
+    private final Pattern urlPattern;
+    private final String baseUrl;
+    private final String subUrl;
+    private final boolean secure;
+
+    public RawSubdirectoryUrlResolver(String baseUrl, String subUrl) {
+        this(baseUrl, subUrl, false);
+    }
+
+    public RawSubdirectoryUrlResolver(String baseUrl, String subUrl, boolean secure) {
+        this.baseUrl = baseUrl;
+        this.subUrl = subUrl;
+        this.urlPattern = Pattern.compile(baseUrl + "/([A-Za-z0-9._-]*)");
+        this.secure = secure;
+    }
 
     @Override
     public List<String> foundText(String message) {
         List<String> foundText = new ArrayList<>();
-        Matcher matcher = GHOSTBIN_PATTERN.matcher(message);
+        Matcher matcher = urlPattern.matcher(message);
         while (matcher.find()) {
-            foundText.add(ErrorHelper.getStringFromUrl("https://ghostbin.com/paste/" + matcher.group(1) + "/raw"));
+            foundText.add(ErrorHelper.getStringFromUrl((secure ? "https" : "http")  + "://" + baseUrl + '/' + subUrl + '/' + matcher.group(1)));
         }
 
         return foundText;
     }
-
 }

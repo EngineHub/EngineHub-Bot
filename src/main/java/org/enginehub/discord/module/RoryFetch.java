@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package org.enginehub.discord.module;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -37,8 +38,8 @@ import org.enginehub.piston.annotation.param.Arg;
 import java.awt.Color;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -89,7 +90,7 @@ public class RoryFetch implements Module {
             }
             try {
                 HttpResponse<String> response = client.send(
-                    HttpRequest.newBuilder(new URL(url).toURI()).build(),
+                    HttpRequest.newBuilder(new URI(url)).build(),
                     HttpResponse.BodyHandlers.ofString()
                 );
 
@@ -100,9 +101,9 @@ public class RoryFetch implements Module {
 
                 Map<String, String> parsedResponse = OBJECT_MAPPER.readValue(response.body(), RORY_RESPONSE);
                 message.getChannel().sendMessageEmbeds(createRoryEmbed(parsedResponse.get("id"), parsedResponse.get("url"))).queue();
-            } catch (MalformedURLException | URISyntaxException e) {
+            } catch (MalformedURLException | URISyntaxException _) {
                 message.getChannel().sendMessage(message.getAuthor().getEffectiveName() + ", that's an invalid URL!").queue();
-            } catch (InterruptedException | IOException e) {
+            } catch (InterruptedException | IOException _) {
                 message.getChannel().sendMessage(message.getAuthor().getEffectiveName() + ", failed to lookup rory pic!").queue();
             }
         }

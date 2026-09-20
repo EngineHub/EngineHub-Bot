@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package org.enginehub.discord;
 
 import com.google.common.collect.ImmutableList;
@@ -36,9 +37,21 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.enginehub.discord.module.*;
+import org.enginehub.discord.module.Alerts;
+import org.enginehub.discord.module.ChatFilter;
+import org.enginehub.discord.module.EmojiRole;
+import org.enginehub.discord.module.IdleRPG;
+import org.enginehub.discord.module.JoinMessage;
+import org.enginehub.discord.module.LinkGrabber;
 import org.enginehub.discord.module.Module;
-import org.enginehub.discord.module.errorHelper.ErrorHelper;
+import org.enginehub.discord.module.NoHello;
+import org.enginehub.discord.module.NoMessageSpam;
+import org.enginehub.discord.module.NoPingSpam;
+import org.enginehub.discord.module.PingWarning;
+import org.enginehub.discord.module.PrivateForwarding;
+import org.enginehub.discord.module.RoryFetch;
+import org.enginehub.discord.module.SetProfilePicture;
+import org.enginehub.discord.module.errorhelper.ErrorHelper;
 import org.enginehub.discord.util.PermissionRole;
 import org.enginehub.discord.util.command.CommandArgParser;
 import org.enginehub.discord.util.command.CommandRegistrationHandler;
@@ -121,7 +134,7 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
             // Force kill.
             System.exit(0);
         } catch (LoginException | InterruptedException e) {
-            e.printStackTrace();
+            LOGGER.warn("Failed to start the bot", e);
         }
     }
 
@@ -130,7 +143,7 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
     private final CommandManagerService commandManagerService;
     private final CommandRegistrationHandler registrationHandler;
 
-    private final static List<GatewayIntent> intents = Lists.newArrayList(
+    private static final List<GatewayIntent> intents = Lists.newArrayList(
         GatewayIntent.GUILD_MESSAGES,
         GatewayIntent.DIRECT_MESSAGES,
         GatewayIntent.GUILD_MEMBERS,
@@ -219,7 +232,7 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
             try {
                 Thread.sleep(1000L);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                LOGGER.warn("Interrupted in main loop", e);
             }
         }
     }
@@ -256,11 +269,11 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
                     return;
                 }
                 event.getChannel().sendMessage(usage == null ? "No help text available." : usage).queue();
-            } catch (ConditionFailedException e) {
+            } catch (ConditionFailedException _) {
                 event.getChannel().sendMessage("You don't have permissions!").queue();
             } catch (CommandException e) {
                 event.getChannel().sendMessage("Failed to send command! " + e.getMessage()).queue();
-                e.printStackTrace();
+                LOGGER.warn("Command failed", e);
             }
         }
     }

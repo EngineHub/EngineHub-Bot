@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package org.enginehub.discord;
 
 import com.google.common.collect.Lists;
@@ -28,13 +29,17 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.enginehub.discord.module.Module;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public class Settings {
+public final class Settings {
+
+    private static final Logger LOGGER = LogManager.getLogger();
 
     private static CommentedConfigurationNode loadedNode;
 
@@ -58,7 +63,7 @@ public class Settings {
             hostIdentifier = loadedNode.getNode("host-id").getString("80853648891977728");
             autoEraseChannels = loadedNode.getNode("auto-erase-channels").getList(TypeToken.of(String.class), autoEraseChannels);
         } catch (IOException | ObjectMappingException e) {
-            e.printStackTrace();
+            LOGGER.warn("Failed to load settings", e);
         }
 
         save();
@@ -81,7 +86,7 @@ public class Settings {
 
                 module.load(node);
             } catch (Exception e) {
-                e.printStackTrace();
+                LOGGER.warn("Failed to load settings for module " + module.getClass().getSimpleName(), e);
             }
         }
     }
@@ -94,7 +99,7 @@ public class Settings {
 
             loader.save(loadedNode);
         } catch (IOException | ObjectMappingException e) {
-            e.printStackTrace();
+            LOGGER.warn("Failed to save settings", e);
         }
     }
 
@@ -110,7 +115,10 @@ public class Settings {
             module.save(node);
             moduleLoader.save(node);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.warn("Failed to save settings for module " + module.getClass().getSimpleName(), e);
         }
+    }
+
+    private Settings() {
     }
 }

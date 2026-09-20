@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package org.enginehub.discord.module;
 
 import net.dv8tion.jda.api.entities.Message;
@@ -48,7 +49,7 @@ public class SetProfilePicture implements Module {
         Optional<Message.Attachment> attachmentOptional = message.getAttachments().stream().filter(Message.Attachment::isImage).findFirst();
 
         if (attachmentOptional.isPresent()) {
-            attachmentOptional.get().getProxy().downloadAsIcon().thenAccept(image -> EngineHubBot.bot.api.getSelfUser().getManager().setAvatar(image).queue());
+            var _ = attachmentOptional.get().getProxy().downloadAsIcon().thenAccept(image -> EngineHubBot.bot.api.getSelfUser().getManager().setAvatar(image).queue());
         } else {
             message.getChannel().sendMessage("You need to attach an image!").queue();
         }

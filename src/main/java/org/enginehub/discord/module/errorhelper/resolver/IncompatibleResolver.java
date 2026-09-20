@@ -19,39 +19,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.enginehub.discord.module.errorHelper.resolver;
 
-import org.enginehub.discord.module.errorHelper.ErrorHelper;
+package org.enginehub.discord.module.errorhelper.resolver;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class RawSubdirectoryUrlResolver implements ErrorResolver {
+public class IncompatibleResolver implements ErrorResolver {
 
-    private final Pattern URL_PATTERN;
-    private final String baseUrl;
-    private final String subUrl;
-    private final boolean secure;
+    private static final String INCOMPATIBLE_TEXT = "This paste provider does not allow automated reading, preventing the bot from assisting you. We recommend using our paste site instead, https://paste.enginehub.org/";
 
-    public RawSubdirectoryUrlResolver(String baseUrl, String subUrl) {
-        this(baseUrl, subUrl, false);
-    }
+    private final Pattern urlPattern;
 
-    public RawSubdirectoryUrlResolver(String baseUrl, String subUrl, boolean secure) {
-        this.baseUrl = baseUrl;
-        this.subUrl = subUrl;
-        this.URL_PATTERN = Pattern.compile(baseUrl + "/([A-Za-z0-9._-]*)");
-        this.secure = secure;
+    public IncompatibleResolver(String baseUrl) {
+        this.urlPattern = Pattern.compile(baseUrl + "/([A-Za-z0-9._-]*)");
     }
 
     @Override
     public List<String> foundText(String message) {
         List<String> foundText = new ArrayList<>();
-        Matcher matcher = URL_PATTERN.matcher(message);
+        Matcher matcher = urlPattern.matcher(message);
         while (matcher.find()) {
-            foundText.add(ErrorHelper.getStringFromUrl((secure ? "https" : "http")  + "://" + baseUrl + '/' + subUrl + '/' + matcher.group(1)));
+            foundText.add(INCOMPATIBLE_TEXT);
         }
 
         return foundText;

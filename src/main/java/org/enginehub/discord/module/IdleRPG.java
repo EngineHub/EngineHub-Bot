@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package org.enginehub.discord.module;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -36,6 +37,8 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.enginehub.discord.util.BigMath;
 import org.enginehub.discord.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -61,6 +64,7 @@ import static org.enginehub.discord.util.StringUtil.createEmbed;
 
 public class IdleRPG extends ListenerAdapter implements Module {
 
+    private static final Logger LOGGER = LogManager.getLogger();
     private static final String IDLE_RPG_TOKEN = ">";
     private static final String IDLE_RPG_LEADERBOARD_TOKEN = ">l";
     private static final String IDLE_RPG_FILE = "idlerpg_data.json";
@@ -101,7 +105,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
     private PlayerData getPlayerData(User author) {
         return players.computeIfAbsent(
                 author.getIdLong(),
-            _l -> new PlayerData(Instant.EPOCH, 0, author.getEffectiveName())
+            _ -> new PlayerData(Instant.EPOCH, 0, author.getEffectiveName())
         );
     }
 
@@ -157,10 +161,10 @@ public class IdleRPG extends ListenerAdapter implements Module {
         if (commandArguments.length == 2) {
             try {
                 page = Integer.parseUnsignedInt(commandArguments[1]);
-                if (page == 0 || page > (Math.ceil(players.size() / 10.0))) {
+                if (page == 0 || page > Math.ceil(players.size() / 10.0)) {
                     throw new NumberFormatException();
                 }
-            } catch (NumberFormatException e) {
+            } catch (NumberFormatException _) {
                 EmbedBuilder builder = createEmbed();
                 builder.setAuthor("IdleRPG");
                 builder.appendDescription(
@@ -219,16 +223,17 @@ public class IdleRPG extends ListenerAdapter implements Module {
         nextSave = Instant.EPOCH;
         players.clear();
 
-        try{
+        try {
             Map<Long, PlayerData> map = OBJECT_MAPPER.readValue(
                 new File(IDLE_RPG_FILE), PLAYER_DATA_MAP_TYPE
             );
             if (map != null) {
                 players.putAll(map);
             }
-        } catch (FileNotFoundException ignored) {
+        } catch (FileNotFoundException _) {
+            // Fine, we'll re-initialize.
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.warn("Failed to load IdleRPG player data", e);
         }
 
         // Purge players who only got to level 1 over a week ago.
@@ -248,7 +253,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
                 OBJECT_MAPPER.writeValue(new File(IDLE_RPG_FILE), players);
                 isDirty = false;
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.warn("Failed to save IdleRPG player data", e);
             }
         }
     }
