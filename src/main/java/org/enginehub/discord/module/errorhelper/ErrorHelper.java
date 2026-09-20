@@ -46,13 +46,13 @@ import org.enginehub.discord.module.errorhelper.resolver.IncompatibleResolver;
 import org.enginehub.discord.module.errorhelper.resolver.MCLogsResolver;
 import org.enginehub.discord.module.errorhelper.resolver.RawSubdirectoryUrlResolver;
 import org.enginehub.discord.module.errorhelper.resolver.RawSubdomainUrlResolver;
+import org.enginehub.discord.util.AttachmentImages;
 import org.enginehub.discord.util.HttpUtil;
 import org.enginehub.discord.util.PasteUtil;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -69,7 +69,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import javax.imageio.ImageIO;
 
 public class ErrorHelper extends ListenerAdapter implements Module {
 
@@ -109,8 +108,8 @@ public class ErrorHelper extends ListenerAdapter implements Module {
                     continue;
                 }
 
-                try (InputStream is = attachment.getProxy().download().get()) {
-                    BufferedImage image = ImageIO.read(is);
+                try {
+                    BufferedImage image = AttachmentImages.fetch(attachment);
                     messageText.append(tesseract.doOCR(image));
                     if (EngineHubBot.isBotOwner(author) && message.getChannel() instanceof PrivateChannel) {
                         // If it's a bot developer, send OCR debug text.
