@@ -52,6 +52,7 @@ import org.enginehub.discord.module.PrivateForwarding;
 import org.enginehub.discord.module.RoryFetch;
 import org.enginehub.discord.module.SetProfilePicture;
 import org.enginehub.discord.module.errorhelper.ErrorHelper;
+import org.enginehub.discord.util.HttpUtil;
 import org.enginehub.discord.util.PermissionRole;
 import org.enginehub.discord.util.command.CommandArgParser;
 import org.enginehub.discord.util.command.CommandRegistrationHandler;
@@ -158,6 +159,7 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
         bot = this;
         LOGGER.info("Connecting...");
         api = JDABuilder.create(Settings.token, intents)
+                .setHttpClient(HttpUtil.getClient())
                 .setAutoReconnect(true)
                 .addEventListeners(this)
                 .enableCache(CacheFlag.EMOJI)

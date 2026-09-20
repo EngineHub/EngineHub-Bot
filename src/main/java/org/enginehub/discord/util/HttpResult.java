@@ -22,15 +22,5 @@
 
 package org.enginehub.discord.util;
 
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-
-public class PasteUtilTest {
-
-    // This test is ignored as it actually creates a paste on paste.enginehub.org
-    @Disabled
-    @Test
-    public void testCreatesPaste() {
-        System.out.println(PasteUtil.sendToPastebin("test").join());
-    }
+public record HttpResult(int code, String body) {
 }
