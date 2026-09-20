@@ -22,6 +22,8 @@
 
 package org.enginehub.discord.util;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
@@ -29,6 +31,12 @@ import net.dv8tion.jda.api.entities.User;
 import java.util.concurrent.TimeUnit;
 
 public final class PunishmentUtil {
+
+    private record BanKey(long guildId, long userId) { }
+
+    private static final Cache<BanKey, Boolean> RECENT_BANS = CacheBuilder.newBuilder()
+        .expireAfterAccess(1, TimeUnit.MINUTES)
+        .build();
 
     private static String getContactString() {
         return "Submit an appeal via https://ehub.to/ban-appeal if you wish to appeal.";
@@ -44,6 +52,10 @@ public final class PunishmentUtil {
     }
 
     public static void banUser(Guild guild, User user, String reason, boolean eraseHistory) {
+        if (RECENT_BANS.asMap().putIfAbsent(new BanKey(guild.getIdLong(), user.getIdLong()), Boolean.TRUE) != null) {
+            return;
+        }
+
         var _ = user.openPrivateChannel().submit()
             .thenCompose(privateChannel ->
                 privateChannel.sendMessage("You have been banned for `" + reason + "`. " + getContactString())
