@@ -29,6 +29,9 @@ import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import okhttp3.Request;
+import org.enginehub.discord.util.HttpResult;
+import org.enginehub.discord.util.HttpUtil;
 import org.enginehub.discord.util.command.CommandRegistrationHandler;
 import org.enginehub.piston.CommandManager;
 import org.enginehub.piston.annotation.Command;
@@ -40,9 +43,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -57,8 +57,6 @@ public class RoryFetch implements Module {
     private static final TypeReference<Map<String, String>> RORY_RESPONSE =
         new TypeReference<>() {
         };
-
-    private final HttpClient client = HttpClient.newHttpClient();
 
     static {
         roryOverrides.put("gilmore", "https://i.pinimg.com/736x/25/ee/b7/25eeb71bb71aeee5574c50f96205d871.jpg");
@@ -89,12 +87,9 @@ public class RoryFetch implements Module {
                 url = url + '/' + roryId;
             }
             try {
-                HttpResponse<String> response = client.send(
-                    HttpRequest.newBuilder(new URI(url)).build(),
-                    HttpResponse.BodyHandlers.ofString()
-                );
+                HttpResult response = HttpUtil.send(new Request.Builder().url(new URI(url).toURL()).build());
 
-                if (response.statusCode() == 404) {
+                if (response.code() == 404) {
                     message.getChannel().sendMessage(message.getAuthor().getEffectiveName() + ", that's not a valid rory pic").queue();
                     return;
                 }
@@ -103,7 +98,7 @@ public class RoryFetch implements Module {
                 message.getChannel().sendMessageEmbeds(createRoryEmbed(parsedResponse.get("id"), parsedResponse.get("url"))).queue();
             } catch (MalformedURLException | URISyntaxException _) {
                 message.getChannel().sendMessage(message.getAuthor().getEffectiveName() + ", that's an invalid URL!").queue();
-            } catch (InterruptedException | IOException _) {
+            } catch (IOException _) {
                 message.getChannel().sendMessage(message.getAuthor().getEffectiveName() + ", failed to lookup rory pic!").queue();
             }
         }
