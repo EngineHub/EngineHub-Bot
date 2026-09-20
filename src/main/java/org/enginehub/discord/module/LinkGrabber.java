@@ -21,6 +21,7 @@
  */
 package org.enginehub.discord.module;
 
+import com.google.common.base.Splitter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
@@ -106,7 +107,7 @@ public class LinkGrabber implements Module {
 
         Message reference = message.getReferencedMessage();
 
-        for (String splitKey : key.split(",")) {
+        for (String splitKey : Splitter.on(',').omitEmptyStrings().split(key)) {
             printAlias(splitKey, user, message.getChannel(), message.getAuthor(), reference);
         }
     }

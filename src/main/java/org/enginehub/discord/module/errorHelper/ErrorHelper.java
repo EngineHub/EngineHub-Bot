@@ -50,13 +50,18 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -70,6 +75,9 @@ import javax.imageio.ImageIO;
 public class ErrorHelper extends ListenerAdapter implements Module {
 
     private static final Logger LOGGER = LogManager.getLogger();
+    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
+        .followRedirects(HttpClient.Redirect.NORMAL)
+        .build();
     private static final int LOG_SCAN_LIMIT = 1024 * 1024 * 50; // 50MB
 
     private final List<ErrorResolver> resolvers = List.of(
@@ -123,7 +131,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
                         + "to scan.").queue();
                     continue; //Ignore >10MB for now.
                 }
-                try(BufferedReader reader = new BufferedReader(new InputStreamReader(attachment.getProxy().download().get()))) {
+                try(BufferedReader reader = new BufferedReader(new InputStreamReader(attachment.getProxy().download().get(), StandardCharsets.UTF_8))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
                         messageText.append(line).append('\n');
@@ -165,7 +173,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
     private static final Pattern REMOVE_CHARS = Pattern.compile("[\n\r \t’‘“”`\"']");
 
     private static String cleanString(String string) {
-        return REMOVE_CHARS.matcher(string.toLowerCase()).replaceAll("");
+        return REMOVE_CHARS.matcher(string.toLowerCase(Locale.ROOT)).replaceAll("");
     }
 
     private Stream<String> messagesForError(String error) {
@@ -186,10 +194,16 @@ public class ErrorHelper extends ListenerAdapter implements Module {
     private static String getStringFromUrl0(String url, int tries) {
         StringBuilder main = new StringBuilder();
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(url).openStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                main.append(line);
+        try {
+            HttpResponse<Stream<String>> response = HTTP_CLIENT.send(
+                HttpRequest.newBuilder(new URI(url)).build(),
+                HttpResponse.BodyHandlers.ofLines()
+            );
+            try (Stream<String> lines = response.body()) {
+                if (response.statusCode() >= 400) {
+                    throw new IOException("HTTP " + response.statusCode());
+                }
+                lines.forEach(main::append);
             }
         } catch (Throwable e) {
             LOGGER.warn("Failed to load URL " + url + " (Tries " + tries + ')', e);

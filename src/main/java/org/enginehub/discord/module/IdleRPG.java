@@ -157,7 +157,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
         if (commandArguments.length == 2) {
             try {
                 page = Integer.parseUnsignedInt(commandArguments[1]);
-                if (page == 0 || page > (Math.ceil(players.size() / 10.0))) {
+                if (page == 0 || page > Math.ceil(players.size() / 10.0)) {
                     throw new NumberFormatException();
                 }
             } catch (NumberFormatException e) {
@@ -227,6 +227,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
                 players.putAll(map);
             }
         } catch (FileNotFoundException ignored) {
+            // Fine, we'll re-initialize.
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -21,12 +21,12 @@
  */
 package org.enginehub.discord.util;
 
-import org.junit.ComparisonFailure;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.opentest4j.AssertionFailedError;
 
 import java.math.BigDecimal;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class BigMathTest {
 
@@ -36,7 +36,7 @@ public class BigMathTest {
         if (actual.toString().startsWith(expected.toString())) {
             return;
         }
-        throw new ComparisonFailure("", expected.toString(), actual.toString());
+        throw new AssertionFailedError("", expected.toString(), actual.toString());
     }
 
     @Test

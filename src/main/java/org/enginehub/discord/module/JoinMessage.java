@@ -32,9 +32,9 @@ public class JoinMessage extends ListenerAdapter implements Module {
         Hey! Welcome to the EngineHub Discord!
 
         Before you get started, make sure you read the rules at <#139272202431234048>.
-            
+
         If you need help, put your server log (`logs/latest.log`) onto https://paste.enginehub.org/ and provide us with the link in the appropriate channel.
-        
+
         ~ The EngineHub team
         """;
 

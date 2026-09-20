@@ -37,8 +37,8 @@ import org.enginehub.piston.annotation.param.Arg;
 import java.awt.Color;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -89,7 +89,7 @@ public class RoryFetch implements Module {
             }
             try {
                 HttpResponse<String> response = client.send(
-                    HttpRequest.newBuilder(new URL(url).toURI()).build(),
+                    HttpRequest.newBuilder(new URI(url)).build(),
                     HttpResponse.BodyHandlers.ofString()
                 );
 

@@ -27,9 +27,8 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -43,9 +42,9 @@ public class PasteUtil {
 
     private static HttpClient client = HttpClient.newHttpClient();
 
-    public static CompletableFuture<URL> sendToPastebin(String content) throws IOException, URISyntaxException, InterruptedException {
+    public static CompletableFuture<URI> sendToPastebin(String content) throws IOException, URISyntaxException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(new URL("https://paste.enginehub.org/signed_paste_v2").toURI())
+            .uri(new URI("https://paste.enginehub.org/signed_paste_v2"))
             .GET()
             .build();
 
@@ -61,9 +60,8 @@ public class PasteUtil {
             }
         }).thenCompose(signedPasteData -> {
             try {
-                URL url = new URL(signedPasteData.uploadUrl);
                 HttpRequest.Builder uploadRequestBuilder = HttpRequest.newBuilder()
-                    .uri(url.toURI())
+                    .uri(new URI(signedPasteData.uploadUrl))
                     .PUT(HttpRequest.BodyPublishers.ofString(content));
 
                 for (Map.Entry<String, String> header : signedPasteData.headers.entrySet()) {
@@ -76,12 +74,12 @@ public class PasteUtil {
                         throw new RuntimeException("Failed to upload paste: " + uploadResponse.body());
                     }
                     try {
-                        return new URL(signedPasteData.viewUrl);
-                    } catch (MalformedURLException e) {
+                        return new URI(signedPasteData.viewUrl);
+                    } catch (URISyntaxException e) {
                         throw new RuntimeException(e);
                     }
                 });
-            } catch (URISyntaxException | IOException e) {
+            } catch (URISyntaxException e) {
                 throw new RuntimeException(e);
             }
         });
