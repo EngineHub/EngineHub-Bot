@@ -37,6 +37,8 @@ import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.enginehub.discord.EngineHubBot;
 
 import java.util.HashMap;
@@ -48,6 +50,8 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
 public class EmojiRole extends ListenerAdapter implements Module {
+
+    private static final Logger LOGGER = LogManager.getLogger();
 
     private Map<String, String> emojiToRole = new HashMap<>();
     private String messageId;
@@ -150,7 +154,7 @@ public class EmojiRole extends ListenerAdapter implements Module {
                 }
             }
         } catch (Throwable t) {
-            t.printStackTrace();
+            LOGGER.warn("Failed to set up role reactions", t);
         }
     }
 
@@ -159,7 +163,7 @@ public class EmojiRole extends ListenerAdapter implements Module {
         try {
             loadedNode.getNode("roleMap").setValue(new TypeToken<Map<String, String>>(){}, emojiToRole);
         } catch (ObjectMappingException e) {
-            e.printStackTrace();
+            LOGGER.warn("Failed to save emoji role map", e);
         }
         loadedNode.getNode("messageId").setValue(messageId);
         loadedNode.getNode("channelId").setValue(channelId);

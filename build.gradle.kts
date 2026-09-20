@@ -13,9 +13,6 @@ version = "1.0-SNAPSHOT"
 crankcaseJava {
     javaRelease = 25
     disabledLints = listOf("processing")
-    disabledErrorprone = listOf(
-        "CatchAndPrintStackTrace",
-    )
 }
 
 tasks.compileJava {

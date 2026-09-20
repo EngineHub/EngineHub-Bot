@@ -37,6 +37,8 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.enginehub.discord.util.BigMath;
 import org.enginehub.discord.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -62,6 +64,7 @@ import static org.enginehub.discord.util.StringUtil.createEmbed;
 
 public class IdleRPG extends ListenerAdapter implements Module {
 
+    private static final Logger LOGGER = LogManager.getLogger();
     private static final String IDLE_RPG_TOKEN = ">";
     private static final String IDLE_RPG_LEADERBOARD_TOKEN = ">l";
     private static final String IDLE_RPG_FILE = "idlerpg_data.json";
@@ -230,7 +233,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
         } catch (FileNotFoundException _) {
             // Fine, we'll re-initialize.
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.warn("Failed to load IdleRPG player data", e);
         }
 
         // Purge players who only got to level 1 over a week ago.
@@ -250,7 +253,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
                 OBJECT_MAPPER.writeValue(new File(IDLE_RPG_FILE), players);
                 isDirty = false;
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.warn("Failed to save IdleRPG player data", e);
             }
         }
     }

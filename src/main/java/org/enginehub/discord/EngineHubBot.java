@@ -134,7 +134,7 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
             // Force kill.
             System.exit(0);
         } catch (LoginException | InterruptedException e) {
-            e.printStackTrace();
+            LOGGER.warn("Failed to start the bot", e);
         }
     }
 
@@ -232,7 +232,7 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
             try {
                 Thread.sleep(1000L);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                LOGGER.warn("Interrupted in main loop", e);
             }
         }
     }
@@ -273,7 +273,7 @@ public class EngineHubBot extends ListenerAdapter implements Runnable {
                 event.getChannel().sendMessage("You don't have permissions!").queue();
             } catch (CommandException e) {
                 event.getChannel().sendMessage("Failed to send command! " + e.getMessage()).queue();
-                e.printStackTrace();
+                LOGGER.warn("Command failed", e);
             }
         }
     }
