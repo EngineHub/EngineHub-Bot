@@ -10,11 +10,10 @@ group = "org.enginehub"
 version = "1.0-SNAPSHOT"
 
 crankcaseJava {
-    javaRelease = 21
+    javaRelease = 25
     disabledLints = listOf("processing")
     disabledErrorprone = listOf(
         "CatchAndPrintStackTrace",
-        "FutureReturnValueIgnored",
     )
 }
 

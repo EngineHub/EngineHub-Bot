@@ -141,7 +141,7 @@ public class ErrorHelper extends ListenerAdapter implements Module {
                 }
 
                 try {
-                    PasteUtil.sendToPastebin(messageText.toString()).thenAccept(url -> {
+                    var _ = PasteUtil.sendToPastebin(messageText.toString()).thenAccept(url -> {
                         String responseUrl = url.toString();
                         if (attachment.getFileName().equals("report.txt")) {
                             responseUrl = responseUrl + ".report";

@@ -34,7 +34,7 @@ public class PunishmentUtil {
     }
 
     public static void kickUser(Guild guild, Member member, String reason) {
-        member.getUser().openPrivateChannel().submit()
+        var _ = member.getUser().openPrivateChannel().submit()
             .thenCompose(privateChannel ->
                 privateChannel.sendMessage("You have been kicked for `" + reason + "`. Make sure to read the rules if you join again!")
                     .submit()
@@ -43,7 +43,7 @@ public class PunishmentUtil {
     }
 
     public static void banUser(Guild guild, User user, String reason, boolean eraseHistory) {
-        user.openPrivateChannel().submit()
+        var _ = user.openPrivateChannel().submit()
             .thenCompose(privateChannel ->
                 privateChannel.sendMessage("You have been banned for `" + reason + "`. " + getContactString())
                     .submit()

@@ -226,7 +226,7 @@ public class IdleRPG extends ListenerAdapter implements Module {
             if (map != null) {
                 players.putAll(map);
             }
-        } catch (FileNotFoundException ignored) {
+        } catch (FileNotFoundException _) {
             // Fine, we'll re-initialize.
         } catch (IOException e) {
             e.printStackTrace();
