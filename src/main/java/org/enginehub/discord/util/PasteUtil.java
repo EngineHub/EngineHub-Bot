@@ -26,13 +26,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -41,16 +39,13 @@ public final class PasteUtil {
     public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
         .registerModules(new Jdk8Module(), new ParameterNamesModule());
 
-    private static HttpClient client = HttpClient.newHttpClient();
-
-    public static CompletableFuture<URI> sendToPastebin(String content) throws IOException, URISyntaxException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(new URI("https://paste.enginehub.org/signed_paste_v2"))
-            .GET()
+    public static CompletableFuture<URI> sendToPastebin(String content) {
+        Request request = new Request.Builder()
+            .url("https://paste.enginehub.org/signed_paste_v2")
             .build();
 
-        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).thenApply(response -> {
-            if (response.statusCode() != 200) {
+        return HttpUtil.sendAsync(request).thenApply(response -> {
+            if (response.code() != 200) {
                 throw new RuntimeException("Failed start paste signing: " + response.body());
             }
 
@@ -60,29 +55,25 @@ public final class PasteUtil {
                 throw new RuntimeException(e);
             }
         }).thenCompose(signedPasteData -> {
-            try {
-                HttpRequest.Builder uploadRequestBuilder = HttpRequest.newBuilder()
-                    .uri(new URI(signedPasteData.uploadUrl))
-                    .PUT(HttpRequest.BodyPublishers.ofString(content));
+            Request.Builder uploadRequestBuilder = new Request.Builder()
+                .url(signedPasteData.uploadUrl)
+                .put(RequestBody.create(content, null));
 
-                for (Map.Entry<String, String> header : signedPasteData.headers.entrySet()) {
-                    uploadRequestBuilder = uploadRequestBuilder.header(header.getKey(), header.getValue());
-                }
-
-                return client.sendAsync(uploadRequestBuilder.build(), HttpResponse.BodyHandlers.ofString()).thenApply(uploadResponse -> {
-                    // If this succeeds, it will not return any data aside from a 204 status.
-                    if (uploadResponse.statusCode() != 200 && uploadResponse.statusCode() != 204) {
-                        throw new RuntimeException("Failed to upload paste: " + uploadResponse.body());
-                    }
-                    try {
-                        return new URI(signedPasteData.viewUrl);
-                    } catch (URISyntaxException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-            } catch (URISyntaxException e) {
-                throw new RuntimeException(e);
+            for (Map.Entry<String, String> header : signedPasteData.headers.entrySet()) {
+                uploadRequestBuilder = uploadRequestBuilder.header(header.getKey(), header.getValue());
             }
+
+            return HttpUtil.sendAsync(uploadRequestBuilder.build()).thenApply(uploadResponse -> {
+                // If this succeeds, it will not return any data aside from a 204 status.
+                if (uploadResponse.code() != 200 && uploadResponse.code() != 204) {
+                    throw new RuntimeException("Failed to upload paste: " + uploadResponse.body());
+                }
+                try {
+                    return new URI(signedPasteData.viewUrl);
+                } catch (URISyntaxException e) {
+                    throw new RuntimeException(e);
+                }
+            });
         });
     }
 

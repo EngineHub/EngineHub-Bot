@@ -83,6 +83,19 @@ public class ErrorHelperTest {
     }
 
     @Test
+    public void testDoesNotFollowCrossSchemeRedirect() {
+        AtomicInteger requests = new AtomicInteger();
+        server.createContext("/cross", exchange -> {
+            requests.getAndIncrement();
+            exchange.getResponseHeaders().add("Location", "https://127.0.0.1:1/y");
+            respond(exchange, 302, "blocked");
+        });
+
+        assertEquals("blocked", ErrorHelper.getStringFromUrl(url("/cross")));
+        assertEquals(1, requests.get());
+    }
+
+    @Test
     public void testRetriesServerError() {
         AtomicInteger requests = new AtomicInteger();
         server.createContext("/flaky", exchange -> {

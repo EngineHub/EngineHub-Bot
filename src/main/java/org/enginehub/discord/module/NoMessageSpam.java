@@ -27,6 +27,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -35,10 +36,12 @@ import ninja.leaping.configurate.ConfigurationNode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.enginehub.discord.EngineHubBot;
+import org.enginehub.discord.util.AttachmentImages;
 import org.enginehub.discord.util.PermissionRole;
 import org.enginehub.discord.util.PunishmentUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.InstantSource;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -61,24 +64,29 @@ public class NoMessageSpam extends ListenerAdapter implements Module {
     private final LoadingCache<CacheKey, AtomicInteger> messageCounts = CacheBuilder.newBuilder()
         .expireAfterAccess(1, TimeUnit.MINUTES)
         .build(CacheLoader.from(() -> new AtomicInteger(0)));
+    private final ImageSpamTracker imageSpamTracker = new ImageSpamTracker(InstantSource.system());
     private final HashSet<Long> hasPingedBefore = new HashSet<>();
     private volatile Set<Long> guildsForPunish;
 
     @Override
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
-        // Don't check for people who are trusted not to spam
-        if (EngineHubBot.isAuthorised(event.getMember(), PermissionRole.TRUSTED)) {
+        if (isSpamExempt(event)) {
             return;
         }
 
         if (event.getChannel() instanceof GuildChannel) {
-            if (checkForGeneralSpam(event)) {
+            if (checkForGeneralSpam(event) || checkForImageSpam(event)) {
                 // Skip further checks if they were already banned
                 return;
             }
         }
 
         checkForAtEveryone(event);
+    }
+
+    private boolean isSpamExempt(@NotNull MessageReceivedEvent event) {
+        return event.getAuthor().isBot() || event.getAuthor().isSystem() || event.isWebhookMessage()
+            || EngineHubBot.isAuthorised(event.getMember(), PermissionRole.TRUSTED);
     }
 
     private void checkForAtEveryone(@NotNull MessageReceivedEvent event) {
@@ -120,6 +128,27 @@ public class NoMessageSpam extends ListenerAdapter implements Module {
         if (hashCount == 5) {
             PunishmentUtil.banUser(event.getGuild(), event.getAuthor(), "Message spam", true);
             return true;
+        }
+
+        return false;
+    }
+
+    private boolean checkForImageSpam(@NotNull MessageReceivedEvent event) {
+        long userId = event.getAuthor().getIdLong();
+        long messageId = event.getMessageIdLong();
+        for (Message.Attachment attachment : event.getMessage().getAttachments()) {
+            if (!attachment.isImage()) {
+                continue;
+            }
+
+            try {
+                if (imageSpamTracker.isSpammedImage(userId, messageId, AttachmentImages.fetch(attachment))) {
+                    PunishmentUtil.banUser(event.getGuild(), event.getAuthor(), "Image spam", true);
+                    return true;
+                }
+            } catch (Exception e) {
+                LOGGER.warn("Failed to check image", e);
+            }
         }
 
         return false;

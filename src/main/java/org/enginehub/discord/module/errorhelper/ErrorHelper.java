@@ -32,6 +32,8 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.sourceforge.tess4j.Tesseract;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.enginehub.discord.EngineHubBot;
@@ -44,18 +46,14 @@ import org.enginehub.discord.module.errorhelper.resolver.IncompatibleResolver;
 import org.enginehub.discord.module.errorhelper.resolver.MCLogsResolver;
 import org.enginehub.discord.module.errorhelper.resolver.RawSubdirectoryUrlResolver;
 import org.enginehub.discord.module.errorhelper.resolver.RawSubdomainUrlResolver;
+import org.enginehub.discord.util.AttachmentImages;
+import org.enginehub.discord.util.HttpUtil;
 import org.enginehub.discord.util.PasteUtil;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -71,14 +69,10 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import javax.imageio.ImageIO;
 
 public class ErrorHelper extends ListenerAdapter implements Module {
 
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
-        .followRedirects(HttpClient.Redirect.NORMAL)
-        .build();
     private static final int LOG_SCAN_LIMIT = 1024 * 1024 * 50; // 50MB
 
     private final List<ErrorResolver> resolvers = List.of(
@@ -86,12 +80,11 @@ public class ErrorHelper extends ListenerAdapter implements Module {
             new RawSubdirectoryUrlResolver("pastebin.com", "raw"), // PastebinResolver
             new RawSubdirectoryUrlResolver("hastebin.com", "raw"), // HastebinResolver
             new RawSubdirectoryUrlResolver("paste.helpch.at", "raw"), // PasteHelpchatResolver
-            new RawSubdirectoryUrlResolver("paste.md-5.net", "raw"), // md-5.net
             new RawSubdomainUrlResolver("pastes.dev", "api"), // Pastes.dev
             new GhostbinResolver(),
             new GistResolver(),
             new MCLogsResolver(),
-            new RawSubdirectoryUrlResolver("paste.enginehub.org", "documents", true), // EngineHubResolver
+            new RawSubdirectoryUrlResolver("paste.enginehub.org", "documents"), // EngineHubResolver
             new IncompatibleResolver("mcpaste.io")
     );
 
@@ -115,8 +108,8 @@ public class ErrorHelper extends ListenerAdapter implements Module {
                     continue;
                 }
 
-                try (InputStream is = attachment.getProxy().download().get()) {
-                    BufferedImage image = ImageIO.read(is);
+                try {
+                    BufferedImage image = AttachmentImages.fetch(attachment);
                     messageText.append(tesseract.doOCR(image));
                     if (EngineHubBot.isBotOwner(author) && message.getChannel() instanceof PrivateChannel) {
                         // If it's a bot developer, send OCR debug text.
@@ -141,17 +134,13 @@ public class ErrorHelper extends ListenerAdapter implements Module {
                     LOGGER.error("Failed to read attachment", e);
                 }
 
-                try {
-                    var _ = PasteUtil.sendToPastebin(messageText.toString()).thenAccept(url -> {
-                        String responseUrl = url.toString();
-                        if (attachment.getFileName().equals("report.txt")) {
-                            responseUrl = responseUrl + ".report";
-                        }
-                        channel.sendMessage("[AutoReply] Here's a pasted version, " + responseUrl).queue();
-                    });
-                } catch (IOException | URISyntaxException | InterruptedException e) {
-                    LOGGER.error("Failed to send to EH Paste Service", e);
-                }
+                var _ = PasteUtil.sendToPastebin(messageText.toString()).thenAccept(url -> {
+                    String responseUrl = url.toString();
+                    if (attachment.getFileName().equals("report.txt")) {
+                        responseUrl = responseUrl + ".report";
+                    }
+                    channel.sendMessage("[AutoReply] Here's a pasted version, " + responseUrl).queue();
+                });
             }
         }
         resolvers.parallelStream()
@@ -196,15 +185,15 @@ public class ErrorHelper extends ListenerAdapter implements Module {
         StringBuilder main = new StringBuilder();
 
         try {
-            HttpResponse<Stream<String>> response = HTTP_CLIENT.send(
-                HttpRequest.newBuilder(new URI(url)).build(),
-                HttpResponse.BodyHandlers.ofLines()
-            );
-            try (Stream<String> lines = response.body()) {
-                if (response.statusCode() >= 400) {
-                    throw new IOException("HTTP " + response.statusCode());
+            Request request = new Request.Builder().url(url).build();
+            try (Response response = HttpUtil.getClient().newCall(request).execute()) {
+                if (response.code() >= 400) {
+                    throw new IOException("HTTP " + response.code());
                 }
-                lines.forEach(main::append);
+
+                try (BufferedReader bodyStream = new BufferedReader(response.body().charStream())) {
+                    bodyStream.lines().forEach(main::append);
+                }
             }
         } catch (Throwable e) {
             LOGGER.warn("Failed to load URL " + url + " (Tries " + tries + ')', e);
